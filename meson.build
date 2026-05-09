@@ -16,8 +16,10 @@ inc = include_directories(
 src = files(
     'src/lexer.c',
     'src/parser.c',
-    'src/trie.c',
+    'src/prelexer.c',
+    'src/preparser.c',
     'src/router.c',
+    'src/trie.c',
 )
 
 libwrouter = library(
@@ -36,12 +38,23 @@ pkg = import('pkgconfig')
 pkg.generate(
     libwrouter,
     name : 'libwrouter',
-    description : 'High performance URL router library',
+    description : 'High-performance URL router library.',
 )
 
 #
 # Unit tests
 #
+test_prelexer = executable(
+    'test_prelexer',
+    'tests/test_prelexer.c',
+    src,
+    include_directories : inc,
+)
+
+test(
+    'prelexer',
+    test_prelexer,
+)
 
 test_lexer = executable(
     'test_lexer',

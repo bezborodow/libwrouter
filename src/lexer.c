@@ -50,10 +50,13 @@
  *
  * ============================
  */
+
 #include "lexer.h"
-#include <ctype.h>
+#include "symbol.h"
 #include <stdint.h>
 #include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
 
 void lexer_init(lexer_t *lx, const char *input, size_t length, symbol_ctx_t *symbols)
 {
@@ -64,11 +67,39 @@ void lexer_init(lexer_t *lx, const char *input, size_t length, symbol_ctx_t *sym
 
 token_t lexer_next(lexer_t *lx)
 {
-    (void)lx;
+    const char *p = lx->cursor;
+    const char *end = lx->cursor + lx->length;
+    const char * const * const *se;
+
     token_t tok = {0};
     tok.type = TOKEN_END;
     tok.length = 0;
     tok.symbol = 0;
+
+    while (p < end) {
+        char c = *p;
+
+        // Skip separators.
+        if (c == '/') {
+            p++;
+            continue;
+        }
+
+        const char *start;
+        for (start = p; p < end && *p != '/'; p++)
+            ;
+
+        size_t len = (size_t)(p - start);
+
+
+        lx->cursor = p;
+        break;
+    }
+
+    if (p >= end) {
+        lx->cursor = p;
+        return tok;
+    }
 
     return tok;
 }

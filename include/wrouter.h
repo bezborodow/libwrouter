@@ -10,13 +10,23 @@ typedef struct {
     wrouter_param_syntax_t param_syntax;
 } wrouter_t;
 
+typedef struct {
+    wrouter_param_syntax_t param_syntax;
+} wrouter_table_t;
+
+wrouter_table_t *wrouter_table_create(void);
 wrouter_t *wrouter_create(void);
+
+void wrouter_table_free(wrouter_table_t *router);
 void wrouter_free(wrouter_t *router);
 
-int wrouter_add_route(wrouter_t *router,
+int wrouter_add_route(wrouter_table_t *table,
                       const char *pattern,
                       wrouter_handler_t handler,
                       void *handler_ctx);
+
+int wrouter_compile(const wrouter_table_t *table,
+                    wrouter_t *router);
 
 int wrouter_match(const wrouter_t *router,
                   const char *path,

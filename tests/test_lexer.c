@@ -1,11 +1,8 @@
-// tests/test_lexer.c
-
+#include "lexer.h"
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-
-#include "lexer.h"
 
 _Static_assert(sizeof(token_t) == 4, "token_t must be 4 bytes");
 
@@ -28,7 +25,6 @@ typedef enum {
 static const char *literal_table[] = {
     "a",
     "account",
-    "account_id",
     "api",
     "b",
     "c",
@@ -64,6 +60,14 @@ typedef struct {
 static lexer_test_t tests[] = {
     {
         .input = "/",
+        .expected_count = 0,
+    },
+
+    {
+        .input = "/invalid-symbol",
+        .expected = {
+            { TOKEN_ILLEGAL, 15, 0 },
+        },
         .expected_count = 0,
     },
 
@@ -114,7 +118,7 @@ static lexer_test_t tests[] = {
     },
 
     {
-        .input = "/static/*",
+        .input = "/static/" "*",
         .expected = {
             { TOKEN_LITERAL,  6, LITERAL_STATIC },
             { TOKEN_WILDCARD, 1, 0 },
