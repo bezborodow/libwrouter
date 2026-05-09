@@ -25,12 +25,11 @@ pretoken_t prelexer_next(prelexer_t *lx)
     if (lx->cursor == NULL)
         return tok;
 
-    while (*p != '\0') {
+    if (*p != '\0') {
         char c = *p;
 
-        if (c == '/') {
+        if (c == '/')
             p++;
-        }
 
         if (*p == '/') {
             tok.type = TOKEN_ILLEGAL;
@@ -51,16 +50,14 @@ pretoken_t prelexer_next(prelexer_t *lx)
 
         const char *start;
         for (start = p; *p != '\0' && *p != '/'; p++) {
-            if (tok.type == TOKEN_PARAM && !isalnum(*p) && *p != '_') {
+            if (tok.type == TOKEN_PARAM && !isalnum(*p) && *p != '_')
                 tok.type = TOKEN_ILLEGAL;
-            }
         }
 
         // TODO handle overflow.
         tok.length = p - start;
 
         lx->cursor = p;
-        break;
     }
 
     if (tok.length == 0)
