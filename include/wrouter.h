@@ -4,9 +4,9 @@ typedef struct wrouter_route wrouter_route_t;
 typedef void (*wrouter_handler_t)(void *ctx, const char *const *params);
 
 typedef enum {
-    WWR_SYNTAX_COLON,   // :id
-    WWR_SYNTAX_BRACE,   // {id}
-    WWR_SYNTAX_ANGLE    // <id>
+    WROUTER_SYNTAX_COLON,   // :id
+    WROUTER_SYNTAX_BRACE,   // {id}
+    WROUTER_SYNTAX_ANGLE    // <id>
 } wwr_syntax_t;
 
 wrouter_t *wrouter_create(void);
