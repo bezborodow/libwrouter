@@ -8,7 +8,10 @@ project(
     ],
 )
 
-inc = include_directories('include')
+inc = include_directories(
+    'include',
+    'src',
+)
 
 src = files(
     'src/lexer.c',
@@ -36,4 +39,18 @@ pkg.generate(
     description : 'High performance URL router library',
 )
 
-test_inc = include_directories('src')
+#
+# Unit tests
+#
+
+test_lexer = executable(
+    'test_lexer',
+    'tests/test_lexer.c',
+    src,
+    include_directories : inc,
+)
+
+test(
+    'lexer',
+    test_lexer,
+)
