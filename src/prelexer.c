@@ -33,10 +33,13 @@ pretoken_t prelexer_next(prelexer_t *lx)
     while (*p != '\0') {
         char c = *p;
 
-        // Skip separators.
         if (c == '/') {
             p++;
-            continue;
+        }
+
+        if (*p == '/') {
+            tok.type = TOKEN_ILLEGAL;
+            return tok;
         }
 
         if (*p == ':') {
@@ -63,6 +66,13 @@ pretoken_t prelexer_next(prelexer_t *lx)
 
         lx->cursor = p;
         break;
+    }
+
+    if (tok.length == 0) {
+        if (*p == '\0')
+            tok.type = TOKEN_END;
+        else
+            tok.type = TOKEN_ILLEGAL;
     }
 
     return tok;
