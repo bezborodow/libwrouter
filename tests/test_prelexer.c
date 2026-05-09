@@ -4,6 +4,22 @@
 #include <stdio.h>
 #include <string.h>
 
+static void test_root(void)
+{
+    pretoken_t tok;
+
+    wrouter_param_syntax_t param_syntax = WROUTER_SYNTAX_COLON;
+
+    prelexer_t lx = {0};
+    prelexer_init(&lx, param_syntax);
+
+    prelexer_load(&lx, "/");
+    
+    tok = prelexer_next(&lx);
+    assert(tok.type == TOKEN_END);
+    assert(tok.length == 0);
+}
+
 static void test_simple_path(void)
 {
     pretoken_t tok;
@@ -52,9 +68,47 @@ static void test_param_path(void)
     assert(tok.type == TOKEN_END);
 }
 
+static void test_trailing(void)
+{
+    pretoken_t tok;
+
+    wrouter_param_syntax_t param_syntax = WROUTER_SYNTAX_COLON;
+
+    prelexer_t lx = {0};
+    prelexer_init(&lx, param_syntax);
+
+    prelexer_load(&lx, "/users/");
+    
+    tok = prelexer_next(&lx);
+    assert(tok.type == TOKEN_LITERAL);
+    assert(tok.length == 5);
+
+    tok = prelexer_next(&lx);
+    assert(tok.type == TOKEN_END);
+}
+
+static void test_double_slash(void)
+{
+    pretoken_t tok;
+
+    wrouter_param_syntax_t param_syntax = WROUTER_SYNTAX_COLON;
+
+    prelexer_t lx = {0};
+    prelexer_init(&lx, param_syntax);
+
+    prelexer_load(&lx, "//");
+    
+    tok = prelexer_next(&lx);
+    assert(tok.type == TOKEN_ILLEGAL);
+    assert(tok.length == 0);
+}
+
 int main(void)
 {
+    test_root();
     test_simple_path();
     test_param_path();
+    test_trailing();
+    test_double_slash();
     return 0;
 }
