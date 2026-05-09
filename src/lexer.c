@@ -62,12 +62,6 @@ void lexer_init(lexer_t *lx, const char *input, size_t length, symbol_ctx_t *sym
     lx->length  = length;
 }
 
-void lexer_reset(lexer_t *lx, const char *input, size_t length)
-{
-    lx->cursor = input;
-    lx->length = length;
-}
-
 token_t lexer_next(lexer_t *lx)
 {
     (void)lx;

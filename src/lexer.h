@@ -30,6 +30,4 @@ typedef struct {
 
 void lexer_init(lexer_t *lx, const char *input, size_t length, symbol_ctx_t *symbols);
 
-void lexer_reset(lexer_t *lx, const char *input, size_t length);
-
 token_t lexer_next(lexer_t *lx);
