@@ -10,6 +10,7 @@ typedef struct {
     uint8_t type;
     uint8_t length;
     uint16_t symbol;
+
 } token_t;
 
 typedef struct {
@@ -26,6 +27,7 @@ typedef struct {
     symbol_ctx_t *symbols;
     const char *cursor;
     size_t length;
+    wrouter_param_syntax_t param_syntax;
 } lexer_t;
 
 void lexer_init(lexer_t *lx, const char *input, size_t length, symbol_ctx_t *symbols);
