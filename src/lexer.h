@@ -1,7 +1,10 @@
+#include <stdint.h>
+#include <stddef.h>
+
 #define TOKEN_LITERAL   0
 #define TOKEN_PARAM     1
 #define TOKEN_WILDCARD  2
-#define TOKEN_EOF       255
+#define TOKEN_END       255
 
 typedef struct {
     uint8_t type;
@@ -10,8 +13,13 @@ typedef struct {
 } token_t;
 
 typedef struct {
-    const uint16_t *literal_table;
-    const uint16_t *param_table;
+    const char * const *table;
+    uint16_t count;
+} symbol_table_t;
+
+typedef struct {
+    symbol_table_t literals;
+    symbol_table_t params;
 } symbol_ctx_t;
 
 typedef struct {

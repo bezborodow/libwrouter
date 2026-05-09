@@ -50,3 +50,31 @@
  *
  * ============================
  */
+#include "lexer.h"
+#include <ctype.h>
+#include <stdint.h>
+#include <stddef.h>
+
+void lexer_init(lexer_t *lx, const char *input, size_t length, symbol_ctx_t *symbols)
+{
+    lx->symbols = symbols;
+    lx->cursor  = input;
+    lx->length  = length;
+}
+
+void lexer_reset(lexer_t *lx, const char *input, size_t length)
+{
+    lx->cursor = input;
+    lx->length = length;
+}
+
+token_t lexer_next(lexer_t *lx)
+{
+    (void)lx;
+    token_t tok = {0};
+    tok.type = TOKEN_END;
+    tok.length = 0;
+    tok.symbol = 0;
+
+    return tok;
+}
