@@ -63,12 +63,8 @@ pretoken_t prelexer_next(prelexer_t *lx)
         break;
     }
 
-    if (tok.length == 0) {
-        if (*p == '\0')
-            tok.type = TOKEN_END;
-        else
-            tok.type = TOKEN_ILLEGAL;
-    }
+    if (tok.length == 0)
+        tok.type = *p == '\0' ? TOKEN_END : TOKEN_ILLEGAL;
 
     return tok;
 }
