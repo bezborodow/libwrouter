@@ -1,16 +1,17 @@
-typedef struct wrouter wrouter_t;
-typedef struct wrouter_route wrouter_route_t;
-
 typedef void (*wrouter_handler_t)(void *ctx, const char *const *params);
 
 typedef enum {
     WROUTER_SYNTAX_COLON,   // :id
     WROUTER_SYNTAX_BRACE,   // {id}
     WROUTER_SYNTAX_ANGLE    // <id>
-} wwr_syntax_t;
+} wrouter_param_syntax_t;
+
+typedef struct {
+    wrouter_param_syntax_t param_syntax;
+} wrouter_t;
 
 wrouter_t *wrouter_create(void);
-void wrouter_destroy(wrouter_t *router);
+void wrouter_free(wrouter_t *router);
 
 int wrouter_add_route(wrouter_t *router,
                       const char *pattern,
