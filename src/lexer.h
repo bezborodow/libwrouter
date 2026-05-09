@@ -1,35 +1,26 @@
+#include "wrouter.h"
+#include "token.h"
+#include "symbol.h"
 #include <stdint.h>
 #include <stddef.h>
 
-#define TOKEN_LITERAL   0
-#define TOKEN_PARAM     1
-#define TOKEN_WILDCARD  2
-#define TOKEN_END       255
+#ifndef WROUTER_LEXER_H
+#define WROUTER_LEXER_H
 
 typedef struct {
     uint8_t type;
     uint8_t length;
     uint16_t symbol;
-
 } token_t;
 
 typedef struct {
-    const char * const *table;
-    uint16_t count;
-} symbol_table_t;
-
-typedef struct {
-    symbol_table_t literals;
-    symbol_table_t params;
-} symbol_ctx_t;
-
-typedef struct {
-    symbol_ctx_t *symbols;
     const char *cursor;
     size_t length;
-    wrouter_param_syntax_t param_syntax;
+    symbol_ctx_t *symbols;
 } lexer_t;
 
 void lexer_init(lexer_t *lx, const char *input, size_t length, symbol_ctx_t *symbols);
 
 token_t lexer_next(lexer_t *lx);
+
+#endif
