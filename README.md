@@ -1,4 +1,4 @@
-# libwrouter
+# Wrouter: Precompiled Symbolic Web Router
 
 ## Building
 
