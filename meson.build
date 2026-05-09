@@ -35,3 +35,5 @@ pkg.generate(
     name : 'libwrouter',
     description : 'High performance URL router library',
 )
+
+test_inc = include_directories('src')
