@@ -25,11 +25,6 @@ pretoken_t prelexer_next(prelexer_t *lx)
     if (lx->cursor == NULL)
         return tok;
 
-    if (*p == '\0') {
-        tok.type = TOKEN_END;
-        tok.length = 0;
-    }
-
     while (*p != '\0') {
         char c = *p;
 
