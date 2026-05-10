@@ -10,6 +10,8 @@ static void test_arena_basic_alloc(void)
 
     assert(p != NULL);
     memset(p, 0xAA, 16);
+
+    arena_free(&a);
 }
 
 static void test_arena_multiple_allocs(void)
@@ -25,6 +27,8 @@ static void test_arena_multiple_allocs(void)
 
     memset(p1, 0x11, 16);
     memset(p2, 0x22, 16);
+
+    arena_free(&a);
 }
 
 static void test_arena_stability_after_growth(void)
@@ -44,6 +48,8 @@ static void test_arena_stability_after_growth(void)
 
     assert(p1[0] == 'a');
     assert(p2[0] == 'b');
+
+    arena_free(&a);
 }
 
 static void test_arena_free(void)
