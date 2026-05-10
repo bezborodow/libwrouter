@@ -8,6 +8,7 @@
 typedef struct arena_block {
     char *mem;
     size_t used;
+    size_t size;
     struct arena_block *next;
 } arena_block_t;
 
