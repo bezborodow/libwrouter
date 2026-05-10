@@ -46,38 +46,26 @@ pkg.generate(
 #
 # Unit tests
 #
-test_prelexer = executable(
-    'test_prelexer',
-    'tests/test_prelexer.c',
-    src,
-    include_directories : inc,
-)
+san_args = [
+    '-fsanitize=address,undefined',
+    '-fno-omit-frame-pointer',
+    '-g',
+]
 
-test('prelexer', test_prelexer)
+foreach t : [
+    'prelexer',
+    'lexer',
+    'symbol',
+    'arena',
+]
+    exe = executable(
+        'test_@0@'.format(t),
+        'tests/test_@0@.c'.format(t),
+        src,
+        include_directories : inc,
+        c_args : san_args,
+        link_args : san_args,
+    )
 
-test_lexer = executable(
-    'test_lexer',
-    'tests/test_lexer.c',
-    src,
-    include_directories : inc,
-)
-
-test('lexer', test_lexer)
-
-test_symbol = executable(
-    'test_symbol',
-    'tests/test_symbol.c',
-    src,
-    include_directories : inc,
-)
-
-test('symbol', test_symbol)
-
-test_arena = executable(
-    'test_arena',
-    'tests/test_arena.c',
-    src,
-    include_directories : inc,
-)
-
-test('arena', test_arena)
+    test(t, exe)
+endforeach
