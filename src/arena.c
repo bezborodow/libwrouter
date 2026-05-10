@@ -10,7 +10,8 @@ void *arena_alloc(arena_t *a, size_t len)
             new_size *= 2;
 
         void *new_ptr = realloc(a->base, new_size);
-        if (!new_ptr) return NULL;
+        if (!new_ptr)
+            return NULL;
 
         a->base = new_ptr;
         a->size = new_size;

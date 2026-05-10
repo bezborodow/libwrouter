@@ -11,9 +11,9 @@ typedef void (*wrouter_handler_t)(void *ctx, const char *const *params);
  */
 typedef struct builder_t wrouter_builder_t;
 typedef enum {
-    WROUTER_SYNTAX_COLON,   // :id
-    WROUTER_SYNTAX_BRACE,   // {id}
-    WROUTER_SYNTAX_ANGLE    // <id>
+    WROUTER_SYNTAX_COLON, // :id
+    WROUTER_SYNTAX_BRACE, // {id}
+    WROUTER_SYNTAX_ANGLE  // <id>
 } wrouter_param_syntax_t;
 
 /**
@@ -26,9 +26,7 @@ typedef struct router_t wrouter_t;
  */
 wrouter_builder_t *wrouter_builder_create(wrouter_param_syntax_t param_syntax);
 
-int wrouter_add_route(wrouter_builder_t *builder,
-                      const char *pattern,
-                      wrouter_handler_t handler,
+int wrouter_add_route(wrouter_builder_t *builder, const char *pattern, wrouter_handler_t handler,
                       void *handler_ctx);
 
 /**
@@ -42,11 +40,8 @@ void wrouter_builder_free(wrouter_builder_t *builder);
 /**
  * Router API.
  */
-int wrouter_match(const wrouter_t *router,
-                  const char *path,
-                  wrouter_handler_t *out_handler,
-                  void **out_ctx,
-                  const char ***out_params);
+int wrouter_match(const wrouter_t *router, const char *path, wrouter_handler_t *out_handler,
+                  void **out_ctx, const char ***out_params);
 
 int wrouter_route_count(const wrouter_t *router);
 

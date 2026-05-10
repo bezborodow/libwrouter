@@ -61,17 +61,17 @@
 void lexer_init(lexer_t *lx, const char *input, size_t length, symbol_ctx_t *symbols)
 {
     lx->symbols = symbols;
-    lx->cursor  = input;
-    lx->length  = length;
+    lx->cursor = input;
+    lx->length = length;
 }
 
 token_t lexer_next(lexer_t *lx)
 {
     const char *p = lx->cursor;
     const char *end = lx->cursor + lx->length;
-    const char * const * const *se;
+    const char *const *const *se;
 
-    token_t tok = {0};
+    token_t tok = { 0 };
     tok.type = TOKEN_END;
     tok.length = 0;
     tok.symbol = 0;
@@ -90,7 +90,6 @@ token_t lexer_next(lexer_t *lx)
             ;
 
         size_t len = (size_t)(p - start);
-
 
         lx->cursor = p;
         break;

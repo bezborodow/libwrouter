@@ -7,7 +7,7 @@
 
 typedef uint16_t symbol_t;
 
-typedef const char * const symbol_table_entry_t;
+typedef const char *const symbol_table_entry_t;
 
 typedef struct {
     symbol_table_entry_t *base;

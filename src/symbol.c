@@ -11,7 +11,7 @@ static symbol_table_entry_t *symbol_table_next_slot(symbol_table_t *tbl, size_t 
         while (new_cap < tbl->count + len)
             new_cap *= 2;
 
-        symbol_table_entry_t *new_base = realloc(tbl->base, new_cap*sizeof(*tbl->base));
+        symbol_table_entry_t *new_base = realloc(tbl->base, new_cap * sizeof(*tbl->base));
         if (!new_base)
             return NULL;
 
