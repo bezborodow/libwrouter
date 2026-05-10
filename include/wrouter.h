@@ -9,7 +9,7 @@ typedef void (*wrouter_handler_t)(void *ctx, const char *const *params);
 /**
  * Route builder.
  */
-typedef struct builder_t wrouter_builder_t;
+typedef struct builder wrouter_builder_t;
 typedef enum {
     WROUTER_SYNTAX_COLON, // :id
     WROUTER_SYNTAX_BRACE, // {id}
@@ -19,7 +19,7 @@ typedef enum {
 /**
  * Router.
  */
-typedef struct router_t wrouter_t;
+typedef struct router wrouter_t;
 
 /**
  * Builder API.

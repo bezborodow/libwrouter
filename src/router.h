@@ -3,7 +3,7 @@
 #ifndef WROUTER_ROUTER_H
 #define WROUTER_ROUTER_H
 
-typedef struct {
-} router_t;
+struct router {
+};
 
 #endif
