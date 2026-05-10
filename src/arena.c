@@ -2,31 +2,59 @@
 #include <stdlib.h>
 #include <stddef.h>
 
-void *arena_alloc(arena_t *a, size_t len)
+static arena_block_t *arena_new_block(size_t min_size)
 {
-    if (a->used + len > a->size) {
-        size_t new_size = a->size ? a->size * 2 : 1024;
+    size_t size = min_size > ARENA_BLOCK_SIZE ? min_size : ARENA_BLOCK_SIZE;
 
-        while (new_size < a->used + len)
-            new_size *= 2;
+    arena_block_t *b = malloc(sizeof(*b));
+    if (!b) return NULL;
 
-        void *new_ptr = realloc(a->base, new_size);
-        if (!new_ptr)
-            return NULL;
-
-        a->base = new_ptr;
-        a->size = new_size;
+    b->mem = malloc(size);
+    if (!b->mem) {
+        free(b);
+        return NULL;
     }
 
-    void *out = (char *)a->base + a->used;
-    a->used += len;
-    return out;
+    b->used = 0;
+    b->next = NULL;
+    return b;
+}
+
+void *arena_alloc(arena_t *a, size_t len)
+{
+    if (!a->head) {
+        a->head = arena_new_block(len);
+        if (!a->head) return NULL;
+    }
+
+    arena_block_t *b = a->head;
+
+    while (1) {
+        if (b->used + len <= ARENA_BLOCK_SIZE) {
+            void *out = b->mem + b->used;
+            b->used += len;
+            return out;
+        }
+
+        if (!b->next) {
+            b->next = arena_new_block(len);
+            if (!b->next) return NULL;
+        }
+
+        b = b->next;
+    }
 }
 
 void arena_free(arena_t *a)
 {
-    free(a->base);
-    a->base = NULL;
-    a->size = 0;
-    a->used = 0;
+    arena_block_t *b = a->head;
+
+    while (b) {
+        arena_block_t *next = b->next;
+        free(b->mem);
+        free(b);
+        b = next;
+    }
+
+    a->head = NULL;
 }
