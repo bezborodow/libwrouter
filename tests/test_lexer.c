@@ -22,33 +22,12 @@ typedef enum {
     LITERAL_COUNT
 } literal_id_t;
 
-static const char *literal_table[] = {
-    "a",
-    "account",
-    "api",
-    "b",
-    "c",
-    "d",
-    "edit",
-    "posts",
-    "project",
-    "static",
-    "users",
-    "v1"
-};
+static const char *literal_table[] = { "a",    "account", "api",     "b",      "c",     "d",
+                                       "edit", "posts",   "project", "static", "users", "v1" };
 
-typedef enum {
-    PARAM_ACCOUNT_ID = 0,
-    PARAM_ID,
-    PARAM_NAME,
-    PARAM_COUNT
-} param_id_t;
+typedef enum { PARAM_ACCOUNT_ID = 0, PARAM_ID, PARAM_NAME, PARAM_COUNT } param_id_t;
 
-static const char *param_table[] = {
-    "account_id",
-    "id",
-    "name"
-};
+static const char *param_table[] = { "account_id", "id", "name" };
 
 typedef struct {
     const char *input;
@@ -166,7 +145,7 @@ static void test_lexer(void)
 {
     size_t test_count = sizeof(tests) / sizeof(tests[0]);
 
-    symbol_ctx_t syms = {0};
+    symbol_ctx_t syms = { 0 };
     syms.literals.base = literal_table;
     syms.literals.count = (uint16_t)(sizeof(literal_table) / sizeof(literal_table[0]));
     syms.params.base = param_table;
@@ -174,11 +153,8 @@ static void test_lexer(void)
 
     for (size_t i = 0; i < test_count; i++) {
 
-        lexer_t lx = {0};
-        lexer_init(&lx,
-                   tests[i].input,
-                   strlen(tests[i].input),
-                   &syms);
+        lexer_t lx = { 0 };
+        lexer_init(&lx, tests[i].input, strlen(tests[i].input), &syms);
 
         for (size_t j = 0; j < tests[i].expected_count; j++) {
 
