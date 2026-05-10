@@ -4,58 +4,63 @@
 
 static void test_arena_basic_alloc(void)
 {
-    arena_t a = { 0 };
+    arena_t a = {0};
 
-    void *p = arena_alloc(&a, 16);
+    char *p = arena_alloc(&a, 16);
 
     assert(p != NULL);
-    assert(a.base != NULL);
-    assert(a.size >= 16);
-    assert(a.used == 16);
+    memset(p, 0xAA, 16);
 }
 
-static void test_arena_growth(void)
+static void test_arena_multiple_allocs(void)
 {
-    arena_t a = { 0 };
+    arena_t a = {0};
 
-    void *p1 = arena_alloc(&a, 1024);
-    void *p2 = arena_alloc(&a, 2048);
+    char *p1 = arena_alloc(&a, 16);
+    char *p2 = arena_alloc(&a, 16);
 
     assert(p1 != NULL);
     assert(p2 != NULL);
-    assert(a.used == 3072);
-    assert(a.size >= 3072);
+    assert(p1 != p2);
+
+    memset(p1, 0x11, 16);
+    memset(p2, 0x22, 16);
 }
 
-static void test_arena_contiguity(void)
+static void test_arena_stability_after_growth(void)
 {
-    arena_t a = { 0 };
+    arena_t a = {0};
 
-    void *p1 = arena_alloc(&a, 8);
-    void *p2 = arena_alloc(&a, 8);
+    char *p1 = arena_alloc(&a, 4000);
+    char *p2 = arena_alloc(&a, 4000);
 
     assert(p1 != NULL);
     assert(p2 != NULL);
-    assert((char *)p2 == (char *)p1 + 8);
+    assert(p1 != p2);
+
+    // ensure both still usable
+    p1[0] = 'a';
+    p2[0] = 'b';
+
+    assert(p1[0] == 'a');
+    assert(p2[0] == 'b');
 }
 
 static void test_arena_free(void)
 {
-    arena_t a = { 0 };
+    arena_t a = {0};
 
     arena_alloc(&a, 128);
     arena_free(&a);
 
-    assert(a.base == NULL);
-    assert(a.size == 0);
-    assert(a.used == 0);
+    assert(a.head == NULL);
 }
 
 int main(void)
 {
     test_arena_basic_alloc();
-    test_arena_growth();
-    test_arena_contiguity();
+    test_arena_multiple_allocs();
+    test_arena_stability_after_growth();
     test_arena_free();
 
     return 0;

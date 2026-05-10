@@ -7,13 +7,11 @@
 
 typedef uint16_t symbol_t;
 
-typedef const char *const symbol_table_entry_t;
-
 typedef struct {
-    symbol_table_entry_t *base;
-    uint16_t count;
-    uint16_t capacity;
-    arena_t *arena;
+    const char **base;
+    size_t count;
+    size_t capacity;
+    arena_t arena;
 } symbol_table_t;
 
 typedef struct {
@@ -21,6 +19,7 @@ typedef struct {
     symbol_table_t params;
 } symbol_ctx_t;
 
+int symbol_table_init(symbol_table_t *tbl);
 int symbol_append(symbol_table_t *tbl, const char *str, size_t len);
 void symbol_table_free(symbol_table_t *tbl);
 
