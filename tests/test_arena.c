@@ -4,7 +4,7 @@
 
 static void test_arena_basic_alloc(void)
 {
-    arena_t a = {0};
+    arena_t a = { 0 };
 
     char *p = arena_alloc(&a, 16);
 
@@ -14,7 +14,7 @@ static void test_arena_basic_alloc(void)
 
 static void test_arena_multiple_allocs(void)
 {
-    arena_t a = {0};
+    arena_t a = { 0 };
 
     char *p1 = arena_alloc(&a, 16);
     char *p2 = arena_alloc(&a, 16);
@@ -29,7 +29,7 @@ static void test_arena_multiple_allocs(void)
 
 static void test_arena_stability_after_growth(void)
 {
-    arena_t a = {0};
+    arena_t a = { 0 };
 
     char *p1 = arena_alloc(&a, 4000);
     char *p2 = arena_alloc(&a, 4000);
@@ -48,7 +48,7 @@ static void test_arena_stability_after_growth(void)
 
 static void test_arena_free(void)
 {
-    arena_t a = {0};
+    arena_t a = { 0 };
 
     arena_alloc(&a, 128);
     arena_free(&a);

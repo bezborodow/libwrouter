@@ -7,7 +7,8 @@ static arena_block_t *arena_new_block(size_t min_size)
     size_t size = min_size > ARENA_BLOCK_SIZE ? min_size : ARENA_BLOCK_SIZE;
 
     arena_block_t *b = malloc(sizeof(*b));
-    if (!b) return NULL;
+    if (!b)
+        return NULL;
 
     b->mem = malloc(size);
     if (!b->mem) {
@@ -24,7 +25,8 @@ void *arena_alloc(arena_t *a, size_t len)
 {
     if (!a->head) {
         a->head = arena_new_block(len);
-        if (!a->head) return NULL;
+        if (!a->head)
+            return NULL;
     }
 
     arena_block_t *b = a->head;
@@ -38,7 +40,8 @@ void *arena_alloc(arena_t *a, size_t len)
 
         if (!b->next) {
             b->next = arena_new_block(len);
-            if (!b->next) return NULL;
+            if (!b->next)
+                return NULL;
         }
 
         b = b->next;
