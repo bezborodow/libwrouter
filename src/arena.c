@@ -29,9 +29,7 @@ void *arena_alloc(arena_t *a, size_t len)
             return NULL;
     }
 
-    arena_block_t *b = a->head;
-
-    while (1) {
+    for (arena_block_t *b = a->head;; b = b->next) {
         if (b->used + len <= ARENA_BLOCK_SIZE) {
             void *out = b->mem + b->used;
             b->used += len;
@@ -43,8 +41,6 @@ void *arena_alloc(arena_t *a, size_t len)
             if (!b->next)
                 return NULL;
         }
-
-        b = b->next;
     }
 }
 
