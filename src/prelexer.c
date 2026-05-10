@@ -19,7 +19,7 @@ void prelexer_load(prelexer_t *lx, const char *input)
 
 pretoken_t prelexer_next(prelexer_t *lx)
 {
-    pretoken_t tok = {0};
+    pretoken_t tok = { 0 };
     const char *p = lx->cursor;
 
     if (lx->cursor == NULL)
