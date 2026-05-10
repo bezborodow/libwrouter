@@ -18,5 +18,5 @@ coverage:
 	meson compile -C build-coverage
 	meson test -C build-coverage --print-errorlogs -v
 	lcov --capture --directory build-coverage --output-file coverage.info
-	lcov --remove coverage.info '/usr/*' '*/tests/*' --output-file coverage.filtered.info
+	lcov --extract coverage.info "$$(pwd)/src/*" --output-file coverage.filtered.info
 	genhtml coverage.filtered.info --output-directory coverage_html
