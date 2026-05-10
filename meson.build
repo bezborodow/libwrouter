@@ -14,11 +14,13 @@ inc = include_directories(
 )
 
 src = files(
+    'src/arena.c',
     'src/lexer.c',
     'src/parser.c',
     'src/prelexer.c',
     'src/preparser.c',
     'src/router.c',
+    'src/symbol.c',
     'src/trie.c',
 )
 
@@ -51,10 +53,7 @@ test_prelexer = executable(
     include_directories : inc,
 )
 
-test(
-    'prelexer',
-    test_prelexer,
-)
+test('prelexer', test_prelexer)
 
 test_lexer = executable(
     'test_lexer',
@@ -63,7 +62,22 @@ test_lexer = executable(
     include_directories : inc,
 )
 
-test(
-    'lexer',
-    test_lexer,
+test('lexer', test_lexer)
+
+test_symbol = executable(
+    'test_symbol',
+    'tests/test_symbol.c',
+    src,
+    include_directories : inc,
 )
+
+test('symbol', test_symbol)
+
+test_arena = executable(
+    'test_arena',
+    'tests/test_arena.c',
+    src,
+    include_directories : inc,
+)
+
+test('arena', test_arena)

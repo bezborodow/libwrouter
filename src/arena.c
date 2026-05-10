@@ -1,3 +1,4 @@
+#include "arena.h"
 #include <stdlib.h>
 #include <stddef.h>
 
@@ -17,7 +18,7 @@ void *arena_alloc(arena_t *a, size_t len)
         a->size = new_size;
     }
 
-    void *out = a->base + a->used;
+    void *out = (char *)a->base + a->used;
     a->used += len;
     return out;
 }
@@ -25,6 +26,7 @@ void *arena_alloc(arena_t *a, size_t len)
 void arena_free(arena_t *a)
 {
     free(a->base);
+    a->base = NULL;
     a->size = 0;
-    a->cursor = 0;
+    a->used = 0;
 }

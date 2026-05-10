@@ -1,6 +1,6 @@
-.PHONY: default test ctags format
+.PHONY: build test ctags format
 
-default:
+build:
 	meson setup build
 	meson compile -C build
 
@@ -11,4 +11,4 @@ ctags:
 	ctags -R --languages=C --c-kinds=+p --fields=+iaS --extras=+q .
 
 format:
-	clang-format -i include/* src/*
+	clang-format -i include/* src/* tests/*.c
