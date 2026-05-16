@@ -1,4 +1,4 @@
-# Wrouter: Precompiled Symbolic Web Router
+# Wrouter: Symbolic Web Router
 
 ## Building
 
