@@ -5,6 +5,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 void prelexer_init(prelexer_t *lx, wrouter_param_syntax_t param_syntax)
 {
@@ -22,46 +23,71 @@ pretoken_t prelexer_next(prelexer_t *lx)
     pretoken_t tok = { 0 };
     const char *p = lx->cursor;
 
+    const bool angle = lx->param_syntax == WROUTER_SYNTAX_ANGLE;
+    const bool brace = lx->param_syntax == WROUTER_SYNTAX_BRACE;
+    const bool colon = lx->param_syntax == WROUTER_SYNTAX_COLON;
+
     if (lx->cursor == NULL)
-        return tok;
+        goto finish;
 
-    if (*p != '\0') {
-        char c = *p;
-
-        if (c == '/')
-            p++;
-
-        if (*p == '/') {
-            tok.type = TOKEN_ILLEGAL;
-            return tok;
-        }
-
-        if (*p == ':') {
-            tok.type = TOKEN_PARAM;
-            p++;
-
-            if (!isalpha(*p)) {
-                tok.type = TOKEN_ILLEGAL;
-                return tok;
-            }
-        } else {
-            tok.type = TOKEN_LITERAL;
-        }
-
-        const char *start;
-        for (start = p; *p != '\0' && *p != '/'; p++) {
-            if (tok.type == TOKEN_PARAM && !isalnum(*p) && *p != '_')
-                tok.type = TOKEN_ILLEGAL;
-        }
-
-        // TODO handle overflow.
-        tok.length = p - start;
-
-        lx->cursor = p;
+    if (*p == '\0') {
+        tok.type = TOKEN_END;
+        goto finish;
     }
 
-    if (tok.length == 0)
-        tok.type = *p == '\0' ? TOKEN_END : TOKEN_ILLEGAL;
+    char c = *p;
+
+    if (c == '/') {
+        p++;
+    }
+
+    if (*p == '\0') {
+        tok.type = TOKEN_END;
+        goto finish;
+    }
+
+    if (*p == '/') {
+        tok.type = TOKEN_ILLEGAL;
+        goto finish;
+    }
+
+    if ((*p == ':' && colon) || (*p == '<' && angle) || (*p == '{' && brace)) {
+        tok.type = TOKEN_PARAM;
+        p++;
+
+        if (!isalpha(*p)) {
+            tok.type = TOKEN_ILLEGAL;
+            goto finish;
+        }
+    } else {
+        tok.type = TOKEN_LITERAL;
+    }
+
+    const char *start;
+    for (start = p; *p != '\0' && *p != '/'; p++) {
+        if (tok.type == TOKEN_PARAM) {
+            if ((*p == '>' && angle) || (*p == '}' && brace)) {
+                break;
+            }
+
+            if (!isalnum(*p) && *p != '_') {
+                tok.type = TOKEN_ILLEGAL;
+                goto finish;
+            }
+        }
+    }
+
+    // TODO handle overflow.
+    tok.length = p - start;
+
+    if (tok.type == TOKEN_PARAM) {
+        if ((*p == '>' && angle) || (*p == '}' && brace)) {
+            p++;
+        }
+    }
+
+finish:
+    lx->cursor = p;
 
     return tok;
 }
