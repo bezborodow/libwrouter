@@ -33,12 +33,15 @@ static void test_simple_path(void)
 
     tok = prelexer_next(&lx);
     assert(tok.type == TOKEN_LITERAL);
+    assert(tok.length == 5);
 
     tok = prelexer_next(&lx);
     assert(tok.type == TOKEN_LITERAL);
+    assert(tok.length == 7);
 
     tok = prelexer_next(&lx);
     assert(tok.type == TOKEN_END);
+    assert(tok.length == 0);
 }
 
 static void test_param_path(void)
@@ -54,18 +57,23 @@ static void test_param_path(void)
 
     tok = prelexer_next(&lx);
     assert(tok.type == TOKEN_LITERAL);
+    assert(tok.length == 5);
 
     tok = prelexer_next(&lx);
     assert(tok.type == TOKEN_LITERAL);
+    assert(tok.length == 7);
 
     tok = prelexer_next(&lx);
+    assert(tok.length == 7);
     assert(tok.type == TOKEN_PARAM);
 
     tok = prelexer_next(&lx);
     assert(tok.type == TOKEN_LITERAL);
+    assert(tok.length == 4);
 
     tok = prelexer_next(&lx);
     assert(tok.type == TOKEN_END);
+    assert(tok.length == 0);
 }
 
 static void test_trailing(void)
@@ -85,6 +93,7 @@ static void test_trailing(void)
 
     tok = prelexer_next(&lx);
     assert(tok.type == TOKEN_END);
+    assert(tok.length == 0);
 }
 
 static void test_double_slash(void)
