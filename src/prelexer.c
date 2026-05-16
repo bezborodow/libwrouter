@@ -63,10 +63,12 @@ pretoken_t prelexer_next(prelexer_t *lx)
         tok.type = TOKEN_LITERAL;
     }
 
+    size_t extra = 0;
     const char *start;
     for (start = p; *p != '\0' && *p != '/'; p++) {
         if (tok.type == TOKEN_PARAM) {
             if ((*p == '>' && angle) || (*p == '}' && brace)) {
+                extra = 1;
                 break;
             }
 
@@ -79,12 +81,7 @@ pretoken_t prelexer_next(prelexer_t *lx)
 
     // TODO handle overflow.
     tok.length = p - start;
-
-    if (tok.type == TOKEN_PARAM) {
-        if ((*p == '>' && angle) || (*p == '}' && brace)) {
-            p++;
-        }
-    }
+    p += extra;
 
 finish:
     lx->cursor = p;
