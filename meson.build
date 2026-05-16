@@ -15,6 +15,7 @@ inc = include_directories(
 
 src = files(
     'src/arena.c',
+    'src/builder.c',
     'src/lexer.c',
     'src/parser.c',
     'src/prelexer.c',
@@ -53,10 +54,11 @@ san_args = [
 ]
 
 foreach t : [
-    'prelexer',
-    'lexer',
-    'symbol',
     'arena',
+    'builder',
+    'lexer',
+    'prelexer',
+    'symbol',
 ]
     exe = executable(
         'test_@0@'.format(t),
