@@ -8,7 +8,7 @@ test:
 	meson test -C build --print-errorlogs -v
 
 ctags:
-	ctags -R --languages=C --c-kinds=+p --fields=+iaS --extras=+q .
+	ctags -R --kinds-C=+stu --extras=+q -f tags .
 
 format:
 	clang-format -i include/* src/* tests/*.c
