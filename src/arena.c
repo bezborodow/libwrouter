@@ -1,6 +1,7 @@
 #include "arena.h"
 #include <stdlib.h>
 #include <stddef.h>
+#include <stdint.h>
 
 static arena_block_t *arena_new_block(size_t min_size)
 {
@@ -21,27 +22,40 @@ static arena_block_t *arena_new_block(size_t min_size)
     return b;
 }
 
-void *arena_alloc(arena_t *a, size_t len)
+void *arena_alloc_aligned(arena_t *a, size_t size, size_t align)
 {
     if (!a->head) {
-        a->head = arena_new_block(len);
+        a->head = a->tail = arena_new_block(size + align - 1);
         if (!a->head)
             return NULL;
     }
 
-    for (arena_block_t *b = a->head;; b = b->next) {
-        if (b->used + len <= b->size) {
-            void *out = b->mem + b->used;
-            b->used += len;
-            return out;
+    for (arena_block_t *b = a->tail;; b = b->next) {
+
+        uintptr_t base = (uintptr_t)b->mem + b->used;
+        uintptr_t aligned = (base + (align - 1)) & ~(align - 1);
+
+        size_t padding = aligned - base;
+        size_t total = padding + size;
+
+        if (b->used + total <= b->size) {
+            b->used += total;
+            return (void *)aligned;
         }
 
         if (!b->next) {
-            b->next = arena_new_block(len);
+            b->next = arena_new_block(size + align - 1);
             if (!b->next)
                 return NULL;
+
+            a->tail = b->next;
         }
     }
+}
+
+void *arena_alloc(arena_t *a, size_t len)
+{
+    return arena_alloc_aligned(a, len, _Alignof(char));
 }
 
 void arena_free(arena_t *a)
