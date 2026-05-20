@@ -80,6 +80,7 @@ pretoken_t prelexer_next(prelexer_t *lx)
     }
 
     // TODO handle overflow.
+    tok.ptr = start;
     tok.length = p - start;
     p += extra;
 

@@ -34,10 +34,14 @@ static void test_simple_path(void)
     tok = prelexer_next(&lx);
     assert(tok.type == TOKEN_LITERAL);
     assert(tok.length == 5);
+    assert(tok.ptr != NULL);
+    assert(memcmp(tok.ptr, "users", tok.length) == 0);
 
     tok = prelexer_next(&lx);
     assert(tok.type == TOKEN_LITERAL);
     assert(tok.length == 7);
+    assert(tok.ptr != NULL);
+    assert(memcmp(tok.ptr, "profile", tok.length) == 0);
 
     tok = prelexer_next(&lx);
     assert(tok.type == TOKEN_END);
@@ -58,18 +62,26 @@ static void test_param_path(void)
     tok = prelexer_next(&lx);
     assert(tok.type == TOKEN_LITERAL);
     assert(tok.length == 5);
+    assert(tok.ptr != NULL);
+    assert(memcmp(tok.ptr, "users", tok.length) == 0);
 
     tok = prelexer_next(&lx);
     assert(tok.type == TOKEN_LITERAL);
     assert(tok.length == 7);
+    assert(tok.ptr != NULL);
+    assert(memcmp(tok.ptr, "profile", tok.length) == 0);
 
     tok = prelexer_next(&lx);
     assert(tok.length == 7);
     assert(tok.type == TOKEN_PARAM);
+    assert(tok.ptr != NULL);
+    assert(memcmp(tok.ptr, "user_id", tok.length) == 0);
 
     tok = prelexer_next(&lx);
     assert(tok.type == TOKEN_LITERAL);
     assert(tok.length == 4);
+    assert(tok.ptr != NULL);
+    assert(memcmp(tok.ptr, "edit", tok.length) == 0);
 
     tok = prelexer_next(&lx);
     assert(tok.type == TOKEN_END);
@@ -90,6 +102,8 @@ static void test_trailing(void)
     tok = prelexer_next(&lx);
     assert(tok.type == TOKEN_LITERAL);
     assert(tok.length == 5);
+    assert(tok.ptr != NULL);
+    assert(memcmp(tok.ptr, "users", tok.length) == 0);
 
     tok = prelexer_next(&lx);
     assert(tok.type == TOKEN_END);
@@ -126,10 +140,14 @@ static void test_param_brace(void)
     tok = prelexer_next(&lx);
     assert(tok.type == TOKEN_LITERAL);
     assert(tok.length == 8);
+    assert(tok.ptr != NULL);
+    assert(memcmp(tok.ptr, "accounts", tok.length) == 0);
 
     tok = prelexer_next(&lx);
     assert(tok.type == TOKEN_PARAM);
     assert(tok.length == 10);
+    assert(tok.ptr != NULL);
+    assert(memcmp(tok.ptr, "account_id", tok.length) == 0);
 
     tok = prelexer_next(&lx);
     assert(tok.type == TOKEN_END);
@@ -150,10 +168,14 @@ static void test_param_angle(void)
     tok = prelexer_next(&lx);
     assert(tok.type == TOKEN_LITERAL);
     assert(tok.length == 8);
+    assert(tok.ptr != NULL);
+    assert(memcmp(tok.ptr, "accounts", tok.length) == 0);
 
     tok = prelexer_next(&lx);
     assert(tok.type == TOKEN_PARAM);
     assert(tok.length == 10);
+    assert(tok.ptr != NULL);
+    assert(memcmp(tok.ptr, "account_id", tok.length) == 0);
 
     tok = prelexer_next(&lx);
     assert(tok.type == TOKEN_END);

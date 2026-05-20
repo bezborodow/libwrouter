@@ -1,15 +1,9 @@
 #include "wrouter.h"
 #include "token.h"
-#include <stdint.h>
 #include <stddef.h>
 
 #ifndef WROUTER_PRELEXER_H
 #define WROUTER_PRELEXER_H
-
-typedef struct {
-    uint8_t type;
-    uint8_t length;
-} pretoken_t;
 
 typedef struct {
     const char *cursor;
