@@ -1,5 +1,18 @@
+#include <stdint.h>
+
+#ifndef WROUTER_TOKEN_H
+#define WROUTER_TOKEN_H
+
 #define TOKEN_ILLEGAL 0
 #define TOKEN_LITERAL 1
 #define TOKEN_PARAM 2
 #define TOKEN_WILDCARD 3
 #define TOKEN_END 255
+
+typedef struct {
+    const char *ptr;
+    uint8_t type;
+    uint8_t length;
+} pretoken_t;
+
+#endif
