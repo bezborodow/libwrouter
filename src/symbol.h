@@ -20,7 +20,10 @@ typedef struct {
 } symbol_ctx_t;
 
 int symbol_table_init(symbol_table_t *tbl);
-int symbol_append(symbol_table_t *tbl, const char *str, size_t len);
+int symbol_append(symbol_table_t *tbl, const char *str, size_t length);
 void symbol_table_free(symbol_table_t *tbl);
+
+size_t symbol_resolve(const char *key, const char **base, size_t nmemb);
+int symbol_compare(const void *a, const void *b);
 
 #endif

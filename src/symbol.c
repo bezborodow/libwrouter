@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 static int symbol_table_next_slot(symbol_table_t *tbl, size_t len, size_t *slot)
 {
@@ -58,4 +59,28 @@ void symbol_table_free(symbol_table_t *tbl)
     tbl->capacity = 0;
 
     arena_free(&tbl->arena);
+}
+
+int symbol_compare(const void *a, const void *b)
+{
+    const char *key = *(const char **)a;
+    const char *sym = *(const char **)b;
+
+    for (; *key && *sym && *key != '/'; key++, sym++)
+        if (*key != *sym)
+            goto miss;
+
+    if ((*key == '/' || !*key) && !*sym)
+        return 0;
+
+miss:
+    return (unsigned char)*key - (unsigned char)*sym;
+}
+
+size_t symbol_resolve(const char *key, const char **base, size_t nmemb)
+{
+    const char *k = key;
+    const char **res = bsearch(&k, base, nmemb, sizeof(char *), symbol_compare);
+
+    return res ? res - base + 1 : 0;
 }
