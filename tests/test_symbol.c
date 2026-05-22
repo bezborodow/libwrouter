@@ -50,6 +50,7 @@ static void test_symbol_compare(void)
         { "user/",    "user",     true  },
         { "x/",       "x",        true  },
         { "x",        "x",        true  },
+        { "\xFF",     "\xFF",     true  },
         { "proj/",    "project",  false },
         { "x1",       "x2",       false },
         { "x2",       "x1",       false },
@@ -61,6 +62,10 @@ static void test_symbol_compare(void)
         { "b",        "a",        false },
         { "ab/",      "abc",      false },
         { "abc/",     "abd",      false },
+        { "\xFF",     "A",        false },
+        { "A",        "\xFF",     false },
+        { "\x01",     "\xFF",     false },
+        { "\xFF",     "\x01",     false },
     };
 
     for (size_t i = 0; i < sizeof(cases)/sizeof(cases[0]); i++) {
