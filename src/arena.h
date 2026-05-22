@@ -17,7 +17,7 @@ typedef struct {
     arena_block_t *tail;
 } arena_t;
 
-void *arena_alloc(arena_t *a, size_t len);
+void *arena_alloc(arena_t *a, size_t length);
 void *arena_alloc_aligned(arena_t *a, size_t size, size_t align);
 void arena_free(arena_t *a);
 

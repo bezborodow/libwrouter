@@ -176,7 +176,5 @@ int main(void)
 {
     test_lexer();
 
-    printf("Lexer tests passed.\n");
-
     return 0;
 }

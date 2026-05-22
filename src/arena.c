@@ -53,9 +53,9 @@ void *arena_alloc_aligned(arena_t *a, size_t size, size_t align)
     }
 }
 
-void *arena_alloc(arena_t *a, size_t len)
+void *arena_alloc(arena_t *a, size_t length)
 {
-    return arena_alloc_aligned(a, len, _Alignof(char));
+    return arena_alloc_aligned(a, length, _Alignof(char));
 }
 
 void arena_free(arena_t *a)
