@@ -115,7 +115,7 @@ void test_router_basic(void)
     wrouter_t *router = wrouter_compile(builder, &status);
 
     for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
-        wrouter_dispatch(builder, cases[i].request, NULL);
+        wrouter_dispatch(router, cases[i].request, NULL);
     }
 
     wrouter_builder_free(builder);
