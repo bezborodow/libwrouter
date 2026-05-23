@@ -5,6 +5,18 @@
 #include <string.h>
 #include <stdint.h>
 
+
+typedef struct {
+    const char *pattern;
+    const char *request;
+    const wrouter_params_t *params;
+} terminal_test_case_t;
+
+static void *cb_test(void *dispatch_ctx, void *route_ctx, const wrouter_params_t *params)
+{
+
+}
+
 void test_router_basic(void)
 {
     // clang-format off
@@ -30,12 +42,6 @@ void test_router_basic(void)
         .count = 1
     };
     // clang-format on
-
-    typedef struct {
-        const char *pattern;
-        const char *request;
-        const wrouter_params_t *params;
-    } terminal_test_case_t;
 
     // clang-format off
     terminal_test_case_t cases[] = {
@@ -105,9 +111,11 @@ void test_router_basic(void)
     wrouter_param_syntax_t param_syntax = WROUTER_SYNTAX_ANGLE;
     wrouter_builder_t *builder = wrouter_builder_create(param_syntax);
 
-    struct route route = { NULL, NULL };
+    struct route route = { cb_test, NULL };
 
-    for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
+    size_t n = sizeof(cases) / sizeof(cases[0]);
+    for (size_t i = 0; i < n; i++) {
+        route.ctx = &cases[i];
         wrouter_add_route(builder, cases[i].pattern, route);
     }
 
@@ -115,8 +123,8 @@ void test_router_basic(void)
 
     wrouter_builder_free(builder);
 
-    for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
-        wrouter_dispatch(router, cases[i].request, NULL);
+    for (size_t i = 0; i < n; i++) {
+        wrouter_dispatch(router, cases[i].request, &cases[i]);
     }
 
     wrouter_free(router);
