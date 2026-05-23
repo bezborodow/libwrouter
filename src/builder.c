@@ -6,9 +6,9 @@
 #include <stdint.h>
 #include <string.h>
 
-wrouter_builder_t *wrouter_builder_create(wrouter_param_syntax_t param_syntax)
+struct builder *wrouter_builder_create(wrouter_param_syntax_t param_syntax)
 {
-    wrouter_builder_t *builder;
+    struct builder *builder;
 
     builder = calloc(1, sizeof(*builder));
 
@@ -23,7 +23,7 @@ wrouter_builder_t *wrouter_builder_create(wrouter_param_syntax_t param_syntax)
     return builder;
 }
 
-int wrouter_add_route(wrouter_builder_t *builder, const char *pattern, wrouter_route_t route)
+int wrouter_add_route(struct builder *builder, const char *pattern, struct route route)
 {
     int status = 0;
 
@@ -62,7 +62,7 @@ static int strpcmp(const void *p1, const void *p2)
     return strcmp(*(const char **)p1, *(const char **)p2);
 }
 
-wrouter_t *wrouter_compile(const wrouter_builder_t *builder)
+struct router *wrouter_compile(const struct builder *builder)
 {
     wrouter_t *router = malloc(sizeof(struct router));
     if (router == NULL)
@@ -74,7 +74,7 @@ wrouter_t *wrouter_compile(const wrouter_builder_t *builder)
     return router;
 }
 
-void wrouter_builder_free(wrouter_builder_t *builder)
+void wrouter_builder_free(struct builder *builder)
 {
     if (builder == NULL)
         return;
