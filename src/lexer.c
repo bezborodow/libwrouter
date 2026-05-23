@@ -58,9 +58,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-void lexer_init(lexer_t *lx, const char *input, size_t length, symbol_ctx_t *symbols)
+void lexer_init(lexer_t *lx, const char *input, size_t length)
 {
-    lx->symbols = symbols;
     lx->cursor = input;
     lx->length = length;
 }

@@ -14,11 +14,6 @@ typedef struct {
     arena_t arena;
 } symbol_table_t;
 
-typedef struct {
-    symbol_table_t literals;
-    symbol_table_t params;
-} symbol_ctx_t;
-
 int symbol_table_init(symbol_table_t *tbl);
 int symbol_append(symbol_table_t *tbl, const char *str, size_t length);
 void symbol_table_free(symbol_table_t *tbl);
