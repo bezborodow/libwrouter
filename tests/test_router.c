@@ -5,9 +5,9 @@
 #include <string.h>
 #include <stdint.h>
 
-
 void test_router_basic(void)
 {
+    // clang-format off
     wrouter_params_t account_params = {
         .base = (param_t[]) {
             { "account_id", "100" },
@@ -29,82 +29,86 @@ void test_router_basic(void)
         },
         .count = 1
     };
+    // clang-format on
 
     typedef struct {
-        const char *route;
+        const char *pattern;
         const char *request;
         const wrouter_params_t *params;
     } terminal_test_case_t;
 
+    // clang-format off
     terminal_test_case_t cases[] = {
         {
-            .route = "/",
+            .pattern = "/",
             .request = "/",
             .params = NULL
         },
         {
-            .route = "/accounts",
+            .pattern = "/accounts",
             .request = "/accounts",
             .params = NULL
         },
         {
-            .route = "/accounts/create",
+            .pattern = "/accounts/create",
             .request = "/accounts/create",
             .params = NULL
         },
         {
-            .route = "/account/<account_id>",
+            .pattern = "/account/<account_id>",
             .request = "/account/100",
             .params = &account_params
         },
         {
-            .route = "/account/<account_id>/edit",
+            .pattern = "/account/<account_id>/edit",
             .request = "/account/100/edit",
             .params = &account_params
         },
         {
-            .route = "/account/<account_id>/projects",
+            .pattern = "/account/<account_id>/projects",
             .request = "/account/100/projects",
             .params = &account_params
         },
         {
-            .route = "/account/<account_id>/contacts",
+            .pattern = "/account/<account_id>/contacts",
             .request = "/account/100/contacts",
             .params = &account_params
         },
         {
-            .route = "/account/<account_id>/contact/<account_contact_id>",
+            .pattern = "/account/<account_id>/contact/<account_contact_id>",
             .request = "/account/200/contact/300",
             .params = &account_contact_params
         },
         {
-            .route = "/projects",
+            .pattern = "/projects",
             .request = "/projects",
             .params = NULL
         },
         {
-            .route = "/projects/create",
+            .pattern = "/projects/create",
             .request = "/projects/create",
             .params = NULL
         },
         {
-            .route = "/project/<project_id>",
+            .pattern = "/project/<project_id>",
             .request = "/project/400",
             .params = &project_params
         },
         {
-            .route = "/project/<project_id>/edit",
+            .pattern = "/project/<project_id>/edit",
             .request = "/project/400/edit",
             .params = &project_params
         },
     };
+    // clang-format on
 
     wrouter_param_syntax_t param_syntax = WROUTER_SYNTAX_ANGLE;
     wrouter_builder_t *builder = wrouter_builder_create(param_syntax);
 
+    struct route route = { NULL, NULL };
 
     for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
-        //wrouter_add_route(builder, pattern, route);
+        wrouter_add_route(builder, cases[i].pattern, route);
     }
 
     uint32_t status = 0;
