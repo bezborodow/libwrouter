@@ -8,6 +8,13 @@ project(
     ],
 )
 
+add_project_arguments(
+    '-Wall',
+    '-Wextra',
+    '-Wjump-misses-init',
+    language : 'c'
+)
+
 inc = include_directories(
     'include',
     'src',
