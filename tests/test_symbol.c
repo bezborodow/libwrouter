@@ -11,7 +11,12 @@ static void test_symbol_append(void)
 
     assert(symbol_append(&tbl, "hello", 5) != NULL);
     assert(symbol_append(&tbl, "world", 5) != NULL);
-    assert(symbol_append(&tbl, "world", 5) != NULL);
+
+
+    // Check duplicates.
+    char *strptr = symbol_append(&tbl, "world", 5);
+    assert(strptr != NULL);
+    assert(strcmp(strptr, "world") == 0);
 
     assert(tbl.count == 2);
 

@@ -37,7 +37,7 @@ char *symbol_append(symbol_table_t *tbl, const char *str, size_t len)
     // Check for duplicates.
     for (size_t i = 0; i < tbl->count; i++)
         if (strncmp(tbl->base[i], str, len) == 0 && tbl->base[i][len] == '\0')
-            return *tbl->base[i];
+            return tbl->base[i];
 
     // Get a slot in the table for the string pointer.
     size_t slot;
