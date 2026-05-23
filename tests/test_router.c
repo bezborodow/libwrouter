@@ -5,17 +5,13 @@
 #include <string.h>
 #include <stdint.h>
 
-
 typedef struct {
     const char *pattern;
     const char *request;
     const wrouter_params_t *params;
 } terminal_test_case_t;
 
-static void *cb_test(void *dispatch_ctx, void *route_ctx, const wrouter_params_t *params)
-{
-
-}
+static void *cb_test(void *dispatch_ctx, void *route_ctx, const wrouter_params_t *params) {}
 
 void test_router_basic(void)
 {
@@ -41,9 +37,7 @@ void test_router_basic(void)
         },
         .count = 1
     };
-    // clang-format on
 
-    // clang-format off
     terminal_test_case_t cases[] = {
         {
             .pattern = "/",

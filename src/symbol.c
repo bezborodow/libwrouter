@@ -34,17 +34,35 @@ int symbol_table_init(symbol_table_t *tbl)
 
 int symbol_append(symbol_table_t *tbl, const char *str, size_t len)
 {
-    size_t slot;
-
-    if (symbol_table_next_slot(tbl, 1, &slot) != 0)
+    // Copy string, ensuring that it is null terminated.
+    char *swap = calloc(len + 1, sizeof(char));
+    if (swap == NULL)
         return -ENOMEM;
+    memcpy(swap, str, len);
+
+    // Check for duplicates.
+    for (size_t i = 0; i < tbl->count; i++) {
+        if (strcmp(tbl->base[i], swap) == 0) {
+            free(swap);
+            return 0;
+        }
+    }
+
+    // Append.
+    size_t slot;
+    if (symbol_table_next_slot(tbl, 1, &slot) != 0) {
+        free(swap);
+        return -ENOMEM;
+    }
 
     char *a = arena_alloc(&tbl->arena, len + 1);
-    if (a == NULL)
+    if (a == NULL) {
+        free(swap);
         return -ENOMEM;
+    }
 
-    memcpy(a, str, len);
-    a[len] = '\0';
+    strcpy(a, swap);
+    free(swap);
 
     tbl->base[slot] = a;
 
