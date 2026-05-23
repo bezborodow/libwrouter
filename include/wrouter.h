@@ -24,7 +24,7 @@ wrouter_builder_t *wrouter_builder_create(wrouter_param_syntax_t param_syntax);
 
 int wrouter_add_route(wrouter_builder_t *builder, const char *pattern, wrouter_route_t route);
 
-wrouter_t *wrouter_compile(const wrouter_builder_t *builder, uint32_t *status);
+wrouter_t *wrouter_compile(const wrouter_builder_t *builder);
 
 void wrouter_builder_free(wrouter_builder_t *builder);
 

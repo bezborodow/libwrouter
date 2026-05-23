@@ -56,7 +56,7 @@ int wrouter_add_route(wrouter_builder_t *builder, const char *pattern, wrouter_r
     return 0;
 }
 
-wrouter_t *wrouter_compile(const wrouter_builder_t *builder, uint32_t *status)
+wrouter_t *wrouter_compile(const wrouter_builder_t *builder)
 {
     wrouter_t *router = malloc(sizeof(struct router));
 
