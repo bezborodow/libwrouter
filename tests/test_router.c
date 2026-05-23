@@ -50,6 +50,11 @@ void test_router_basic(void)
             .params = NULL
         },
         {
+            .pattern = "/*",
+            .request = "/hello",
+            .params = NULL
+        },
+        {
             .pattern = "/accounts",
             .request = "/accounts",
             .params = NULL

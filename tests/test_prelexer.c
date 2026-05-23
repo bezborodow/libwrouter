@@ -182,6 +182,32 @@ static void test_param_angle(void)
     assert(tok.length == 0);
 }
 
+static void test_wildcard(void)
+{
+    pretoken_t tok;
+
+    wrouter_param_syntax_t param_syntax = WROUTER_SYNTAX_COLON;
+
+    prelexer_t lx = { 0 };
+    prelexer_init(&lx, param_syntax);
+
+    prelexer_load(&lx, "/downloads/*");
+
+    tok = prelexer_next(&lx);
+    assert(tok.type == TOKEN_LITERAL);
+    assert(tok.length == 9);
+    assert(tok.ptr != NULL);
+    assert(memcmp(tok.ptr, "downloads", tok.length) == 0);
+
+    tok = prelexer_next(&lx);
+    assert(tok.type == TOKEN_WILDCARD);
+    assert(tok.length == 0);
+
+    tok = prelexer_next(&lx);
+    assert(tok.type == TOKEN_END);
+    assert(tok.length == 0);
+}
+
 int main(void)
 {
     test_root();
@@ -191,5 +217,6 @@ int main(void)
     test_double_slash();
     test_param_brace();
     test_param_angle();
+    test_wildcard();
     return 0;
 }

@@ -82,6 +82,12 @@ pretoken_t prelexer_next(prelexer_t *lx)
     // TODO handle overflow.
     tok.ptr = start;
     tok.length = p - start;
+
+    if (tok.length == 1 && start[0] == '*') {
+        tok.type = TOKEN_WILDCARD;
+        tok.length = 0;
+    }
+
     p += extra;
 
 finish:
