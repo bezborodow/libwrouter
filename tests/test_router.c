@@ -40,6 +40,11 @@ void test_router_basic(void)
 
     terminal_test_case_t cases[] = {
         {
+            .pattern = "/downloads/*",
+            .request = "/downloads/documents/schematic.pdf",
+            .params = NULL
+        },
+        {
             .pattern = "/",
             .request = "/",
             .params = NULL

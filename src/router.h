@@ -45,7 +45,7 @@ typedef struct symbols {
 } symbols_t;
 
 typedef struct terminals {
-    wrouter_route_t *base;
+    struct route *base;
     uint32_t count;
 } terminals_t;
 
