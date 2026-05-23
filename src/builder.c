@@ -5,93 +5,147 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdbool.h>
 
 struct builder *wrouter_builder_create(wrouter_param_syntax_t param_syntax)
 {
     struct builder *builder;
 
     builder = calloc(1, sizeof(*builder));
-
     if (builder == NULL)
         return NULL;
 
     builder->param_syntax = param_syntax;
 
+    builder->root = calloc(1, sizeof(segment_t));
+    if (builder->root == NULL) {
+        free(builder);
+        return NULL;
+    }
+
     symbol_table_init(&builder->literals);
     symbol_table_init(&builder->params);
-    builder->root = calloc(1, sizeof(segment_t));
 
     return builder;
 }
 
+static bool token_matches(pretoken_t tok, const segment_t *seg)
+{
+    return seg->str &&
+           tok.ptr &&
+           tok.length == seg->str_length &&
+           strncmp(tok.ptr, seg->str, tok.length) == 0;
+}
+
+static segment_t *find_child(segment_t *segment, pretoken_t tok)
+{
+    if (tok.ptr == NULL)
+        return NULL;
+
+    for (uint16_t i = 0; i < segment->child_count; i++) {
+        segment_t *child = segment->children[i];
+
+        if (token_matches(tok, child))
+            return child;
+    }
+
+    return NULL;
+}
+
 int wrouter_add_route(struct builder *builder, const char *pattern, struct route route)
 {
+    if (route.handler == NULL)
+        return -1;
+
     pretoken_t tok;
     prelexer_t lx = { 0 };
     prelexer_init(&lx, builder->param_syntax);
     prelexer_load(&lx, pattern);
 
     segment_t *cur = builder->root;
-    char *strptr;
 
     for (uint8_t depth = 0; ; depth++) {
         tok = prelexer_next(&lx);
 
         switch (tok.type) {
             case TOKEN_END:
+                // Check for duplicate routes.
+                if (cur->route.handler != NULL)
+                    return -1;
+
                 // Terminate route.
                 cur->route = route;
                 return 0;
 
-            case TOKEN_LITERAL:
-                strptr = symbol_append(&builder->literals, tok.ptr, tok.length);
-                if (strptr == NULL)
-                    return -1;
-
-                segment_t **new_children = realloc(cur->children,
-                        sizeof(segment_t*) * (cur->child_count + 1));
-
-                if (new_children == NULL)
-                    return -1;
-
-                cur->children = new_children;
-                segment_t *child = calloc(1, sizeof(segment_t));
-                if (child == NULL)
-                    return -1;
-
-                child->str = strptr;
-                child->str_length = tok.length;
-                cur->children[cur->child_count++] = child;
-
-                cur = child;
-                break;
-
-            case TOKEN_PARAM:
-                // Check that a parameter is not already assigned.
+            case TOKEN_LITERAL: {
+                // Literals are incompatible with parameters.
                 if (cur->spec_type == SPEC_PARAM)
                     return -1;
 
+                // Check for an existing child.
+                segment_t *child = find_child(cur, tok);
+
+                // If not, create one.
+                if (child == NULL) {
+
+                    char *strptr = symbol_append(&builder->literals, tok.ptr, tok.length);
+                    if (strptr == NULL)
+                        return -1;
+
+                    // Append child.
+                    segment_t **new_children = realloc(cur->children,
+                            sizeof(segment_t*) * (cur->child_count + 1));
+                    if (new_children == NULL)
+                        return -1;
+                    cur->children = new_children;
+
+                    child = calloc(1, sizeof(segment_t));
+                    if (child == NULL)
+                        return -1;
+
+                    child->str = strptr;
+                    child->str_length = tok.length;
+                    cur->children[cur->child_count++] = child;
+                }
+
+                cur = child;
+                break;
+            }
+
+            case TOKEN_PARAM: {
                 // Parameters are incompatible with wildcards.
                 if (cur->spec_type == SPEC_WILDCARD)
                     return -1;
 
-                // Append parameter.
-                strptr = symbol_append(&builder->params, tok.ptr, tok.length);
-                if (strptr == NULL)
-                    return -1;
+                if (cur->spec_type == SPEC_PARAM) {
 
-                segment_t *param = calloc(1, sizeof(segment_t));
-                if (param == NULL)
-                    return -1;
+                    // If a paramter is already assigned, it should have the same name.
+                    if (!token_matches(tok, cur->special.param))
+                        return -1;
 
-                param->str = strptr;
-                param->str_length = tok.length;
+                } else {
 
-                cur->spec_type = SPEC_PARAM;
-                cur->special.param = param;
+                    // Append parameter.
+                    char *strptr = symbol_append(&builder->params, tok.ptr, tok.length);
+                    if (strptr == NULL)
+                        return -1;
+
+                    segment_t *param = calloc(1, sizeof(segment_t));
+                    if (param == NULL)
+                        return -1;
+
+                    param->str = strptr;
+                    param->str_length = tok.length;
+
+                    cur->spec_type = SPEC_PARAM;
+                    cur->special.param = param;
+                }
+
+                cur = cur->special.param;
                 break;
 
-            case TOKEN_WILDCARD:
+            }
+            case TOKEN_WILDCARD: {
                 // Check that a wildcard is not already assigned.
                 if (cur->spec_type == SPEC_WILDCARD)
                     return -1;
@@ -113,6 +167,7 @@ int wrouter_add_route(struct builder *builder, const char *pattern, struct route
                 cur->special.wildcard->route = route;
                 return 0;
 
+            }
             case TOKEN_ILLEGAL:
             default:
                 return -1;
