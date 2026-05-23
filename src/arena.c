@@ -11,8 +11,8 @@ static arena_block_t *arena_new_block(size_t min_size)
     if (!b)
         return NULL;
 
-    b->mem = malloc(size);
-    if (!b->mem) {
+    b->base = malloc(size);
+    if (!b->base) {
         free(b);
         return NULL;
     }
@@ -32,7 +32,7 @@ void *arena_alloc_aligned(arena_t *a, size_t size, size_t align)
 
     for (arena_block_t *b = a->tail;; b = b->next) {
 
-        uintptr_t base = (uintptr_t)b->mem + b->used;
+        uintptr_t base = (uintptr_t)b->base + b->used;
         uintptr_t aligned = (base + (align - 1)) & ~(align - 1);
 
         size_t padding = aligned - base;
@@ -64,7 +64,7 @@ void arena_free(arena_t *a)
 
     while (b) {
         arena_block_t *next = b->next;
-        free(b->mem);
+        free(b->base);
         free(b);
         b = next;
     }

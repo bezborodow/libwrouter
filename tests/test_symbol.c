@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 static void test_symbol_append(void)
 {
@@ -9,6 +10,7 @@ static void test_symbol_append(void)
     symbol_table_init(&tbl);
 
     assert(symbol_append(&tbl, "hello", 5) == 0);
+    assert(symbol_append(&tbl, "world", 5) == 0);
     assert(symbol_append(&tbl, "world", 5) == 0);
 
     assert(tbl.count == 2);
@@ -25,15 +27,20 @@ static void test_symbol_table_growth(void)
     symbol_table_init(&tbl);
 
     size_t n = 2000;
+    char buf[10];
 
-    for (size_t i = 0; i < n; i++)
-        assert(symbol_append(&tbl, "x", 1) == 0);
+    for (size_t i = 0; i < n; i++) {
+        snprintf(buf, 9, "x%lu", i);
+        assert(symbol_append(&tbl, buf, strlen(buf)) == 0);
+    }
 
     assert(tbl.count == n);
     assert(tbl.capacity >= n);
 
-    for (size_t i = 0; i < n; i++)
-        assert(strcmp(tbl.base[i], "x") == 0);
+    for (size_t i = 0; i < n; i++) {
+        snprintf(buf, 9, "x%lu", i);
+        assert(strcmp(tbl.base[i], buf) == 0);
+    }
 
     symbol_table_free(&tbl);
 }

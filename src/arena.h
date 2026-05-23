@@ -6,7 +6,7 @@
 #define ARENA_BLOCK_SIZE 4096
 
 typedef struct arena_block {
-    unsigned char *mem;
+    unsigned char *base;
     size_t used;
     size_t size;
     struct arena_block *next;

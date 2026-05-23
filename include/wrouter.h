@@ -17,7 +17,7 @@ typedef void (*wrouter_handler_fn)(void *dispatch_ctx, void *route_ctx,
 typedef enum {
     WROUTER_SYNTAX_COLON, // :id
     WROUTER_SYNTAX_BRACE, // {id}
-    WROUTER_SYNTAX_ANGLE  // <id>
+    WROUTER_SYNTAX_ANGLE, // <id>
 } wrouter_param_syntax_t;
 
 wrouter_builder_t *wrouter_builder_create(wrouter_param_syntax_t param_syntax);
