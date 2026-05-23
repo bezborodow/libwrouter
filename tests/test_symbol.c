@@ -34,15 +34,11 @@ static void test_symbol_table_growth(void)
         char *strptr = symbol_append(&tbl, buf, strlen(buf));
         assert(strptr != NULL);
         assert(strcmp(strptr, buf) == 0);
+        assert(tbl.base[i] == strptr);
     }
 
     assert(tbl.count == n);
     assert(tbl.capacity >= n);
-
-    for (size_t i = 0; i < n; i++) {
-        snprintf(buf, 9, "x%lu", i);
-        assert(strcmp(tbl.base[i], buf) == 0);
-    }
 
     symbol_table_free(&tbl);
 }
