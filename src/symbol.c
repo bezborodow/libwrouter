@@ -35,26 +35,25 @@ int symbol_table_init(symbol_table_t *tbl)
 int symbol_append(symbol_table_t *tbl, const char *str, size_t len)
 {
     // Check for duplicates.
-    for (size_t i = 0; i < tbl->count; i++) {
-        if (strncmp(tbl->base[i], str, len) == 0 && tbl->base[i][len] == '\0') {
+    for (size_t i = 0; i < tbl->count; i++)
+        if (strncmp(tbl->base[i], str, len) == 0 && tbl->base[i][len] == '\0')
             return 0;
-        }
-    }
 
-    // Append.
+    // Get a slot in the table for the string pointer.
     size_t slot;
-    if (symbol_table_next_slot(tbl, 1, &slot) != 0) {
+    if (symbol_table_next_slot(tbl, 1, &slot) != 0)
         return -ENOMEM;
-    }
 
+    // Allocate space in the arena for the string.
     char *a = arena_alloc(&tbl->arena, len + 1);
-    if (a == NULL) {
+    if (a == NULL)
         return -ENOMEM;
-    }
 
+    // Copy the string into the arena, ensuring it is null-terminated.
     memcpy(a, str, len);
     a[len] = '\0';
 
+    // Append the string pointer.
     tbl->base[slot] = a;
 
     return 0;
