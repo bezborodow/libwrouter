@@ -26,20 +26,12 @@ typedef union {
 struct segment {
     char *str;
     struct route route;
-    segment_t *children;
+    segment_t **children;
     special_u special;
-    special_type_t type;
+    special_type_t spec_type;
     uint16_t child_count;
     uint16_t str_length;
 };
-
-typedef struct root {
-    segment_t *children;
-    special_u special;
-    special_type_t type;
-    struct route route;
-    uint16_t child_count;
-} root_t;
 
 typedef struct {
     pretoken_t *tokens;
@@ -53,7 +45,7 @@ typedef struct {
 } preroute_table_t;
 
 struct builder {
-    root_t root;
+    segment_t *root;
     preroute_table_t routes;
     arena_t arena;
     symbol_table_t literals;

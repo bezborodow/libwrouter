@@ -19,38 +19,79 @@ struct builder *wrouter_builder_create(wrouter_param_syntax_t param_syntax)
 
     symbol_table_init(&builder->literals);
     symbol_table_init(&builder->params);
+    builder->root = calloc(1, sizeof(segment_t));
 
     return builder;
 }
 
 int wrouter_add_route(struct builder *builder, const char *pattern, struct route route)
 {
-    int status = 0;
-
     pretoken_t tok;
     prelexer_t lx = { 0 };
     prelexer_init(&lx, builder->param_syntax);
     prelexer_load(&lx, pattern);
 
-    for (;;) {
+    segment_t *cur = builder->root;
+    char *strptr;
+
+    for (uint8_t depth = 0; ; depth++) {
         tok = prelexer_next(&lx);
 
-        if (tok.type == TOKEN_END)
-            break;
+        switch (tok.type) {
+            case TOKEN_END:
+                return 0;
 
-        if (tok.type == TOKEN_ILLEGAL)
-            return -1;
+            case TOKEN_LITERAL:
+                strptr = symbol_append(&builder->literals, tok.ptr, tok.length);
+                if (strptr == NULL)
+                    return -1;
 
-        if (tok.type == TOKEN_LITERAL) {
-            status = symbol_append(&builder->literals, tok.ptr, tok.length);
-            if (status)
-                return status;
-        }
+                segment_t **new_children = realloc(cur->children,
+                        sizeof(segment_t*) * (cur->child_count + 1));
 
-        if (tok.type == TOKEN_PARAM) {
-            status = symbol_append(&builder->params, tok.ptr, tok.length);
-            if (status)
-                return status;
+                if (new_children == NULL)
+                    return -1;
+
+                cur->children = new_children;
+                segment_t *child = calloc(1, sizeof(segment_t));
+                if (child == NULL)
+                    return -1;
+
+                child->str = strptr;
+                child->str_length = tok.length;
+                cur->children[cur->child_count++] = child;
+
+                cur = child;
+                break;
+
+            case TOKEN_PARAM:
+                strptr = symbol_append(&builder->params, tok.ptr, tok.length);
+                if (strptr == NULL)
+                    return -1;
+                break;
+
+            case TOKEN_WILDCARD:
+                // Check that a wildcard is not already assigned.
+                if (cur->spec_type == SPEC_WILDCARD)
+                    return -1;
+
+                // Paramters are incompatible.
+                if (cur->spec_type == SPEC_PARAM)
+                    return -1;
+
+                tok = prelexer_next(&lx);
+                if (tok.type != TOKEN_END)
+                    return -1;
+                cur->special.wildcard = calloc(1, sizeof(wildcard_t));
+                if (cur->special.wildcard == NULL)
+                    return -1;
+                cur->spec_type = SPEC_WILDCARD;
+                cur->special.wildcard->route = route;
+                return 0;
+
+            case TOKEN_ILLEGAL:
+            default:
+                return -1;
         }
     }
 
@@ -64,7 +105,7 @@ static int strpcmp(const void *p1, const void *p2)
 
 struct router *wrouter_compile(const struct builder *builder)
 {
-    wrouter_t *router = malloc(sizeof(struct router));
+    wrouter_t *router = calloc(1, sizeof(struct router));
     if (router == NULL)
         return NULL;
 
@@ -72,6 +113,28 @@ struct router *wrouter_compile(const struct builder *builder)
     qsort(builder->params.base, builder->params.count, sizeof(char *), strpcmp);
 
     return router;
+}
+
+static void segment_free(segment_t *segment)
+{
+    if (segment == NULL)
+        return;
+
+    switch (segment->spec_type) {
+        case SPEC_WILDCARD:
+            free(segment->special.wildcard);
+            break;
+
+        case SPEC_PARAM:
+            segment_free(segment->special.param);
+            break;
+    }
+
+    for (uint16_t i = 0; i < segment->child_count; i++)
+        segment_free(segment->children[i]);
+
+    free(segment->children);
+    free(segment);
 }
 
 void wrouter_builder_free(struct builder *builder)
@@ -82,5 +145,6 @@ void wrouter_builder_free(struct builder *builder)
     symbol_table_free(&builder->literals);
     symbol_table_free(&builder->params);
 
+    segment_free(builder->root);
     free(builder);
 }
