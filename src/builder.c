@@ -64,7 +64,7 @@ int wrouter_add_route(struct builder *builder, const char *pattern, struct route
 
     segment_t *cur = builder->root;
 
-    for (uint8_t depth = 0; ; depth++) {
+    for (;;) {
         tok = prelexer_next(&lx);
 
         switch (tok.type) {
@@ -119,7 +119,7 @@ int wrouter_add_route(struct builder *builder, const char *pattern, struct route
 
                 if (cur->spec_type == SPEC_PARAM) {
 
-                    // If a paramter is already assigned, it should have the same name.
+                    // If a parameter is already assigned, it should have the same name.
                     if (!token_matches(tok, cur->special.param))
                         return -1;
 
@@ -206,6 +206,9 @@ static void segment_free(segment_t *segment)
 
         case SPEC_PARAM:
             segment_free(segment->special.param);
+            break;
+
+        case SPEC_NONE:
             break;
     }
 
