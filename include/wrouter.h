@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 #ifndef WROUTER_H
 #define WROUTER_H
 
@@ -5,10 +7,11 @@
  * Router.
  */
 typedef struct router wrouter_t;
-
+typedef struct route wrouter_route_t;
 typedef struct builder wrouter_builder_t;
+typedef struct params wrouter_params_t;
 
-typedef void (*wrouter_handler_t)(void *ctx, const char *const *params);
+typedef void (*wrouter_handler_fn)(void *dispatch_ctx, void *route_ctx, const wrouter_params_t *params);
 
 typedef enum {
     WROUTER_SYNTAX_COLON, // :id
@@ -18,23 +21,15 @@ typedef enum {
 
 wrouter_builder_t *wrouter_builder_create(wrouter_param_syntax_t param_syntax);
 
-int wrouter_add_route(wrouter_builder_t *builder, const char *pattern, wrouter_handler_t handler,
-                      void *handler_ctx);
+int wrouter_add_route(wrouter_builder_t *builder, const char *pattern, wrouter_route_t route);
 
-/**
- * wrouter_t *router = NULL;
- * int err = wrouter_compile(builder, &router);
- */
-int wrouter_compile(const wrouter_builder_t *builder, wrouter_t **router);
+wrouter_t *wrouter_compile(const wrouter_builder_t *builder, uint32_t *status);
 
 void wrouter_builder_free(wrouter_builder_t *builder);
 
-int wrouter_match(const wrouter_t *router, const char *path, wrouter_handler_t *out_handler,
-                  void **out_ctx, const char ***out_params);
+void wrouter_dispatch(const wrouter_t *router, const char *path, void *dispatch_ctx);
 
 int wrouter_route_count(const wrouter_t *router);
-
-void wrouter_reset(wrouter_t *router);
 
 void wrouter_free(wrouter_t *router);
 

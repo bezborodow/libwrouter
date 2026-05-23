@@ -58,6 +58,7 @@ foreach t : [
     'builder',
     'lexer',
     'prelexer',
+    'router',
     'symbol',
 ]
     exe = executable(

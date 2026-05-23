@@ -1,7 +1,9 @@
 #include "wrouter.h"
+#include "router.h"
 #include "builder.h"
 #include "prelexer.h"
 #include <stdlib.h>
+#include <stdint.h>
 
 wrouter_builder_t *wrouter_builder_create(wrouter_param_syntax_t param_syntax)
 {
@@ -20,8 +22,7 @@ wrouter_builder_t *wrouter_builder_create(wrouter_param_syntax_t param_syntax)
     return builder;
 }
 
-int wrouter_add_route(wrouter_builder_t *builder, const char *pattern, wrouter_handler_t handler,
-                      void *handler_ctx)
+int wrouter_add_route(wrouter_builder_t *builder, const char *pattern, wrouter_route_t route)
 {
     int status = 0;
 
@@ -55,9 +56,11 @@ int wrouter_add_route(wrouter_builder_t *builder, const char *pattern, wrouter_h
     return 0;
 }
 
-int wrouter_compile(const wrouter_builder_t *builder, wrouter_t **router)
+wrouter_t *wrouter_compile(const wrouter_builder_t *builder, uint32_t *status)
 {
+    wrouter_t *router = malloc(sizeof(struct router));
 
+    return router;
 }
 
 void wrouter_builder_free(wrouter_builder_t *builder)

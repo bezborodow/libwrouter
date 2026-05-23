@@ -72,7 +72,7 @@ static void test_arena_free(void)
 
 static void test_arena_alignment_struct(void)
 {
-    arena_t a = {0};
+    arena_t a = { 0 };
 
     test_t *p1 = arena_alloc_aligned(&a, sizeof(test_t), _Alignof(test_t));
     test_t *p2 = arena_alloc_aligned(&a, sizeof(test_t), _Alignof(test_t));
@@ -88,7 +88,7 @@ static void test_arena_alignment_struct(void)
 
 static void test_arena_mixed_alignment(void)
 {
-    arena_t a = {0};
+    arena_t a = { 0 };
 
     char *c = arena_alloc_aligned(&a, 1, _Alignof(char));
     int *i = arena_alloc_aligned(&a, sizeof(int), _Alignof(int));
@@ -103,7 +103,7 @@ static void test_arena_mixed_alignment(void)
 
 static void test_arena_alignment_stress(void)
 {
-    arena_t a = {0};
+    arena_t a = { 0 };
 
     for (int i = 0; i < 1000; i++) {
         size_t align = (i % 64) + 1;
