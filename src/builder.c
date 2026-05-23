@@ -39,6 +39,8 @@ int wrouter_add_route(struct builder *builder, const char *pattern, struct route
 
         switch (tok.type) {
             case TOKEN_END:
+                // Terminate route.
+                cur->route = route;
                 return 0;
 
             case TOKEN_LITERAL:
@@ -65,9 +67,28 @@ int wrouter_add_route(struct builder *builder, const char *pattern, struct route
                 break;
 
             case TOKEN_PARAM:
+                // Check that a parameter is not already assigned.
+                if (cur->spec_type == SPEC_PARAM)
+                    return -1;
+
+                // Parameters are incompatible with wildcards.
+                if (cur->spec_type == SPEC_WILDCARD)
+                    return -1;
+
+                // Append parameter.
                 strptr = symbol_append(&builder->params, tok.ptr, tok.length);
                 if (strptr == NULL)
                     return -1;
+
+                segment_t *param = calloc(1, sizeof(segment_t));
+                if (param == NULL)
+                    return -1;
+
+                param->str = strptr;
+                param->str_length = tok.length;
+
+                cur->spec_type = SPEC_PARAM;
+                cur->special.param = param;
                 break;
 
             case TOKEN_WILDCARD:
@@ -75,13 +96,16 @@ int wrouter_add_route(struct builder *builder, const char *pattern, struct route
                 if (cur->spec_type == SPEC_WILDCARD)
                     return -1;
 
-                // Paramters are incompatible.
+                // Wildcards are incompatible with parameters.
                 if (cur->spec_type == SPEC_PARAM)
                     return -1;
 
+                // Wildcards must be terminal.
                 tok = prelexer_next(&lx);
                 if (tok.type != TOKEN_END)
                     return -1;
+
+                // Append wildcard.
                 cur->special.wildcard = calloc(1, sizeof(wildcard_t));
                 if (cur->special.wildcard == NULL)
                     return -1;
