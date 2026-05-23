@@ -45,6 +45,7 @@ static void test_symbol_compare(void)
         const char *sym;
         bool equal;
     } cases[] = {
+        // clang-format off
         { "project",  "project",  true  },
         { "project/", "project",  true  },
         { "user/",    "user",     true  },
@@ -66,14 +67,15 @@ static void test_symbol_compare(void)
         { "A",        "\xFF",     false },
         { "\x01",     "\xFF",     false },
         { "\xFF",     "\x01",     false },
+        // clang-format on
     };
 
-    for (size_t i = 0; i < sizeof(cases)/sizeof(cases[0]); i++) {
+    for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
         const char *k = cases[i].key;
         const char *s = cases[i].sym;
 
-        const char * const *a = &k;
-        const char * const *b = &s;
+        const char *const *a = &k;
+        const char *const *b = &s;
 
         bool eq = (symbol_compare(a, b) == 0);
         assert(eq == cases[i].equal);
@@ -83,14 +85,7 @@ static void test_symbol_compare(void)
 void test_symbol_resolve(void)
 {
     const char *symbols[] = {
-        "admin",
-        "create",
-        "list",
-        "project",
-        "user",
-        "x",
-        "x1",
-        "x2",
+        "admin", "create", "list", "project", "user", "x", "x1", "x2",
     };
 
     size_t n = sizeof(symbols) / sizeof(symbols[0]);
