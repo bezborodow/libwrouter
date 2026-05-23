@@ -111,8 +111,7 @@ void test_router_basic(void)
         wrouter_add_route(builder, cases[i].pattern, route);
     }
 
-    uint32_t status = 0;
-    wrouter_t *router = wrouter_compile(builder, &status);
+    wrouter_t *router = wrouter_compile(builder);
 
     wrouter_builder_free(builder);
 
