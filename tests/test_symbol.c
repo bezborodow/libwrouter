@@ -12,9 +12,8 @@ static void test_symbol_append(void)
     assert(symbol_append(&tbl, "hello", 5) != NULL);
     assert(symbol_append(&tbl, "world", 5) != NULL);
 
-
     // Check duplicates.
-    char *strptr = symbol_append(&tbl, "world", 5);
+    const char *strptr = symbol_append(&tbl, "world", 5);
     assert(strptr != NULL);
     assert(strcmp(strptr, "world") == 0);
 
@@ -36,7 +35,7 @@ static void test_symbol_table_growth(void)
 
     for (size_t i = 0; i < n; i++) {
         snprintf(buf, 9, "x%lu", i);
-        char *strptr = symbol_append(&tbl, buf, strlen(buf));
+        const char *strptr = symbol_append(&tbl, buf, strlen(buf));
         assert(strptr != NULL);
         assert(strcmp(strptr, buf) == 0);
         assert(tbl.base[i] == strptr);

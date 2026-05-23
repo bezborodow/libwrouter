@@ -11,6 +11,7 @@ project(
 add_project_arguments(
     '-Wall',
     '-Wextra',
+    '-Wpedantic',
     '-Wjump-misses-init',
     language : 'c'
 )

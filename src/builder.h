@@ -24,7 +24,7 @@ typedef union {
 } special_u;
 
 struct segment {
-    char *str;
+    const char *str;
     struct route route;
     segment_t **children;
     special_u special;

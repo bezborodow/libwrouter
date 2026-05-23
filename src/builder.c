@@ -31,9 +31,7 @@ struct builder *wrouter_builder_create(wrouter_param_syntax_t param_syntax)
 
 static bool token_matches(pretoken_t tok, const segment_t *seg)
 {
-    return seg->str &&
-           tok.ptr &&
-           tok.length == seg->str_length &&
+    return seg->str && tok.ptr && tok.length == seg->str_length &&
            strncmp(tok.ptr, seg->str, tok.length) == 0;
 }
 
@@ -88,13 +86,13 @@ int wrouter_add_route(struct builder *builder, const char *pattern, struct route
                 // If not, create one.
                 if (child == NULL) {
 
-                    char *strptr = symbol_append(&builder->literals, tok.ptr, tok.length);
+                    const char *strptr = symbol_append(&builder->literals, tok.ptr, tok.length);
                     if (strptr == NULL)
                         return -1;
 
                     // Append child.
-                    segment_t **new_children = realloc(cur->children,
-                            sizeof(segment_t*) * (cur->child_count + 1));
+                    segment_t **new_children =
+                        realloc(cur->children, sizeof(segment_t *) * (cur->child_count + 1));
                     if (new_children == NULL)
                         return -1;
                     cur->children = new_children;
@@ -126,7 +124,7 @@ int wrouter_add_route(struct builder *builder, const char *pattern, struct route
                 } else {
 
                     // Append parameter.
-                    char *strptr = symbol_append(&builder->params, tok.ptr, tok.length);
+                    const char *strptr = symbol_append(&builder->params, tok.ptr, tok.length);
                     if (strptr == NULL)
                         return -1;
 
@@ -143,7 +141,6 @@ int wrouter_add_route(struct builder *builder, const char *pattern, struct route
 
                 cur = cur->special.param;
                 break;
-
             }
             case TOKEN_WILDCARD: {
                 // Check that a wildcard is not already assigned.
@@ -166,7 +163,6 @@ int wrouter_add_route(struct builder *builder, const char *pattern, struct route
                 cur->spec_type = SPEC_WILDCARD;
                 cur->special.wildcard->route = route;
                 return 0;
-
             }
             case TOKEN_ILLEGAL:
             default:

@@ -11,7 +11,7 @@ typedef struct {
     const wrouter_params_t *params;
 } terminal_test_case_t;
 
-static void *cb_test(void *dispatch_ctx, void *route_ctx, const wrouter_params_t *params) {}
+static void cb_test(void *dispatch_ctx, void *route_ctx, const wrouter_params_t *params) {}
 
 void test_router_basic(void)
 {
