@@ -26,6 +26,9 @@ pretoken_t prelexer_next(prelexer_t *lx)
     const bool angle = lx->param_syntax == WROUTER_SYNTAX_ANGLE;
     const bool brace = lx->param_syntax == WROUTER_SYNTAX_BRACE;
     const bool colon = lx->param_syntax == WROUTER_SYNTAX_COLON;
+    char c;
+    size_t extra;
+    const char *start;
 
     if (lx->cursor == NULL)
         goto finish;
@@ -35,7 +38,7 @@ pretoken_t prelexer_next(prelexer_t *lx)
         goto finish;
     }
 
-    char c = *p;
+    c = *p;
 
     if (c == '/') {
         p++;
@@ -63,8 +66,7 @@ pretoken_t prelexer_next(prelexer_t *lx)
         tok.type = TOKEN_LITERAL;
     }
 
-    size_t extra = 0;
-    const char *start;
+    extra = 0;
     for (start = p; *p != '\0' && *p != '/'; p++) {
         if (tok.type == TOKEN_PARAM) {
             if ((*p == '>' && angle) || (*p == '}' && brace)) {

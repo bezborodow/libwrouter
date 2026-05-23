@@ -27,12 +27,12 @@ static int symbol_table_next_slot(symbol_table_t *tbl, size_t len, size_t *slot)
     return 0;
 }
 
-int symbol_table_init(symbol_table_t *tbl)
+void symbol_table_init(symbol_table_t *tbl)
 {
     memset(tbl, 0, sizeof(*tbl));
 }
 
-char *symbol_append(symbol_table_t *tbl, const char *str, size_t len)
+const char *symbol_append(symbol_table_t *tbl, const char *str, size_t len)
 {
     // Check for duplicates.
     for (size_t i = 0; i < tbl->count; i++)
