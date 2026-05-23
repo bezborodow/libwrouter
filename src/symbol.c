@@ -32,22 +32,22 @@ int symbol_table_init(symbol_table_t *tbl)
     memset(tbl, 0, sizeof(*tbl));
 }
 
-int symbol_append(symbol_table_t *tbl, const char *str, size_t len)
+char *symbol_append(symbol_table_t *tbl, const char *str, size_t len)
 {
     // Check for duplicates.
     for (size_t i = 0; i < tbl->count; i++)
         if (strncmp(tbl->base[i], str, len) == 0 && tbl->base[i][len] == '\0')
-            return 0;
+            return *tbl->base[i];
 
     // Get a slot in the table for the string pointer.
     size_t slot;
     if (symbol_table_next_slot(tbl, 1, &slot) != 0)
-        return -ENOMEM;
+        return NULL;
 
     // Allocate space in the arena for the string.
     char *a = arena_alloc(&tbl->arena, len + 1);
     if (a == NULL)
-        return -ENOMEM;
+        return NULL;
 
     // Copy the string into the arena, ensuring it is null-terminated.
     memcpy(a, str, len);
@@ -56,7 +56,7 @@ int symbol_append(symbol_table_t *tbl, const char *str, size_t len)
     // Append the string pointer.
     tbl->base[slot] = a;
 
-    return 0;
+    return a;
 }
 
 void symbol_table_free(symbol_table_t *tbl)

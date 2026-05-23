@@ -1,6 +1,7 @@
 #include "symbol.h"
 #include "token.h"
 #include "router.h"
+#include <stdint.h>
 
 #ifndef WROUTER_BUILDER_H
 #define WROUTER_BUILDER_H
@@ -8,6 +9,7 @@
 typedef struct segment segment_t;
 
 typedef enum {
+    SPEC_NONE,
     SPEC_PARAM,
     SPEC_WILDCARD,
 } special_type_t;
@@ -17,28 +19,27 @@ typedef struct wildcard {
 } wildcard_t;
 
 typedef union {
-    segment_t *param_segment;
+    segment_t *param;
     wildcard_t *wildcard;
-} special_union_t;
-
-typedef struct special {
-    segment_t *children;
-    char *str;
-    size_t length;
-    special_type_t type;
-} special_t;
+} special_u;
 
 struct segment {
     char *str;
-    segment_t *children;
-    special_t special;
-    size_t length;
     struct route route;
+    segment_t *children;
+    special_u special;
+    special_type_t type;
+    uint16_t child_count;
+    uint16_t str_length;
 };
 
-typedef struct tree {
-    segment_t root;
-} tree_t;
+typedef struct root {
+    segment_t *children;
+    special_u special;
+    special_type_t type;
+    struct route route;
+    uint16_t child_count;
+} root_t;
 
 typedef struct {
     pretoken_t *tokens;
@@ -52,11 +53,12 @@ typedef struct {
 } preroute_table_t;
 
 struct builder {
-    wrouter_param_syntax_t param_syntax;
+    root_t root;
     preroute_table_t routes;
     arena_t arena;
     symbol_table_t literals;
     symbol_table_t params;
+    wrouter_param_syntax_t param_syntax;
 };
 
 #endif

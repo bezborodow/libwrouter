@@ -15,7 +15,7 @@ typedef struct {
 } symbol_table_t;
 
 int symbol_table_init(symbol_table_t *tbl);
-int symbol_append(symbol_table_t *tbl, const char *str, size_t length);
+char *symbol_append(symbol_table_t *tbl, const char *str, size_t length);
 void symbol_table_free(symbol_table_t *tbl);
 
 size_t symbol_resolve(const char *key, const char **base, size_t nmemb);
