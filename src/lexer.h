@@ -16,10 +16,9 @@ typedef struct {
 typedef struct {
     const char *cursor;
     size_t length;
-    symbol_ctx_t *symbols;
 } lexer_t;
 
-void lexer_init(lexer_t *lx, const char *input, size_t length, symbol_ctx_t *symbols);
+void lexer_init(lexer_t *lx, const char *input, size_t length);
 
 token_t lexer_next(lexer_t *lx);
 

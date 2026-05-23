@@ -19,7 +19,8 @@ struct builder {
     wrouter_param_syntax_t param_syntax;
     preroute_table_t routes;
     arena_t arena;
-    symbol_ctx_t symctx;
+    symbol_table_t literals;
+    symbol_table_t params;
 };
 
 #endif
