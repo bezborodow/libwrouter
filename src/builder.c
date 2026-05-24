@@ -180,14 +180,14 @@ static int strpcmp(const void *p1, const void *p2)
     return strcmp(*(const char **)p1, *(const char **)p2);
 }
 
-void builder_stats(const segment_t *seg, graph_stats_t *stats)
+void graph_stats(const segment_t *seg, graph_stats_t *stats)
 {
     stats->nodes++;
 
     // Literal children.
     stats->symbolic_edges += seg->child_count;
     for (uint16_t i = 0; i < seg->child_count; i++) {
-        builder_stats(seg->children[i], stats);
+        graph_stats(seg->children[i], stats);
     }
 
     // Special.
@@ -195,7 +195,7 @@ void builder_stats(const segment_t *seg, graph_stats_t *stats)
         case SPEC_PARAM:
             // Parameters.
             stats->edges++;
-            builder_stats(seg->special.param, stats);
+            graph_stats(seg->special.param, stats);
             break;
 
         case SPEC_WILDCARD:
@@ -214,29 +214,6 @@ void builder_stats(const segment_t *seg, graph_stats_t *stats)
         stats->terminals++;
 }
 
-/*
-int router_init(struct router *r, size_t node_count, size_t edge_count, size_t term_count)
-{
-    size_t node_bytes = sizeof(node_t) * node_count;
-    size_t edge_bytes = sizeof(edge_t) * edge_count;
-
-    uint8_t *graph = malloc(node_bytes + edge_bytes);
-    if (!graph)
-        return -1;
-
-    r->nodes = (node_t *)mem;
-    r->edges = (edge_t *)(mem + node_bytes);
-    r->mem = mem;
-
-    r->node_count = node_count;
-    r->edge_count = edge_count;
-
-    r->terminals = malloc(sizeof(terminal_t) * term_count);
-
-    return 0;
-}
-*/
-
 struct router *wrouter_compile(const struct builder *builder)
 {
     wrouter_t *router = calloc(1, sizeof(struct router));
@@ -245,6 +222,23 @@ struct router *wrouter_compile(const struct builder *builder)
 
     qsort(builder->literals.base, builder->literals.count, sizeof(char *), strpcmp);
     qsort(builder->params.base, builder->params.count, sizeof(char *), strpcmp);
+
+    graph_stats_t stats = { 0 };
+    graph_stats(builder->root, &stats);
+
+    size_t graph_bytes = sizeof(node_t) * stats.nodes;
+    graph_bytes += sizeof(edge_t) * stats.edges;
+    graph_bytes += sizeof(symbolic_edge_t) * stats.symbolic_edges;
+
+    uint8_t *graph = malloc(graph_bytes);
+    if (graph == NULL) {
+        wrouter_free(router);
+        return NULL;
+    }
+
+    router->graph = graph;
+
+    //r->terminals = malloc(sizeof(terminal_t) * term_count);
 
     return router;
 }

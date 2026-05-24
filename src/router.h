@@ -52,16 +52,9 @@ typedef struct terminals {
     uint32_t count;
 } terminals_t;
 
-typedef struct graph {
-    uint8_t *base;
-    uint32_t node_count;
-    uint32_t edge_count;
-    uint32_t size;
-} graph_t;
-
 struct router {
+    unsigned char *graph;
     symbols_t symbols;
-    graph_t graph;
     terminals_t terminals;
 };
 

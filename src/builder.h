@@ -60,6 +60,6 @@ typedef struct graph_stats {
     size_t terminals;
 } graph_stats_t;
 
-void builder_stats(const segment_t *segment, graph_stats_t *stats);
+void graph_stats(const segment_t *segment, graph_stats_t *stats);
 
 #endif
