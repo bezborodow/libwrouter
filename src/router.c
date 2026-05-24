@@ -13,5 +13,7 @@ void wrouter_free(wrouter_t *router)
     free(router->params.region);
     free(router->params.base);
     free(router->graph);
+    free(router->terminals.base);
+    free(router->terminals.refs);
     free(router);
 }

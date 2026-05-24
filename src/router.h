@@ -44,9 +44,14 @@ typedef struct symbols {
     uint32_t count;
 } symbols_t;
 
+/**
+ * These are the node terminals, which correspond to a route.  The terminals
+ * are referenced by the terminating node's offset.
+ */
 typedef struct terminals {
-    struct route *base;
-    uint32_t count;
+    struct route *base; // Routes.
+    uint16_t *refs;     // List of node offsets, being the key to the route.
+    uint16_t count;     // Number of terminals.
 } terminals_t;
 
 struct router {

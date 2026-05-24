@@ -252,6 +252,7 @@ static node_t *graph_compile(struct router *router, segment_t *segment, size_t *
     node->literals = segment->child_count;
     if (segment->route.handler != NULL) {
         node->flags |= NODE_FLAG_TERMINAL;
+        router->terminals.refs[router->terminals.count++] = (uint8_t *)node - (uint8_t *)g;
     }
 
     edge_t *p_edge = NULL;
@@ -304,6 +305,7 @@ static node_t *graph_compile(struct router *router, segment_t *segment, size_t *
         node_t *w_node = graph_append(g, cursor, sizeof(node_t), _Alignof(node_t));
         w_node->flags |= NODE_FLAG_TERMINAL;
         w_edge->next = (uint8_t *)w_node - (uint8_t *)g;
+        router->terminals.refs[router->terminals.count++] = w_edge->next;
     }
 
     return node;
@@ -395,6 +397,13 @@ struct router *wrouter_compile(const struct builder *builder)
         return NULL;
     }
 
+    graph_stats_t stats = { 0 };
+    graph_stats(builder->root, &stats);
+
+    // router->terminals.count = stats.terminals;
+    router->terminals.refs = calloc(stats.terminals, sizeof(uint16_t));
+    router->terminals.base = calloc(stats.terminals, sizeof(struct route));
+
 #if 0
 #include <stdio.h>
     // Using stats does not work if alignment is broken. Needs to use an actual
@@ -402,8 +411,6 @@ struct router *wrouter_compile(const struct builder *builder)
     // it, add an extra byte to the node struct, which will throw off
     // alignment.
     printf("GRAPH BYTES FIRST PASS: %lu\n", graph_bytes);
-    graph_stats_t stats = { 0 };
-    graph_stats(builder->root, &stats);
     size_t other_bytes = sizeof(node_t) * stats.nodes;
     other_bytes += sizeof(edge_t) * (stats.edges + stats.symbolic_edges);
     printf("GRAPH BYTES STATS: %lu\n", other_bytes);
@@ -420,6 +427,17 @@ struct router *wrouter_compile(const struct builder *builder)
 
     size_t cursor = 0;
     graph_compile(router, builder->root, &cursor);
+
+#if 0
+#include <stdio.h>
+    // Check that the terminals were saved.
+    printf("TERMINAL REFS FOUND: %u\n", router->terminals.count);
+    printf("TERMINALS STATS: %lu\n", stats.terminals);
+    for (int i = 0; i < stats.terminals; i++) {
+        printf("%u ", router->terminals.refs[i]);
+    }
+    printf("\n");
+#endif
 
     return router;
 }
