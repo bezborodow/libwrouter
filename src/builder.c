@@ -214,14 +214,59 @@ void graph_stats(const segment_t *seg, graph_stats_t *stats)
         stats->terminals++;
 }
 
+static void graph_compile(struct router *router, segment_t *segment, uint16_t *cursor) {}
+
+symbols_t symbol_compile(const symbol_table_t *tbl)
+{
+    symbols_t sym = { 0 };
+
+    // Allocate space for the string pointers.
+    sym.base = malloc(sizeof(char *) * tbl->count);
+    if (sym.base == NULL)
+        return sym;
+
+    sym.count = tbl->count;
+
+    // Copy and sort string pointers by string contents.
+    memcpy(sym.base, tbl->base, sizeof(char *) * tbl->count);
+    qsort(sym.base, sym.count, sizeof(char *), strpcmp);
+
+    // Allocate space for the strings in a contiguous memory region.
+    sym.region = malloc(arena_used(&tbl->arena));
+    if (sym.region == NULL) {
+        free(sym.base);
+        return (symbols_t){ 0 };
+    }
+
+    // Copy strings from the arena and update the string pointers.
+    size_t cursor = 0;
+    for (size_t i = 0; i < sym.count; i++) {
+        size_t n = strlen(sym.base[i]) + 1;
+
+        // Copy string.
+        memcpy(sym.region + cursor, sym.base[i], n);
+
+        // Update pointer to point to the copied string!
+        sym.base[i] = sym.region + cursor;
+
+        cursor += n;
+    }
+
+    return sym;
+}
+
 struct router *wrouter_compile(const struct builder *builder)
 {
     wrouter_t *router = calloc(1, sizeof(struct router));
     if (router == NULL)
         return NULL;
 
-    qsort(builder->literals.base, builder->literals.count, sizeof(char *), strpcmp);
-    qsort(builder->params.base, builder->params.count, sizeof(char *), strpcmp);
+    router->literals = symbol_compile(&builder->literals);
+    router->params = symbol_compile(&builder->params);
+    if (router->literals.base == NULL || router->params.base == NULL) {
+        wrouter_free(router);
+        return NULL;
+    }
 
     graph_stats_t stats = { 0 };
     graph_stats(builder->root, &stats);
@@ -238,7 +283,8 @@ struct router *wrouter_compile(const struct builder *builder)
 
     router->graph = graph;
 
-    //r->terminals = malloc(sizeof(terminal_t) * term_count);
+    uint16_t cursor = 0;
+    graph_compile(router, builder->root, &cursor);
 
     return router;
 }

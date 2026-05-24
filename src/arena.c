@@ -71,3 +71,18 @@ void arena_free(arena_t *a)
 
     a->head = NULL;
 }
+
+size_t arena_used(const arena_t *a)
+{
+    size_t used = 0;
+
+    arena_block_t *b = a->head;
+
+    while (b) {
+        arena_block_t *next = b->next;
+        used += b->used;
+        b = next;
+    }
+
+    return used;
+}

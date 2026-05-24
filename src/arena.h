@@ -19,6 +19,7 @@ typedef struct {
 
 void *arena_alloc(arena_t *a, size_t length);
 void *arena_alloc_aligned(arena_t *a, size_t size, size_t align);
+size_t arena_used(const arena_t *a);
 void arena_free(arena_t *a);
 
 #endif

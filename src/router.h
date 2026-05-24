@@ -44,6 +44,7 @@ _Static_assert(_Alignof(edge_t) <= _Alignof(node_t),
 
 typedef struct symbols {
     const char **base;
+    unsigned char *region;
     uint32_t count;
 } symbols_t;
 
@@ -54,7 +55,8 @@ typedef struct terminals {
 
 struct router {
     unsigned char *graph;
-    symbols_t symbols;
+    symbols_t literals;
+    symbols_t params;
     terminals_t terminals;
 };
 
