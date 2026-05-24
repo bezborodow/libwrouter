@@ -12,6 +12,16 @@ void wrouter_dispatch(const wrouter_t *router, const char *path, void *dispatch_
 void wrouter_ndispatch(const wrouter_t *router, const char *path, size_t length, void *dispatch_ctx)
 {
     lexer_load(router->lx, path, length);
+
+    token_t tok = { 0 };
+
+    for (;;) {
+        tok = lexer_next(router->lx);
+
+        if (tok.type != TOKEN_LITERAL) {
+            return;
+        }
+    }
 }
 
 void wrouter_free(wrouter_t *router)
