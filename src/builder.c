@@ -242,6 +242,11 @@ static void *graph_append(void *g, size_t *cursor, size_t size, size_t align)
     return base;
 }
 
+static size_t graph_offset(const void *graph, const void *entry)
+{
+    return (uint8_t *)entry - (uint8_t *)graph;
+}
+
 static node_t *graph_compile(struct router *router, segment_t *segment, size_t *cursor)
 {
     void *g = router->graph;
@@ -252,7 +257,8 @@ static node_t *graph_compile(struct router *router, segment_t *segment, size_t *
     node->literals = segment->child_count;
     if (segment->route.handler != NULL) {
         node->flags |= NODE_FLAG_TERMINAL;
-        router->terminals.refs[router->terminals.count++] = (uint8_t *)node - (uint8_t *)g;
+        router->terminals.refs[router->terminals.count] = graph_offset(g, node);
+        router->terminals.base[router->terminals.count++] = segment->route;
     }
 
     edge_t *p_edge = NULL;
@@ -291,21 +297,22 @@ static node_t *graph_compile(struct router *router, segment_t *segment, size_t *
         node_t *l_node = graph_compile(router, child, cursor);
 
         edge_t *l_edge = &l_edge_base[i];
-        l_edge->next = (uint8_t *)l_node - (uint8_t *)g;
+        l_edge->next = graph_offset(g, l_node);
     }
 
     // Descend into parameter.
     if (p_edge != NULL) {
         node_t *p_node = graph_compile(router, segment->special.param, cursor);
-        p_edge->next = (uint8_t *)p_node - (uint8_t *)g;
+        p_edge->next = graph_offset(g, p_node);
     }
 
     // Append wildcard node.
     if (w_edge != NULL) {
         node_t *w_node = graph_append(g, cursor, sizeof(node_t), _Alignof(node_t));
         w_node->flags |= NODE_FLAG_TERMINAL;
-        w_edge->next = (uint8_t *)w_node - (uint8_t *)g;
-        router->terminals.refs[router->terminals.count++] = w_edge->next;
+        w_edge->next = graph_offset(g, w_node);
+        router->terminals.refs[router->terminals.count] = w_edge->next;
+        router->terminals.base[router->terminals.count++] = segment->special.wildcard->route;
     }
 
     return node;
