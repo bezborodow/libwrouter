@@ -27,9 +27,7 @@ src = files(
     'src/arena.c',
     'src/builder.c',
     'src/lexer.c',
-    'src/parser.c',
     'src/prelexer.c',
-    'src/preparser.c',
     'src/router.c',
     'src/symbol.c',
 )
