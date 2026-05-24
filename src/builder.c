@@ -229,7 +229,6 @@ void graph_stats(const segment_t *seg, graph_stats_t *stats)
         stats->terminals++;
 }
 
-
 static void *graph_append(void *g, size_t *cursor, size_t size, size_t align)
 {
     if (!size)
@@ -262,7 +261,8 @@ static node_t *graph_compile(struct router *router, segment_t *segment, size_t *
         case SPEC_PARAM:
             node->flags |= NODE_FLAG_HAS_PARAM;
             p_edge = graph_append(g, cursor, sizeof(edge_t), _Alignof(edge_t));
-            p_edge->symbol = symbol_resolve(segment->special.param->str, router->params.base, router->params.count); 
+            p_edge->symbol = symbol_resolve(segment->special.param->str, router->params.base,
+                                            router->params.count);
             break;
 
         case SPEC_WILDCARD:
@@ -275,12 +275,13 @@ static node_t *graph_compile(struct router *router, segment_t *segment, size_t *
     }
 
     // Descend into literals.
-    edge_t *l_edge_base = graph_append(g, cursor, segment->child_count * sizeof(edge_t), _Alignof(edge_t));
+    edge_t *l_edge_base =
+        graph_append(g, cursor, segment->child_count * sizeof(edge_t), _Alignof(edge_t));
 
     for (uint16_t i = 0; i < segment->child_count; i++) {
         segment_t *child = segment->children[i];
         edge_t *l_edge = &l_edge_base[i];
-        l_edge->symbol = symbol_resolve(child->str, router->literals.base, router->literals.count); 
+        l_edge->symbol = symbol_resolve(child->str, router->literals.base, router->literals.count);
     }
 
     for (uint16_t i = 0; i < segment->child_count; i++) {
@@ -394,9 +395,6 @@ struct router *wrouter_compile(const struct builder *builder)
         return NULL;
     }
 
-    size_t graph_bytes = 0;
-    graph_size(builder->root, &graph_bytes);
-
 #if 0
 #include <stdio.h>
     // Using stats does not work if alignment is broken. Needs to use an actual
@@ -411,13 +409,14 @@ struct router *wrouter_compile(const struct builder *builder)
     printf("GRAPH BYTES STATS: %lu\n", other_bytes);
 #endif
 
+    size_t graph_bytes = 0;
+    graph_size(builder->root, &graph_bytes);
     void *graph = malloc(graph_bytes);
     if (graph == NULL) {
         wrouter_free(router);
         return NULL;
     }
     router->graph = graph;
-
 
     size_t cursor = 0;
     graph_compile(router, builder->root, &cursor);

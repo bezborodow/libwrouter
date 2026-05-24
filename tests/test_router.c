@@ -252,9 +252,8 @@ void test_router_stress_256_groups(void)
         for (int i = 0; i < 3; i++) {
 
             // base route: /xx/:a/a/a/:p
-            snprintf(patterns[k], sizeof(patterns[k]),
-                     "/%s/<%s>/%s/%s/<%s>",
-                     xx, param_a, l1[i], l1[i], param_p);
+            snprintf(patterns[k], sizeof(patterns[k]), "/%s/<%s>/%s/%s/<%s>", xx, param_a, l1[i],
+                     l1[i], param_p);
 
             cases[k].pattern = patterns[k];
             cases[k].request = NULL;
@@ -265,9 +264,8 @@ void test_router_stress_256_groups(void)
             k++;
 
             // wildcard variant: /xx/:a/a/a/:p/*
-            snprintf(patterns[k], sizeof(patterns[k]),
-                     "/%s/<%s>/%s/%s/<%s>/*",
-                     xx, param_a, l1[i], l1[i], param_p);
+            snprintf(patterns[k], sizeof(patterns[k]), "/%s/<%s>/%s/%s/<%s>/*", xx, param_a, l1[i],
+                     l1[i], param_p);
 
             cases[k].pattern = patterns[k];
             cases[k].request = NULL;
@@ -297,16 +295,12 @@ void test_router_stress_256_groups(void)
         for (int i = 0; i < 3; i++) {
 
             char req[64];
-            snprintf(req, sizeof(req),
-                     "/%s/%s/%s/%s/%s",
-                     xx, "x", l1[i], l1[i], "y");
+            snprintf(req, sizeof(req), "/%s/%s/%s/%s/%s", xx, "x", l1[i], l1[i], "y");
 
             wrouter_dispatch(router, req, &cases[k]);
             k++;
 
-            snprintf(req, sizeof(req),
-                     "/%s/%s/%s/%s/%s",
-                     xx, "x", l1[i], l1[i], "y");
+            snprintf(req, sizeof(req), "/%s/%s/%s/%s/%s", xx, "x", l1[i], l1[i], "y");
 
             wrouter_dispatch(router, req, &cases[k]);
             k++;
