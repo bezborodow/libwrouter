@@ -23,7 +23,6 @@ struct params {
 typedef struct node {
     uint8_t literals; // Numbers of literal edges.
     uint8_t flags;
-    uint8_t hello;
 } node_t;
 
 typedef struct edge {
