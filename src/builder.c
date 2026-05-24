@@ -142,6 +142,7 @@ int wrouter_add_route(struct builder *builder, const char *pattern, struct route
                 cur = cur->special.param;
                 break;
             }
+
             case TOKEN_WILDCARD: {
                 // Check that a wildcard is not already assigned.
                 if (cur->spec_type == SPEC_WILDCARD)
@@ -164,6 +165,7 @@ int wrouter_add_route(struct builder *builder, const char *pattern, struct route
                 cur->special.wildcard->route = route;
                 return 0;
             }
+
             case TOKEN_ILLEGAL:
             default:
                 return -1;

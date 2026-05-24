@@ -4,6 +4,10 @@
 #include <assert.h>
 #include <string.h>
 
+static void cb_test(void *dispatch_ctx, void *route_ctx, const wrouter_params_t *params) {
+    return;
+}
+
 static void test_builder_add_route(void)
 {
     wrouter_builder_t *builder = wrouter_builder_create(WROUTER_SYNTAX_BRACE);
@@ -11,6 +15,7 @@ static void test_builder_add_route(void)
     assert(builder != NULL);
 
     wrouter_route_t route = { 0 };
+    route.handler = cb_test;
 
     wrouter_add_route(builder, "/users/{id}", route);
 
