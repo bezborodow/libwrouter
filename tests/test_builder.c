@@ -4,7 +4,8 @@
 #include <assert.h>
 #include <string.h>
 
-static void cb_test(void *dispatch_ctx, void *route_ctx, const wrouter_params_t *params) {
+static void cb_test(void *dispatch_ctx, void *route_ctx, const wrouter_params_t *params)
+{
     return;
 }
 

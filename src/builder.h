@@ -53,4 +53,13 @@ struct builder {
     wrouter_param_syntax_t param_syntax;
 };
 
+typedef struct graph_stats {
+    size_t nodes;
+    size_t edges;
+    size_t symbolic_edges;
+    size_t terminals;
+} graph_stats_t;
+
+void builder_stats(const segment_t *segment, graph_stats_t *stats);
+
 #endif

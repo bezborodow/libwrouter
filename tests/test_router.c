@@ -13,7 +13,8 @@ typedef struct {
     const wrouter_params_t *params;
 } terminal_test_case_t;
 
-static void cb_test(void *dispatch_ctx, void *route_ctx, const wrouter_params_t *params) {
+static void cb_test(void *dispatch_ctx, void *route_ctx, const wrouter_params_t *params)
+{
     return;
 }
 
@@ -180,9 +181,17 @@ void test_router_basic(void)
         wrouter_add_route(builder, cases[i].pattern, route);
     }
 
-    wrouter_t *router = wrouter_compile(builder);
-
     builder_print_tree(builder);
+
+    // Check stats.
+    graph_stats_t stats = { 0 };
+    builder_stats(builder->root, &stats);
+    assert(stats.nodes == 18);
+    assert(stats.edges == 5);
+    assert(stats.symbolic_edges == 12);
+    assert(stats.terminals == n);
+
+    wrouter_t *router = wrouter_compile(builder);
 
     wrouter_builder_free(builder);
 

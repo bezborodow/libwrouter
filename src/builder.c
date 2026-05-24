@@ -180,6 +180,63 @@ static int strpcmp(const void *p1, const void *p2)
     return strcmp(*(const char **)p1, *(const char **)p2);
 }
 
+void builder_stats(const segment_t *seg, graph_stats_t *stats)
+{
+    stats->nodes++;
+
+    // Literal children.
+    stats->symbolic_edges += seg->child_count;
+    for (uint16_t i = 0; i < seg->child_count; i++) {
+        builder_stats(seg->children[i], stats);
+    }
+
+    // Special.
+    switch (seg->spec_type) {
+        case SPEC_PARAM:
+            // Parameters.
+            stats->edges++;
+            builder_stats(seg->special.param, stats);
+            break;
+
+        case SPEC_WILDCARD:
+            // Terminal wildcard.
+            stats->edges++;
+            stats->nodes++;
+            stats->terminals++;
+            break;
+
+        case SPEC_NONE:
+            break;
+    }
+
+    // Terminal.
+    if (seg->route.handler != NULL)
+        stats->terminals++;
+}
+
+/*
+int router_init(struct router *r, size_t node_count, size_t edge_count, size_t term_count)
+{
+    size_t node_bytes = sizeof(node_t) * node_count;
+    size_t edge_bytes = sizeof(edge_t) * edge_count;
+
+    uint8_t *graph = malloc(node_bytes + edge_bytes);
+    if (!graph)
+        return -1;
+
+    r->nodes = (node_t *)mem;
+    r->edges = (edge_t *)(mem + node_bytes);
+    r->mem = mem;
+
+    r->node_count = node_count;
+    r->edge_count = edge_count;
+
+    r->terminals = malloc(sizeof(terminal_t) * term_count);
+
+    return 0;
+}
+*/
+
 struct router *wrouter_compile(const struct builder *builder)
 {
     wrouter_t *router = calloc(1, sizeof(struct router));
