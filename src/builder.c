@@ -399,7 +399,7 @@ struct router *wrouter_compile(const struct builder *builder)
     size_t graph_bytes = 0;
     graph_size(builder->root, &graph_bytes);
 
-#if 1
+#if 0
     // Using stats does not work if alignment is broken. Needs to use an actual
     // layout pass calculation.  This is kept here for demonstration.  To break
     // it, add an extra byte to the node struct, which will throw off
