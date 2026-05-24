@@ -6,8 +6,6 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
-#include <stdio.h>
-
 #include <stddef.h>
 
 static inline size_t align_up(size_t cursor, size_t align)
@@ -400,6 +398,7 @@ struct router *wrouter_compile(const struct builder *builder)
     graph_size(builder->root, &graph_bytes);
 
 #if 0
+#include <stdio.h>
     // Using stats does not work if alignment is broken. Needs to use an actual
     // layout pass calculation.  This is kept here for demonstration.  To break
     // it, add an extra byte to the node struct, which will throw off
