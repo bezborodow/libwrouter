@@ -6,7 +6,7 @@
 
 static void test_root(void)
 {
-    pretoken_t tok;
+    token_t tok;
 
     wrouter_param_syntax_t param_syntax = WROUTER_SYNTAX_COLON;
 
@@ -22,7 +22,7 @@ static void test_root(void)
 
 static void test_simple_path(void)
 {
-    pretoken_t tok;
+    token_t tok;
 
     wrouter_param_syntax_t param_syntax = WROUTER_SYNTAX_COLON;
 
@@ -50,7 +50,7 @@ static void test_simple_path(void)
 
 static void test_param_path(void)
 {
-    pretoken_t tok;
+    token_t tok;
 
     wrouter_param_syntax_t param_syntax = WROUTER_SYNTAX_COLON;
 
@@ -90,7 +90,7 @@ static void test_param_path(void)
 
 static void test_trailing(void)
 {
-    pretoken_t tok;
+    token_t tok;
 
     wrouter_param_syntax_t param_syntax = WROUTER_SYNTAX_COLON;
 
@@ -112,7 +112,7 @@ static void test_trailing(void)
 
 static void test_double_slash(void)
 {
-    pretoken_t tok;
+    token_t tok;
 
     wrouter_param_syntax_t param_syntax = WROUTER_SYNTAX_COLON;
 
@@ -128,7 +128,7 @@ static void test_double_slash(void)
 
 static void test_param_brace(void)
 {
-    pretoken_t tok;
+    token_t tok;
 
     wrouter_param_syntax_t param_syntax = WROUTER_SYNTAX_BRACE;
 
@@ -156,7 +156,7 @@ static void test_param_brace(void)
 
 static void test_param_angle(void)
 {
-    pretoken_t tok;
+    token_t tok;
 
     wrouter_param_syntax_t param_syntax = WROUTER_SYNTAX_ANGLE;
 
@@ -184,7 +184,7 @@ static void test_param_angle(void)
 
 static void test_wildcard(void)
 {
-    pretoken_t tok;
+    token_t tok;
 
     wrouter_param_syntax_t param_syntax = WROUTER_SYNTAX_COLON;
 

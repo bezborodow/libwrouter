@@ -18,9 +18,9 @@ void prelexer_load(prelexer_t *lx, const char *input)
     lx->cursor = input;
 }
 
-pretoken_t prelexer_next(prelexer_t *lx)
+token_t prelexer_next(prelexer_t *lx)
 {
-    pretoken_t tok = { 0 };
+    token_t tok = { 0 };
     const char *p = lx->cursor;
 
     const bool angle = lx->param_syntax == WROUTER_SYNTAX_ANGLE;

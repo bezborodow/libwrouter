@@ -11,8 +11,8 @@
 
 typedef struct {
     const char *ptr;
+    uint16_t length;
     uint8_t type;
-    uint8_t length;
-} pretoken_t;
+} token_t;
 
 #endif

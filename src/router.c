@@ -1,13 +1,24 @@
 #include "wrouter.h"
 #include "router.h"
+#include "lexer.h"
+#include <stddef.h>
+#include <string.h>
 
 void wrouter_dispatch(const wrouter_t *router, const char *path, void *dispatch_ctx)
 {
-    return;
+    wrouter_ndispatch(router, path, strlen(path), dispatch_ctx);
+}
+
+void wrouter_ndispatch(const wrouter_t *router, const char *path, size_t length, void *dispatch_ctx)
+{
+    lexer_load(router->lx, path, length);
 }
 
 void wrouter_free(wrouter_t *router)
 {
+    if (router == NULL)
+        return;
+
     free(router->literals.region);
     free(router->literals.base);
     free(router->params.region);
@@ -15,5 +26,6 @@ void wrouter_free(wrouter_t *router)
     free(router->graph);
     free(router->terminals.base);
     free(router->terminals.refs);
+    free(router->lx);
     free(router);
 }

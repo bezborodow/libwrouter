@@ -34,7 +34,7 @@ struct segment {
 };
 
 typedef struct {
-    pretoken_t *tokens;
+    token_t *tokens;
     size_t token_count;
 } preroute_t;
 
