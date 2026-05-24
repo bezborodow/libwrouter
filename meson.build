@@ -32,7 +32,6 @@ src = files(
     'src/preparser.c',
     'src/router.c',
     'src/symbol.c',
-    'src/trie.c',
 )
 
 libwrouter = library(
