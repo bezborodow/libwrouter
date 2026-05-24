@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stddef.h>
 
 #ifndef WROUTER_H
 #define WROUTER_H
@@ -29,6 +30,7 @@ wrouter_t *wrouter_compile(const wrouter_builder_t *builder);
 void wrouter_builder_free(wrouter_builder_t *builder);
 
 void wrouter_dispatch(const wrouter_t *router, const char *path, void *dispatch_ctx);
+void wrouter_ndispatch(const wrouter_t *router, const char *path, size_t length, void *dispatch_ctx);
 
 int wrouter_route_count(const wrouter_t *router);
 

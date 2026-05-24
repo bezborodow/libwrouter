@@ -1,4 +1,5 @@
 #include "wrouter.h"
+#include "lexer.h"
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -59,6 +60,7 @@ struct router {
     symbols_t literals;
     symbols_t params;
     terminals_t terminals;
+    lexer_t *lx;
 };
 
 #endif

@@ -44,13 +44,13 @@ struct builder *wrouter_builder_create(wrouter_param_syntax_t param_syntax)
     return builder;
 }
 
-static bool token_matches(pretoken_t tok, const segment_t *seg)
+static bool token_matches(token_t tok, const segment_t *seg)
 {
     return seg->str && tok.ptr && tok.length == seg->str_length &&
            strncmp(tok.ptr, seg->str, tok.length) == 0;
 }
 
-static segment_t *find_child(segment_t *segment, pretoken_t tok)
+static segment_t *find_child(segment_t *segment, token_t tok)
 {
     if (tok.ptr == NULL)
         return NULL;
@@ -70,7 +70,7 @@ int wrouter_add_route(struct builder *builder, const char *pattern, struct route
     if (route.handler == NULL)
         return -1;
 
-    pretoken_t tok;
+    token_t tok;
     prelexer_t lx = { 0 };
     prelexer_init(&lx, builder->param_syntax);
     prelexer_load(&lx, pattern);
@@ -397,9 +397,10 @@ struct router *wrouter_compile(const struct builder *builder)
     if (router == NULL)
         return NULL;
 
+    router->lx = calloc(1, sizeof(lexer_t));
     router->literals = symbol_compile(&builder->literals);
     router->params = symbol_compile(&builder->params);
-    if (router->literals.base == NULL || router->params.base == NULL) {
+    if (router->lx == NULL || router->literals.base == NULL || router->params.base == NULL) {
         wrouter_free(router);
         return NULL;
     }
@@ -407,7 +408,6 @@ struct router *wrouter_compile(const struct builder *builder)
     graph_stats_t stats = { 0 };
     graph_stats(builder->root, &stats);
 
-    // router->terminals.count = stats.terminals;
     router->terminals.refs = calloc(stats.terminals, sizeof(uint16_t));
     router->terminals.base = calloc(stats.terminals, sizeof(struct route));
 
