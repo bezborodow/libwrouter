@@ -6,6 +6,10 @@
 #ifndef WROUTER_ROUTER_H
 #define WROUTER_ROUTER_H
 
+#define NODE_FLAG_TERMINAL 1
+#define NODE_FLAG_HAS_PARAM 2
+#define NODE_FLAG_HAS_WILDCARD 4
+
 typedef struct {
     const char *name;
     const char *value;
@@ -17,18 +21,15 @@ struct params {
 };
 
 typedef struct node {
-    uint8_t literals;
+    uint8_t literals; // Numbers of literal edges.
     uint8_t flags;
+    uint8_t hello;
 } node_t;
 
 typedef struct edge {
-    uint16_t next;
-} edge_t;
-
-typedef struct symbolic_edge_t {
     uint16_t symbol;
     uint16_t next;
-} symbolic_edge_t;
+} edge_t;
 
 struct route {
     wrouter_handler_fn handler;
@@ -44,7 +45,7 @@ _Static_assert(_Alignof(edge_t) <= _Alignof(node_t),
 
 typedef struct symbols {
     const char **base;
-    unsigned char *region;
+    char *region;
     uint32_t count;
 } symbols_t;
 
@@ -54,7 +55,7 @@ typedef struct terminals {
 } terminals_t;
 
 struct router {
-    unsigned char *graph;
+    void *graph;
     symbols_t literals;
     symbols_t params;
     terminals_t terminals;

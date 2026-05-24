@@ -18,6 +18,13 @@ static void cb_test(void *dispatch_ctx, void *route_ctx, const wrouter_params_t 
     return;
 }
 
+static void cb_do_nothing(void *dispatch_ctx, void *route_ctx, const wrouter_params_t *params)
+{
+    (void)dispatch_ctx;
+    (void)route_ctx;
+    (void)params;
+}
+
 static void print_route_node(const segment_t *seg, int depth, int is_param)
 {
     // Indent.
@@ -206,8 +213,112 @@ void test_router_basic(void)
     wrouter_free(router);
 }
 
+/*
+ * 256 groups: 00..ff
+ * Each group:
+ *   /xx/:a/a/a/:p
+ *   /xx/:a/a/a/:p/ *
+ *   /xx/:a/a/b/:p
+ *   /xx/:a/a/b/:p/ *
+ *   /xx/:a/a/c/:p
+ *   /xx/:a/a/c/:p/ *
+ *
+ * Params are per-group:
+ *   :a = "a"
+ *   :p = "p"
+ */
+void test_router_stress_256_groups(void)
+{
+    wrouter_param_syntax_t param_syntax = WROUTER_SYNTAX_ANGLE;
+    wrouter_builder_t *builder = wrouter_builder_create(param_syntax);
+    assert(builder != NULL);
+
+    struct route route = { cb_do_nothing, NULL };
+
+    static char patterns[256 * 6][64];
+    static terminal_test_case_t cases[256 * 6];
+
+    size_t k = 0;
+
+    for (int g = 0; g < 256; g++) {
+        char xx[3];
+        snprintf(xx, sizeof(xx), "%02x", g);
+
+        const char *param_a = "a";
+        const char *param_p = "p";
+
+        const char *l1[] = { "a", "b", "c" };
+
+        for (int i = 0; i < 3; i++) {
+
+            // base route: /xx/:a/a/a/:p
+            snprintf(patterns[k], sizeof(patterns[k]),
+                     "/%s/<%s>/%s/%s/<%s>",
+                     xx, param_a, l1[i], l1[i], param_p);
+
+            cases[k].pattern = patterns[k];
+            cases[k].request = NULL;
+            cases[k].params = NULL;
+
+            route.ctx = &cases[k];
+            assert(wrouter_add_route(builder, cases[k].pattern, route) == 0);
+            k++;
+
+            // wildcard variant: /xx/:a/a/a/:p/*
+            snprintf(patterns[k], sizeof(patterns[k]),
+                     "/%s/<%s>/%s/%s/<%s>/*",
+                     xx, param_a, l1[i], l1[i], param_p);
+
+            cases[k].pattern = patterns[k];
+            cases[k].request = NULL;
+            cases[k].params = NULL;
+
+            route.ctx = &cases[k];
+            assert(wrouter_add_route(builder, cases[k].pattern, route) == 0);
+            k++;
+        }
+    }
+
+    // Optional sanity: deterministic size expectation
+    assert(k == 256 * 6);
+
+    // Build
+    wrouter_t *router = wrouter_compile(builder);
+    wrouter_builder_free(builder);
+
+    // Dispatch pass (deterministic requests)
+    k = 0;
+    for (int g = 0; g < 256; g++) {
+        char xx[3];
+        snprintf(xx, sizeof(xx), "%02x", g);
+
+        const char *l1[] = { "a", "b", "c" };
+
+        for (int i = 0; i < 3; i++) {
+
+            char req[64];
+            snprintf(req, sizeof(req),
+                     "/%s/%s/%s/%s/%s",
+                     xx, "x", l1[i], l1[i], "y");
+
+            wrouter_dispatch(router, req, &cases[k]);
+            k++;
+
+            snprintf(req, sizeof(req),
+                     "/%s/%s/%s/%s/%s",
+                     xx, "x", l1[i], l1[i], "y");
+
+            wrouter_dispatch(router, req, &cases[k]);
+            k++;
+        }
+    }
+
+    wrouter_free(router);
+}
+
 int main(void)
 {
     test_router_basic();
+    test_router_stress_256_groups();
     return 0;
 }

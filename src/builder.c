@@ -6,6 +6,23 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdio.h>
+
+#include <stddef.h>
+
+static inline size_t align_up(size_t cursor, size_t align)
+{
+    return (cursor + align - 1) & ~(align - 1);
+}
+
+static void size_up(size_t *total_size, size_t align, size_t size)
+{
+    if (!size)
+        return;
+
+    *total_size = align_up(*total_size, align);
+    *total_size += size;
+}
 
 struct builder *wrouter_builder_create(wrouter_param_syntax_t param_syntax)
 {
@@ -214,7 +231,118 @@ void graph_stats(const segment_t *seg, graph_stats_t *stats)
         stats->terminals++;
 }
 
-static void graph_compile(struct router *router, segment_t *segment, uint16_t *cursor) {}
+
+static void *graph_append(void *g, size_t *cursor, size_t size, size_t align)
+{
+    if (!size)
+        return NULL;
+
+    *cursor = align_up(*cursor, align);
+
+    void *base = (uint8_t *)g + *cursor;
+    memset(base, 0, size);
+    *cursor += size;
+    return base;
+}
+
+static node_t *graph_compile(struct router *router, segment_t *segment, size_t *cursor)
+{
+    void *g = router->graph;
+
+    // Append node.
+    node_t *node = graph_append(g, cursor, sizeof(node_t), _Alignof(node_t));
+
+    node->literals = segment->child_count;
+    if (segment->route.handler != NULL) {
+        node->flags |= NODE_FLAG_TERMINAL;
+    }
+
+    edge_t *p_edge = NULL;
+    edge_t *w_edge = NULL;
+
+    switch (segment->spec_type) {
+        case SPEC_PARAM:
+            node->flags |= NODE_FLAG_HAS_PARAM;
+            p_edge = graph_append(g, cursor, sizeof(edge_t), _Alignof(edge_t));
+            p_edge->symbol = symbol_resolve(segment->special.param->str, router->params.base, router->params.count); 
+            break;
+
+        case SPEC_WILDCARD:
+            node->flags |= NODE_FLAG_HAS_WILDCARD;
+            w_edge = graph_append(g, cursor, sizeof(edge_t), _Alignof(edge_t));
+            break;
+
+        case SPEC_NONE:
+            break;
+    }
+
+    // Descend into literals.
+    edge_t *l_edge_base = graph_append(g, cursor, segment->child_count * sizeof(edge_t), _Alignof(edge_t));
+
+    for (uint16_t i = 0; i < segment->child_count; i++) {
+        segment_t *child = segment->children[i];
+        edge_t *l_edge = &l_edge_base[i];
+        l_edge->symbol = symbol_resolve(child->str, router->literals.base, router->literals.count); 
+    }
+
+    for (uint16_t i = 0; i < segment->child_count; i++) {
+        segment_t *child = segment->children[i];
+
+        node_t *l_node = graph_compile(router, child, cursor);
+
+        edge_t *l_edge = &l_edge_base[i];
+        l_edge->next = (uint8_t *)l_node - (uint8_t *)g;
+    }
+
+    // Descend into parameter.
+    if (p_edge != NULL) {
+        node_t *p_node = graph_compile(router, segment->special.param, cursor);
+        p_edge->next = (uint8_t *)p_node - (uint8_t *)g;
+    }
+
+    // Append wildcard node.
+    if (w_edge != NULL) {
+        node_t *w_node = graph_append(g, cursor, sizeof(node_t), _Alignof(node_t));
+        w_node->flags |= NODE_FLAG_TERMINAL;
+        w_edge->next = (uint8_t *)w_node - (uint8_t *)g;
+    }
+
+    return node;
+}
+
+static void graph_size(segment_t *segment, size_t *total_size)
+{
+    size_up(total_size, _Alignof(node_t), sizeof(node_t));
+
+    switch (segment->spec_type) {
+        case SPEC_PARAM:
+        case SPEC_WILDCARD:
+            size_up(total_size, _Alignof(edge_t), sizeof(edge_t));
+            break;
+
+        case SPEC_NONE:
+            break;
+    }
+
+    size_up(total_size, _Alignof(edge_t), segment->child_count * sizeof(edge_t));
+    for (uint16_t i = 0; i < segment->child_count; i++) {
+        segment_t *child = segment->children[i];
+        graph_size(child, total_size);
+    }
+
+    switch (segment->spec_type) {
+        case SPEC_PARAM:
+            graph_size(segment->special.param, total_size);
+            break;
+
+        case SPEC_WILDCARD:
+            size_up(total_size, _Alignof(node_t), sizeof(node_t));
+            break;
+
+        case SPEC_NONE:
+            break;
+    }
+}
 
 symbols_t symbol_compile(const symbol_table_t *tbl)
 {
@@ -268,22 +396,31 @@ struct router *wrouter_compile(const struct builder *builder)
         return NULL;
     }
 
+    size_t graph_bytes = 0;
+    graph_size(builder->root, &graph_bytes);
+
+#if 1
+    // Using stats does not work if alignment is broken. Needs to use an actual
+    // layout pass calculation.  This is kept here for demonstration.  To break
+    // it, add an extra byte to the node struct, which will throw off
+    // alignment.
+    printf("GRAPH BYTES FIRST PASS: %lu\n", graph_bytes);
     graph_stats_t stats = { 0 };
     graph_stats(builder->root, &stats);
+    size_t other_bytes = sizeof(node_t) * stats.nodes;
+    other_bytes += sizeof(edge_t) * (stats.edges + stats.symbolic_edges);
+    printf("GRAPH BYTES STATS: %lu\n", other_bytes);
+#endif
 
-    size_t graph_bytes = sizeof(node_t) * stats.nodes;
-    graph_bytes += sizeof(edge_t) * stats.edges;
-    graph_bytes += sizeof(symbolic_edge_t) * stats.symbolic_edges;
-
-    uint8_t *graph = malloc(graph_bytes);
+    void *graph = malloc(graph_bytes);
     if (graph == NULL) {
         wrouter_free(router);
         return NULL;
     }
-
     router->graph = graph;
 
-    uint16_t cursor = 0;
+
+    size_t cursor = 0;
     graph_compile(router, builder->root, &cursor);
 
     return router;
