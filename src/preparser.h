@@ -1,4 +1,0 @@
-#ifndef WROUTER_PREPARSER_H
-#define WROUTER_PREPARSER_H
-
-#endif
