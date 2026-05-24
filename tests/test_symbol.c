@@ -22,6 +22,10 @@ static void test_symbol_append(void)
     assert(strcmp(tbl.base[0], "hello") == 0);
     assert(strcmp(tbl.base[1], "world") == 0);
 
+    assert(symbol_resolve("hello", tbl.base, tbl.count) == 1);
+    assert(symbol_resolve("cruel", tbl.base, tbl.count) == 0);
+    assert(symbol_resolve("world", tbl.base, tbl.count) == 2);
+
     symbol_table_free(&tbl);
 }
 
