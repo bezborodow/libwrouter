@@ -170,31 +170,35 @@ void test_router_basic(void)
     };
     // clang-format on
 
+    // Create builder.
     wrouter_param_syntax_t param_syntax = WROUTER_SYNTAX_ANGLE;
     wrouter_builder_t *builder = wrouter_builder_create(param_syntax);
 
+    // Route handler.
     struct route route = { cb_test, NULL };
 
+    // Add routes.
     size_t n = sizeof(cases) / sizeof(cases[0]);
     for (size_t i = 0; i < n; i++) {
         route.ctx = &cases[i];
-        wrouter_add_route(builder, cases[i].pattern, route);
+        assert(wrouter_add_route(builder, cases[i].pattern, route) == 0);
     }
 
     builder_print_tree(builder);
 
     // Check stats.
     graph_stats_t stats = { 0 };
-    builder_stats(builder->root, &stats);
+    graph_stats(builder->root, &stats);
     assert(stats.nodes == 18);
     assert(stats.edges == 5);
     assert(stats.symbolic_edges == 12);
     assert(stats.terminals == n);
 
+    // Compile.
     wrouter_t *router = wrouter_compile(builder);
-
     wrouter_builder_free(builder);
 
+    // Dispatch.
     for (size_t i = 0; i < n; i++) {
         wrouter_dispatch(router, cases[i].request, &cases[i]);
     }
