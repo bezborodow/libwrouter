@@ -442,7 +442,7 @@ struct router *wrouter_compile(const struct builder *builder)
     // Check that the terminals were saved.
     printf("TERMINAL REFS FOUND: %u\n", router->terminals.count);
     printf("TERMINALS STATS: %lu\n", stats.terminals);
-    for (int i = 0; i < stats.terminals; i++) {
+    for (size_t i = 0; i < stats.terminals; i++) {
         printf("%u ", router->terminals.refs[i]);
     }
     printf("\n");
