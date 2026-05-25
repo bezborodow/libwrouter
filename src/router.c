@@ -46,6 +46,8 @@ lexer_next:
             if (cur->literals) {
                 symbol = symbol_resolve(tok.ptr, router->literals.base, router->literals.count);
                 printf("Resolve %.*s to symbol %lu.\n", tok.length, tok.ptr, symbol);
+
+                // TODO do bsearch if n > 8. Need to sort symbols first though when compiling.
                 for (uint16_t i = 0; i < cur->literals; i++) {
                     edge = &edge_base[i];
                     printf("Check symbol %u.\n", edge->symbol);
