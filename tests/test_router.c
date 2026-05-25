@@ -30,6 +30,9 @@ static void cb_test(void *dispatch_ctx, void *route_ctx, const wrouter_params_t 
     printf("Route request:    %s\n", rtc->request);
     printf("Route pattern:    %s\n", rtc->pattern);
     assert(rtc == dtc);
+
+    // TODO test params.
+    (void)params;
 }
 
 static void print_route_node(const segment_t *seg, int depth, int is_param)

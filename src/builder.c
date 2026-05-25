@@ -207,40 +207,6 @@ static int edge_cmp(const void *p1, const void *p2)
     return e1->symbol - e2->symbol;
 }
 
-void graph_stats(const segment_t *seg, graph_stats_t *stats)
-{
-    stats->nodes++;
-
-    // Literal children.
-    stats->symbolic_edges += seg->child_count;
-    for (uint16_t i = 0; i < seg->child_count; i++) {
-        graph_stats(seg->children[i], stats);
-    }
-
-    // Special.
-    switch (seg->spec_type) {
-        case SPEC_PARAM:
-            // Parameters.
-            stats->edges++;
-            graph_stats(seg->special.param, stats);
-            break;
-
-        case SPEC_WILDCARD:
-            // Terminal wildcard.
-            stats->edges++;
-            stats->nodes++;
-            stats->terminals++;
-            break;
-
-        case SPEC_NONE:
-            break;
-    }
-
-    // Terminal.
-    if (seg->route.handler != NULL)
-        stats->terminals++;
-}
-
 /**
  * Increases the cursor and returns the base.
  */
@@ -342,38 +308,51 @@ static node_t *graph_compile(struct router *router, const segment_t *segment, si
     return node;
 }
 
-static void graph_size(segment_t *segment, size_t *total_size)
+void graph_stats(const segment_t *seg, graph_stats_t *stats)
 {
-    size_up(total_size, _Alignof(node_t), sizeof(node_t));
+    stats->nodes++;
+    size_up(&stats->size, _Alignof(node_t), sizeof(node_t));
 
-    switch (segment->spec_type) {
+    // Special edges.
+    switch (seg->spec_type) {
         case SPEC_PARAM:
         case SPEC_WILDCARD:
-            size_up(total_size, _Alignof(edge_t), sizeof(edge_t));
+            size_up(&stats->size, _Alignof(edge_t), sizeof(edge_t));
             break;
 
         case SPEC_NONE:
             break;
     }
 
-    size_up(total_size, _Alignof(edge_t), segment->child_count * sizeof(edge_t));
-    for (uint16_t i = 0; i < segment->child_count; i++) {
-        segment_t *child = segment->children[i];
-        graph_size(child, total_size);
+    // Literal child node edges and nodes.
+    stats->symbolic_edges += seg->child_count;
+    size_up(&stats->size, _Alignof(edge_t), seg->child_count * sizeof(edge_t));
+    for (uint16_t i = 0; i < seg->child_count; i++) {
+        segment_t *child = seg->children[i];
+        graph_stats(child, stats);
     }
 
-    switch (segment->spec_type) {
+    // Special nodes.
+    switch (seg->spec_type) {
         case SPEC_PARAM:
-            graph_size(segment->special.param, total_size);
+            stats->edges++;
+            graph_stats(seg->special.param, stats);
             break;
 
         case SPEC_WILDCARD:
-            size_up(total_size, _Alignof(node_t), sizeof(node_t));
+            stats->edges++;
+            stats->nodes++;
+            stats->terminals++;
+            size_up(&stats->size, _Alignof(node_t), sizeof(node_t));
             break;
 
         case SPEC_NONE:
             break;
     }
+
+    // Terminal node.
+    if (seg->route.handler != NULL)
+        stats->terminals++;
 }
 
 symbols_t symbol_compile(const symbol_table_t *tbl)
@@ -442,15 +421,13 @@ struct router *wrouter_compile(const struct builder *builder)
     // layout pass calculation.  This is kept here for demonstration.  To break
     // it, add an extra byte to the node struct, which will throw off
     // alignment.
-    printf("GRAPH BYTES FIRST PASS: %lu\n", graph_bytes);
+    printf("GRAPH BYTES FIRST PASS: %lu\n", stats.size);
     size_t other_bytes = sizeof(node_t) * stats.nodes;
     other_bytes += sizeof(edge_t) * (stats.edges + stats.symbolic_edges);
     printf("GRAPH BYTES STATS: %lu\n", other_bytes);
 #endif
 
-    size_t graph_bytes = 0;
-    graph_size(builder->root, &graph_bytes);
-    void *graph = malloc(graph_bytes);
+    void *graph = malloc(stats.size);
     if (graph == NULL) {
         wrouter_free(router);
         return NULL;

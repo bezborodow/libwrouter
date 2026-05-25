@@ -13,8 +13,6 @@ add_project_arguments(
     '-Wextra',
     '-Wpedantic',
     '-Wjump-misses-init',
-    '-Wno-unused-variable',
-    '-Wno-unused-parameter',
     language : 'c'
 )
 
