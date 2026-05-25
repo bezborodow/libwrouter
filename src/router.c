@@ -6,17 +6,8 @@
 #include <string.h>
 #include <stdio.h>
 
-void wrouter_dispatch(const wrouter_t *router, const char *path, void *dispatch_ctx)
+static const struct route *route_match(const struct router *router)
 {
-    printf("-----------------------\n");
-    printf("%s\n", path);
-    wrouter_ndispatch(router, path, strlen(path), dispatch_ctx);
-}
-
-void wrouter_ndispatch(const wrouter_t *router, const char *path, size_t length, void *dispatch_ctx)
-{
-    lexer_load(router->lx, path, length);
-
     token_t tok = { 0 };
     size_t symbol = 0;
 
@@ -70,30 +61,52 @@ lexer_next:
                 goto lexer_next;
             }
 
-            return;
             break;
 
         case TOKEN_END:
             printf("End.\n");
             if (cur->flags & NODE_FLAG_TERMINAL) {
                 printf("Found terminal.\n");
-                return;
+                return NULL; // TODO RETURN ROUTE
             }
             if (w_node != NULL) {
                 printf("Found wildcard.\n");
                 edge = (edge_t *)((uint8_t *)w_node + sizeof(node_t));
                 cur = (node_t *)((uint8_t *)g + edge->next);
+                // TODO return ROUTE
             }
-            return;
+            break;
 
         case TOKEN_ILLEGAL:
         default:
-            return;
-
+            break;
     }
+
+    return NULL;
 }
 
-void wrouter_free(wrouter_t *router)
+void wrouter_dispatch(const struct router *router, const char *path, void *dispatch_ctx)
+{
+    printf("-----------------------\n");
+    printf("%s\n", path);
+    wrouter_ndispatch(router, path, strlen(path), dispatch_ctx);
+}
+
+void wrouter_ndispatch(const struct router *router, const char *path, size_t length, void *dispatch_ctx)
+{
+    lexer_load(router->lx, path, length);
+
+    const struct route *route = route_match(router);
+
+    if (route == NULL) {
+        route = &router->fallback;
+    }
+
+    struct params *params = NULL; // TODO
+    route->handler(dispatch_ctx, route->ctx, params);
+}
+
+void wrouter_free(struct router *router)
 {
     if (router == NULL)
         return;

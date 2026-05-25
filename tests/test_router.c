@@ -171,8 +171,12 @@ void test_router_basic(void)
     // clang-format on
 
     // Create builder.
-    wrouter_param_syntax_t param_syntax = WROUTER_SYNTAX_ANGLE;
-    wrouter_builder_t *builder = wrouter_builder_create(param_syntax);
+    wrouter_options_t options = {
+        .param_syntax = WROUTER_SYNTAX_ANGLE,
+        .fallback_handler = cb_test, // TODO do 404 check here instead.
+        .fallback_ctx = NULL,
+    };
+    wrouter_builder_t *builder = wrouter_builder_create(options);
 
     // Route handler.
     struct route route = { cb_test, NULL };

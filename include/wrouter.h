@@ -21,7 +21,13 @@ typedef enum {
     WROUTER_SYNTAX_ANGLE, // <id>
 } wrouter_param_syntax_t;
 
-wrouter_builder_t *wrouter_builder_create(wrouter_param_syntax_t param_syntax);
+typedef struct wrouter_options {
+    wrouter_handler_fn fallback_handler;
+    void *fallback_ctx;
+    wrouter_param_syntax_t param_syntax;
+} wrouter_options_t;
+
+wrouter_builder_t *wrouter_builder_create(const wrouter_options_t options);
 
 int wrouter_add_route(wrouter_builder_t *builder, const char *pattern, wrouter_route_t route);
 
