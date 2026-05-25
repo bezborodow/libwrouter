@@ -200,6 +200,13 @@ static int strpcmp(const void *p1, const void *p2)
     return strcmp(*(const char **)p1, *(const char **)p2);
 }
 
+static int edge_cmp(const void *p1, const void *p2)
+{
+    const edge_t *e1 = p1;
+    const edge_t *e2 = p2;
+    return e1->symbol - e2->symbol;
+}
+
 void graph_stats(const segment_t *seg, graph_stats_t *stats)
 {
     stats->nodes++;
@@ -234,6 +241,9 @@ void graph_stats(const segment_t *seg, graph_stats_t *stats)
         stats->terminals++;
 }
 
+/**
+ * Increases the cursor and returns the base.
+ */
 static void *graph_append(void *g, size_t *cursor, size_t size, size_t align)
 {
     if (!size)
@@ -252,7 +262,7 @@ static size_t graph_offset(const void *graph, const void *entry)
     return (uint8_t *)entry - (uint8_t *)graph;
 }
 
-static node_t *graph_compile(struct router *router, segment_t *segment, size_t *cursor)
+static node_t *graph_compile(struct router *router, const segment_t *segment, size_t *cursor)
 {
     void *g = router->graph;
 
@@ -287,22 +297,31 @@ static node_t *graph_compile(struct router *router, segment_t *segment, size_t *
     }
 
     // Descend into literals.
-    edge_t *l_edge_base =
-        graph_append(g, cursor, segment->child_count * sizeof(edge_t), _Alignof(edge_t));
+    if (segment->child_count) {
+        // Find the start address for literal edges.
+        edge_t *l_edge_base =
+            graph_append(g, cursor, segment->child_count * sizeof(edge_t), _Alignof(edge_t));
 
-    for (uint16_t i = 0; i < segment->child_count; i++) {
-        segment_t *child = segment->children[i];
-        edge_t *l_edge = &l_edge_base[i];
-        l_edge->symbol = symbol_resolve(child->str, router->literals.base, router->literals.count);
-    }
+        // Resolve symbols and save into into the literal edges.
+        for (uint16_t i = 0; i < segment->child_count; i++) {
+            segment_t *child = segment->children[i];
+            edge_t *l_edge = &l_edge_base[i];
+            l_edge->symbol =
+                symbol_resolve(child->str, router->literals.base, router->literals.count);
+        }
 
-    for (uint16_t i = 0; i < segment->child_count; i++) {
-        segment_t *child = segment->children[i];
+        // Recurse into literal nodes and save their offsets.
+        for (uint16_t i = 0; i < segment->child_count; i++) {
+            segment_t *child = segment->children[i];
 
-        node_t *l_node = graph_compile(router, child, cursor);
+            node_t *l_node = graph_compile(router, child, cursor);
 
-        edge_t *l_edge = &l_edge_base[i];
-        l_edge->next = graph_offset(g, l_node);
+            edge_t *l_edge = &l_edge_base[i];
+            l_edge->next = graph_offset(g, l_node);
+        }
+
+        // Sort the edges by symbol.
+        qsort(l_edge_base, segment->child_count, sizeof(edge_t), edge_cmp);
     }
 
     // Descend into parameter.
