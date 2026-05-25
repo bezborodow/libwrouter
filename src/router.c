@@ -75,9 +75,8 @@ lexer_next:
                 printf("Follow param.\n");
                 goto lexer_next;
             }
-            if (w_node != NULL) {
+            if (w_node != NULL)
                 goto wildcard;
-            }
 
             break;
 
@@ -88,14 +87,9 @@ lexer_next:
 
                 return terminal_lookup(router, graph_offset(g, cur));
             }
-            if (w_node != NULL) {
-wildcard:
-                printf("Found wildcard.\n");
-                edge = (edge_t *)((uint8_t *)w_node + sizeof(node_t));
-                cur = (node_t *)((uint8_t *)g + edge->next);
+            if (w_node != NULL)
+                goto wildcard;
 
-                return terminal_lookup(router, graph_offset(g, cur));
-            }
             break;
 
         case TOKEN_ILLEGAL:
@@ -104,6 +98,13 @@ wildcard:
     }
 
     return NULL;
+
+wildcard:
+    printf("Found wildcard.\n");
+    edge = (edge_t *)((uint8_t *)w_node + sizeof(node_t));
+    cur = (node_t *)((uint8_t *)g + edge->next);
+
+    return terminal_lookup(router, graph_offset(g, cur));
 }
 
 void wrouter_dispatch(const struct router *router, const char *path, void *dispatch_ctx)
