@@ -218,7 +218,6 @@ void test_router_basic(void)
     wrouter_free(router);
 }
 
-
 int main(void)
 {
     test_router_basic();

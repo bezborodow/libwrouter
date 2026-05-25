@@ -78,7 +78,7 @@ lexer_next:
             if (w_node != NULL)
                 goto wildcard;
 
-            break;
+            return NULL;
 
         case TOKEN_END:
             printf("End.\n");
@@ -94,10 +94,8 @@ lexer_next:
 
         case TOKEN_ILLEGAL:
         default:
-            break;
+            return NULL;
     }
-
-    return NULL;
 
 wildcard:
     printf("Found wildcard.\n");
@@ -114,7 +112,8 @@ void wrouter_dispatch(const struct router *router, const char *path, void *dispa
     wrouter_ndispatch(router, path, strlen(path), dispatch_ctx);
 }
 
-void wrouter_ndispatch(const struct router *router, const char *path, size_t length, void *dispatch_ctx)
+void wrouter_ndispatch(const struct router *router, const char *path, size_t length,
+                       void *dispatch_ctx)
 {
     lexer_load(router->lx, path, length);
 
