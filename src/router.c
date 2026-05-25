@@ -6,6 +6,24 @@
 #include <string.h>
 #include <stdio.h>
 
+// TODO common graph_offset
+static size_t graph_offset(const void *graph, const void *entry)
+{
+    return (uint8_t *)entry - (uint8_t *)graph;
+}
+
+static struct route *terminal_lookup(const struct router *router, uint16_t ref)
+{
+    // TODO bsearch.
+    for (uint16_t i = 0; i < router->terminals.count; i++) {
+        if (router->terminals.refs[i] == ref) {
+            return &router->terminals.base[i];
+        }
+    }
+
+    return NULL;
+}
+
 static const struct route *route_match(const struct router *router)
 {
     token_t tok = { 0 };
@@ -34,9 +52,9 @@ lexer_next:
             if (cur->flags & NODE_FLAG_HAS_WILDCARD) {
                 w_node = cur;
             }
-            if (cur->literals) {
-                symbol = symbol_resolve(tok.ptr, router->literals.base, router->literals.count);
-                printf("Resolve %.*s to symbol %lu.\n", tok.length, tok.ptr, symbol);
+            symbol = symbol_resolve(tok.ptr, router->literals.base, router->literals.count);
+            printf("Resolve %.*s to symbol %lu.\n", tok.length, tok.ptr, symbol);
+            if (symbol && cur->literals) {
 
                 // TODO do bsearch if n > 8. Need to sort symbols first though when compiling.
                 for (uint16_t i = 0; i < cur->literals; i++) {
@@ -58,7 +76,7 @@ lexer_next:
                 goto lexer_next;
             }
             if (w_node != NULL) {
-                goto lexer_next;
+                goto wildcard;
             }
 
             break;
@@ -67,13 +85,16 @@ lexer_next:
             printf("End.\n");
             if (cur->flags & NODE_FLAG_TERMINAL) {
                 printf("Found terminal.\n");
-                return NULL; // TODO RETURN ROUTE
+
+                return terminal_lookup(router, graph_offset(g, cur));
             }
             if (w_node != NULL) {
+wildcard:
                 printf("Found wildcard.\n");
                 edge = (edge_t *)((uint8_t *)w_node + sizeof(node_t));
                 cur = (node_t *)((uint8_t *)g + edge->next);
-                // TODO return ROUTE
+
+                return terminal_lookup(router, graph_offset(g, cur));
             }
             break;
 
