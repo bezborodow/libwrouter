@@ -6,6 +6,10 @@
 
 static void cb_test(void *dispatch_ctx, void *route_ctx, const wrouter_params_t *params)
 {
+    // TODO Maybe do something here?
+    (void)dispatch_ctx;
+    (void)route_ctx;
+    (void)params;
     return;
 }
 
