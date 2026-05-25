@@ -8,6 +8,8 @@
 
 void wrouter_dispatch(const wrouter_t *router, const char *path, void *dispatch_ctx)
 {
+    printf("-----------------------\n");
+    printf("%s\n", path);
     wrouter_ndispatch(router, path, strlen(path), dispatch_ctx);
 }
 
@@ -18,22 +20,56 @@ void wrouter_ndispatch(const wrouter_t *router, const char *path, size_t length,
     token_t tok = { 0 };
     size_t symbol = 0;
 
-    node_t *cur = router->graph, *w_node = NULL;
+    void *g = router->graph;
+    node_t *cur = g, *w_node = NULL;
+    edge_t *edge = NULL;
+
+    printf("Symbol count %u\n", router->literals.count);
 
     for (;;) {
+lexer_next:
         tok = lexer_next(router->lx);
+        size_t edge_base = cur + _Alignof(node_t);
+
+        if (cur->flags & NODE_FLAG_HAS_PARAM || cur->flags & NODE_FLAG_HAS_WILDCARD) {
+            edge_base += sizeof(edge_t);
+        }
+        if (cur->flags & NODE_FLAG_HAS_WILDCARD) {
+            w_node = cur;
+        }
 
         switch (tok.type) {
             case TOKEN_LITERAL:
-                symbol = symbol_resolve(tok.ptr, router->literals.base, router->literals.count);
-                if (cur->flags & NODE_FLAG_HAS_PARAM) {
-                }
+                printf("Part %.*s\n", tok.length, tok.ptr);
                 if (cur->flags & NODE_FLAG_HAS_WILDCARD) {
                     w_node = cur;
                 }
+                if (cur->literals) {
+                    symbol = symbol_resolve(tok.ptr, router->literals.base, router->literals.count);
+                    printf("Resolve %.*s to symbol %u.\n", tok.length, tok.ptr, symbol);
+                    for (uint16_t i = 0; i < cur->literals; i++) {
+                        edge = edge_base + i * sizeof(edge_t);
+                        printf("Check symbol %u.\n", edge->symbol);
+                        printf("Check symbol of %s\n", router->literals.base[edge->symbol - 1]);
+                        if (edge->symbol == symbol) {
+                            cur = g + edge->next;
+                            printf("Follow symbol.\n");
+                            goto lexer_next;
+                        }
+                    }
+                }
+                if (cur->flags & NODE_FLAG_HAS_PARAM) {
+                    printf("Has param.\n");
+                    edge = cur + _Alignof(node_t);
+                    cur = g + edge->next;
+                    printf("Follow param.\n");
+                    goto lexer_next;
+                }
+                return;
                 break;
 
             case TOKEN_END:
+                printf("End.\n");
                 if (cur->flags & NODE_FLAG_TERMINAL) {
                     printf("Found terminal.\n");
                     return;
