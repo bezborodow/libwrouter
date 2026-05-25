@@ -14,6 +14,14 @@ typedef struct {
     const wrouter_params_t *params;
 } terminal_test_case_t;
 
+static void cb_fail(void *dispatch_ctx, void *route_ctx, const wrouter_params_t *params)
+{
+    (void)dispatch_ctx;
+    (void)route_ctx;
+    (void)params;
+    assert(0);
+}
+
 static void cb_test(void *dispatch_ctx, void *route_ctx, const wrouter_params_t *params)
 {
     terminal_test_case_t *dtc = dispatch_ctx, *rtc = route_ctx;
@@ -179,7 +187,7 @@ void test_router_basic(void)
     // Create builder.
     wrouter_options_t options = {
         .param_syntax = WROUTER_SYNTAX_ANGLE,
-        .fallback_handler = cb_test, // TODO do 404 check here instead.
+        .fallback_handler = cb_fail,
         .fallback_ctx = NULL,
     };
     wrouter_builder_t *builder = wrouter_builder_create(options);
