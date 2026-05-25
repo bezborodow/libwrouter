@@ -59,6 +59,7 @@ typedef struct graph_stats {
     size_t edges;
     size_t symbolic_edges;
     size_t terminals;
+    size_t size;
 } graph_stats_t;
 
 void graph_stats(const segment_t *segment, graph_stats_t *stats);
