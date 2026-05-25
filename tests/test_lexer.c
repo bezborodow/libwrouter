@@ -19,25 +19,25 @@ static void test_lexer_illegal(void)
 static void test_lexer_easy(void)
 {
     token_t tok;
-    char path[] = "/a/b/c";
+    char path[] = "/angle/euler/quaternion";
 
     lexer_t lx = { 0 };
     lexer_load(&lx, path, strlen(path));
 
     tok = lexer_next(&lx);
     assert(tok.type == TOKEN_LITERAL);
-    assert(tok.length == 1);
-    assert(strncmp("a", tok.ptr, 1) == 0);
+    assert(tok.length == 5);
+    assert(strncmp("angle", tok.ptr, 5) == 0);
 
     tok = lexer_next(&lx);
     assert(tok.type == TOKEN_LITERAL);
-    assert(tok.length == 1);
-    assert(strncmp("b", tok.ptr, 1) == 0);
+    assert(tok.length == 5);
+    assert(strncmp("euler", tok.ptr, 5) == 0);
 
     tok = lexer_next(&lx);
     assert(tok.type == TOKEN_LITERAL);
-    assert(tok.length == 1);
-    assert(strncmp("c", tok.ptr, 1) == 0);
+    assert(tok.length == 10);
+    assert(strncmp("quaternion", tok.ptr, 10) == 0);
 
     tok = lexer_next(&lx);
     assert(tok.type == TOKEN_END);
