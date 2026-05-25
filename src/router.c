@@ -28,10 +28,10 @@ void wrouter_ndispatch(const wrouter_t *router, const char *path, size_t length,
 
 lexer_next:
     tok = lexer_next(router->lx);
-    size_t edge_base = cur + _Alignof(node_t);
+    edge_t *edge_base = (edge_t *)((uint8_t *)cur + sizeof(node_t));
 
-    if (cur->flags & NODE_FLAG_HAS_PARAM || cur->flags & NODE_FLAG_HAS_WILDCARD) {
-        edge_base += sizeof(edge_t);
+    if (cur->flags & (NODE_FLAG_HAS_PARAM | NODE_FLAG_HAS_WILDCARD)) {
+        edge_base++;
     }
     if (cur->flags & NODE_FLAG_HAS_WILDCARD) {
         w_node = cur;
@@ -45,13 +45,13 @@ lexer_next:
             }
             if (cur->literals) {
                 symbol = symbol_resolve(tok.ptr, router->literals.base, router->literals.count);
-                printf("Resolve %.*s to symbol %u.\n", tok.length, tok.ptr, symbol);
+                printf("Resolve %.*s to symbol %lu.\n", tok.length, tok.ptr, symbol);
                 for (uint16_t i = 0; i < cur->literals; i++) {
-                    edge = edge_base + i * sizeof(edge_t);
+                    edge = &edge_base[i];
                     printf("Check symbol %u.\n", edge->symbol);
                     printf("Check symbol of %s\n", router->literals.base[edge->symbol - 1]);
                     if (edge->symbol == symbol) {
-                        cur = g + edge->next;
+                        cur = (node_t *)((uint8_t *)g + edge->next);
                         printf("Follow symbol.\n");
                         goto lexer_next;
                     }
@@ -59,8 +59,8 @@ lexer_next:
             }
             if (cur->flags & NODE_FLAG_HAS_PARAM) {
                 printf("Has param.\n");
-                edge = cur + _Alignof(node_t);
-                cur = g + edge->next;
+                edge = (edge_t *)((uint8_t *)cur + sizeof(node_t));
+                cur = (node_t *)((uint8_t *)g + edge->next);
                 printf("Follow param.\n");
                 goto lexer_next;
             }
@@ -79,6 +79,8 @@ lexer_next:
             }
             if (w_node != NULL) {
                 printf("Found wildcard.\n");
+                edge = (edge_t *)((uint8_t *)w_node + sizeof(node_t));
+                cur = (node_t *)((uint8_t *)g + edge->next);
             }
             return;
 
