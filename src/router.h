@@ -57,10 +57,16 @@ typedef struct terminals {
 
 struct router {
     void *graph;
+    lexer_t *lx;
     symbols_t literals;
     symbols_t params;
     terminals_t terminals;
-    lexer_t *lx;
+    struct route fallback;
+};
+
+struct router_options {
+    struct route fallback;
+    wrouter_param_syntax_t param_syntax;
 };
 
 #endif

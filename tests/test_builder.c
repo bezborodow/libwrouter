@@ -11,7 +11,12 @@ static void cb_test(void *dispatch_ctx, void *route_ctx, const wrouter_params_t 
 
 static void test_builder_add_route(void)
 {
-    wrouter_builder_t *builder = wrouter_builder_create(WROUTER_SYNTAX_BRACE);
+    wrouter_options_t options = {
+        .param_syntax = WROUTER_SYNTAX_COLON,
+        .fallback_handler = cb_test,
+        .fallback_ctx = NULL
+    };
+    wrouter_builder_t *builder = wrouter_builder_create(options);
 
     assert(builder != NULL);
 

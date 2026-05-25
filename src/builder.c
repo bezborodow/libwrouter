@@ -22,15 +22,20 @@ static void size_up(size_t *total_size, size_t align, size_t size)
     *total_size += size;
 }
 
-struct builder *wrouter_builder_create(wrouter_param_syntax_t param_syntax)
+struct builder *wrouter_builder_create(const wrouter_options_t options)
 {
     struct builder *builder;
+
+    if (options.fallback_handler == NULL)
+        return NULL;
 
     builder = calloc(1, sizeof(*builder));
     if (builder == NULL)
         return NULL;
 
-    builder->param_syntax = param_syntax;
+    builder->param_syntax = options.param_syntax;
+    builder->fallback.handler = options.fallback_handler;
+    builder->fallback.ctx = options.fallback_ctx;
 
     builder->root = calloc(1, sizeof(segment_t));
     if (builder->root == NULL) {
@@ -397,6 +402,7 @@ struct router *wrouter_compile(const struct builder *builder)
     if (router == NULL)
         return NULL;
 
+    router->fallback = builder->fallback;
     router->lx = calloc(1, sizeof(lexer_t));
     router->literals = symbol_compile(&builder->literals);
     router->params = symbol_compile(&builder->params);
