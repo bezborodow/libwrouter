@@ -165,6 +165,11 @@ void test_router_basic(void)
             .params = &account_contact_params
         },
         {
+            .pattern = "/account/<account_id>/contact/<account_contact_id>/credentials/*",
+            .request = "/account/200/contact/300/credentials/letter_of_endorsement.pdf",
+            .params = &account_contact_params
+        },
+        {
             .pattern = "/projects",
             .request = "/projects",
             .params = NULL
