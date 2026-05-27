@@ -24,7 +24,7 @@ static struct route *terminal_lookup(const struct router *router, uint16_t ref)
     return NULL;
 }
 
-static const struct route *route_match(const struct router *router)
+static const struct route *route_match(const struct router *router, struct params *params)
 {
     token_t tok = { 0 };
     size_t symbol = 0;
@@ -52,8 +52,9 @@ lexer_next:
             if (cur->flags & NODE_FLAG_HAS_WILDCARD) {
                 w_node = cur;
             }
-            symbol = symbol_resolve(tok.ptr, router->literals.base, router->literals.count);
+
             printf("Resolve %.*s to symbol %lu.\n", tok.length, tok.ptr, symbol);
+            symbol = symbol_resolve(tok.ptr, router->literals.base, router->literals.count);
             if (symbol && cur->literals) {
 
                 // TODO do bsearch if n > 8. Need to sort symbols first though when compiling.
@@ -68,17 +69,29 @@ lexer_next:
                     }
                 }
             }
+
             if (cur->flags & NODE_FLAG_HAS_PARAM) {
                 printf("Has param.\n");
                 edge = (edge_t *)((uint8_t *)cur + sizeof(node_t));
                 cur = (node_t *)((uint8_t *)g + edge->next);
                 printf("Follow param.\n");
+
+
+                param_t *new_params_base = realloc(params->base, sizeof(params->base[0]) * ++params->count);
+                if (new_params_base == NULL)
+                    return NULL; // TODO This is a memory error.
+                params->base = new_params_base;
+                params->base[params->count - 1].name = router->params.base[edge->symbol - 1];
+                params->base[params->count - 1].value = tok.ptr;
+                params->base[params->count - 1].length = tok.length;
+
                 goto lexer_next;
             }
+
             if (w_node != NULL)
                 goto wildcard;
 
-            return NULL;
+            goto not_found;
 
         case TOKEN_END:
             printf("End.\n");
@@ -90,12 +103,18 @@ lexer_next:
             if (w_node != NULL)
                 goto wildcard;
 
-            break;
+            goto not_found;
 
         case TOKEN_ILLEGAL:
         default:
-            return NULL;
+            goto not_found;
     }
+
+not_found:
+    // Route not found.
+    free(params->base);
+    params->count = 0;
+    return NULL;
 
 wildcard:
     printf("Found wildcard.\n");
@@ -117,14 +136,16 @@ void wrouter_ndispatch(const struct router *router, const char *path, size_t len
 {
     lexer_load(router->lx, path, length);
 
-    const struct route *route = route_match(router);
+    struct params params = { 0 };
 
-    if (route == NULL) {
+    const struct route *route = route_match(router, &params);
+
+    if (route == NULL)
         route = &router->fallback;
-    }
 
-    struct params *params = NULL; // TODO
     route->handler(dispatch_ctx, route->ctx, params);
+
+    free(params.base);
 }
 
 void wrouter_free(struct router *router)

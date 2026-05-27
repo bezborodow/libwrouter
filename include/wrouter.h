@@ -13,7 +13,7 @@ typedef struct builder wrouter_builder_t;
 typedef struct params wrouter_params_t;
 
 typedef void (*wrouter_handler_fn)(void *dispatch_ctx, void *route_ctx,
-                                   const wrouter_params_t *params);
+                                   const wrouter_params_t params);
 
 typedef enum {
     WROUTER_SYNTAX_COLON, // :id
