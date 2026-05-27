@@ -11,13 +11,14 @@
 #define NODE_FLAG_HAS_PARAM 2
 #define NODE_FLAG_HAS_WILDCARD 4
 
-typedef struct {
+typedef struct { // TODO Make public?
     const char *name;
     const char *value;
+    uint16_t length;
 } param_t;
 
 struct params {
-    const param_t *base;
+    param_t *base; // TODO make const? Would need a mutable version for router.
     uint32_t count;
 };
 

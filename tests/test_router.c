@@ -14,7 +14,7 @@ typedef struct {
     const wrouter_params_t *params;
 } terminal_test_case_t;
 
-static void cb_fail(void *dispatch_ctx, void *route_ctx, const wrouter_params_t *params)
+static void cb_fail(void *dispatch_ctx, void *route_ctx, const wrouter_params_t params)
 {
     (void)dispatch_ctx;
     (void)route_ctx;
@@ -22,14 +22,31 @@ static void cb_fail(void *dispatch_ctx, void *route_ctx, const wrouter_params_t 
     assert(0);
 }
 
-static void cb_test(void *dispatch_ctx, void *route_ctx, const wrouter_params_t *params)
+static void cb_test(void *dispatch_ctx, void *route_ctx, const wrouter_params_t params)
 {
+    // TODO COUNT HOW MANY ENTRIES.
+
     terminal_test_case_t *dtc = dispatch_ctx, *rtc = route_ctx;
     printf("REQUEST HANLDER CALLBACK\n");
     printf("Dispatch request: %s\n", dtc->request);
     printf("Route request:    %s\n", rtc->request);
     printf("Route pattern:    %s\n", rtc->pattern);
     assert(rtc == dtc);
+
+
+    if (dtc->params != NULL && dtc->params->count) {
+        assert(params.count == dtc->params->count);
+        printf("Found params!!\n");
+        for (size_t i = 0; i < params.count; i++) {
+            param_t *param_e = &dtc->params->base[i], *param = &params.base[i];
+
+            assert(param_e->length == param->length);
+            assert(memcmp(param->value, param_e->value, param_e->length) == 0);
+            assert(strcmp(param->name, param_e->name) == 0);
+
+            printf("Param %s: %.*s\n", param->name, param->length, param->value);
+        }
+    }
 
     // TODO test params.
     (void)params;
@@ -93,22 +110,22 @@ void test_router_basic(void)
     // clang-format off
     wrouter_params_t account_params = {
         .base = (param_t[]) {
-            { "account_id", "100" },
+            { "account_id", "100", 3 },
         },
         .count = 1
     };
 
     wrouter_params_t account_contact_params = {
         .base = (param_t[]) {
-            { "account_id", "200" },
-            { "account_contact_id", "300" },
+            { "account_id", "200", 3 },
+            { "account_contact_id", "300", 3 },
         },
         .count = 2
     };
 
     wrouter_params_t project_params = {
         .base = (param_t[]) {
-            { "project_id", "400" },
+            { "project_id", "400", 3 },
         },
         .count = 1
     };
@@ -213,14 +230,9 @@ void test_router_basic(void)
     builder_print_tree(builder);
 
     // Check stats.
-    /*
     graph_stats_t stats = { 0 };
     graph_stats(builder->root, &stats);
-    assert(stats.nodes == 18);
-    assert(stats.edges == 5);
-    assert(stats.symbolic_edges == 12);
     assert(stats.terminals == n);
-    */
 
     // Compile.
     wrouter_t *router = wrouter_compile(builder);
