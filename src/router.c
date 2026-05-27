@@ -100,10 +100,6 @@ lexer_next:
                 goto wildcard;
 
             goto not_found;
-
-        case TOKEN_ILLEGAL:
-        default:
-            goto not_found;
     }
 
 not_found:
