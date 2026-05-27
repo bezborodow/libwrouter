@@ -11,6 +11,9 @@
 #define NODE_FLAG_HAS_PARAM 2
 #define NODE_FLAG_HAS_WILDCARD 4
 
+// TODO enforce max params.
+#define MAX_PARAMS 16
+
 typedef struct { // TODO Make public?
     const char *name;
     const char *value;
@@ -18,7 +21,7 @@ typedef struct { // TODO Make public?
 } param_t;
 
 struct params {
-    param_t *base; // TODO make const? Would need a mutable version for router.
+    param_t items[MAX_PARAMS]; // TODO make const? Would need a mutable version for router.
     uint32_t count;
 };
 

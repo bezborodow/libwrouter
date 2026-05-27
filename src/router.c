@@ -39,22 +39,21 @@ lexer_next:
     tok = lexer_next(router->lx);
     edge_t *edge_base = (edge_t *)((uint8_t *)cur + sizeof(node_t));
 
-    if (cur->flags & (NODE_FLAG_HAS_PARAM | NODE_FLAG_HAS_WILDCARD)) {
+    if (cur->flags & (NODE_FLAG_HAS_PARAM | NODE_FLAG_HAS_WILDCARD))
         edge_base++;
-    }
-    if (cur->flags & NODE_FLAG_HAS_WILDCARD) {
+
+    if (cur->flags & NODE_FLAG_HAS_WILDCARD)
         w_node = cur;
-    }
 
     switch (tok.type) {
         case TOKEN_LITERAL:
             printf("Part %.*s\n", tok.length, tok.ptr);
-            if (cur->flags & NODE_FLAG_HAS_WILDCARD) {
-                w_node = cur;
-            }
 
-            printf("Resolve %.*s to symbol %lu.\n", tok.length, tok.ptr, symbol);
+            if (cur->flags & NODE_FLAG_HAS_WILDCARD)
+                w_node = cur;
+
             symbol = symbol_resolve(tok.ptr, router->literals.base, router->literals.count);
+            printf("Resolve %.*s to symbol %lu.\n", tok.length, tok.ptr, symbol);
             if (symbol && cur->literals) {
 
                 // TODO do bsearch if n > 8. Need to sort symbols first though when compiling.
@@ -71,19 +70,15 @@ lexer_next:
             }
 
             if (cur->flags & NODE_FLAG_HAS_PARAM) {
-                printf("Has param.\n");
                 edge = (edge_t *)((uint8_t *)cur + sizeof(node_t));
                 cur = (node_t *)((uint8_t *)g + edge->next);
-                printf("Follow param.\n");
 
+                param_t *param = &params->items[params->count++];
+                param->name = router->params.base[edge->symbol - 1];
+                param->value = tok.ptr;
+                param->length = tok.length;
 
-                param_t *new_params_base = realloc(params->base, sizeof(params->base[0]) * ++params->count);
-                if (new_params_base == NULL)
-                    return NULL; // TODO This is a memory error.
-                params->base = new_params_base;
-                params->base[params->count - 1].name = router->params.base[edge->symbol - 1];
-                params->base[params->count - 1].value = tok.ptr;
-                params->base[params->count - 1].length = tok.length;
+                printf("Follow param %s.\n", param->name);
 
                 goto lexer_next;
             }
@@ -100,6 +95,7 @@ lexer_next:
 
                 return terminal_lookup(router, graph_offset(g, cur));
             }
+
             if (w_node != NULL)
                 goto wildcard;
 
@@ -111,8 +107,6 @@ lexer_next:
     }
 
 not_found:
-    // Route not found.
-    free(params->base);
     params->count = 0;
     return NULL;
 
@@ -143,9 +137,7 @@ void wrouter_ndispatch(const struct router *router, const char *path, size_t len
     if (route == NULL)
         route = &router->fallback;
 
-    route->handler(dispatch_ctx, route->ctx, params);
-
-    free(params.base);
+    route->handler(dispatch_ctx, route->ctx, &params);
 }
 
 void wrouter_free(struct router *router)

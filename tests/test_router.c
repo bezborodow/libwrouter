@@ -14,7 +14,7 @@ typedef struct {
     const wrouter_params_t *params;
 } terminal_test_case_t;
 
-static void cb_fail(void *dispatch_ctx, void *route_ctx, const wrouter_params_t params)
+static void cb_fail(void *dispatch_ctx, void *route_ctx, const wrouter_params_t *params)
 {
     (void)dispatch_ctx;
     (void)route_ctx;
@@ -22,7 +22,7 @@ static void cb_fail(void *dispatch_ctx, void *route_ctx, const wrouter_params_t 
     assert(0);
 }
 
-static void cb_test(void *dispatch_ctx, void *route_ctx, const wrouter_params_t params)
+static void cb_test(void *dispatch_ctx, void *route_ctx, const wrouter_params_t *params)
 {
     // TODO COUNT HOW MANY ENTRIES.
 
@@ -33,12 +33,11 @@ static void cb_test(void *dispatch_ctx, void *route_ctx, const wrouter_params_t 
     printf("Route pattern:    %s\n", rtc->pattern);
     assert(rtc == dtc);
 
-
     if (dtc->params != NULL && dtc->params->count) {
-        assert(params.count == dtc->params->count);
+        assert(params->count == dtc->params->count);
         printf("Found params!!\n");
-        for (size_t i = 0; i < params.count; i++) {
-            param_t *param_e = &dtc->params->base[i], *param = &params.base[i];
+        for (size_t i = 0; i < params->count; i++) {
+            const param_t *param_e = &dtc->params->items[i], *param = &params->items[i];
 
             assert(param_e->length == param->length);
             assert(memcmp(param->value, param_e->value, param_e->length) == 0);
@@ -47,9 +46,6 @@ static void cb_test(void *dispatch_ctx, void *route_ctx, const wrouter_params_t 
             printf("Param %s: %.*s\n", param->name, param->length, param->value);
         }
     }
-
-    // TODO test params.
-    (void)params;
 }
 
 static void print_route_node(const segment_t *seg, int depth, int is_param)
@@ -109,14 +105,14 @@ void test_router_basic(void)
 {
     // clang-format off
     wrouter_params_t account_params = {
-        .base = (param_t[]) {
+        .items = {
             { "account_id", "100", 3 },
         },
         .count = 1
     };
 
     wrouter_params_t account_contact_params = {
-        .base = (param_t[]) {
+        .items = {
             { "account_id", "200", 3 },
             { "account_contact_id", "300", 3 },
         },
@@ -124,7 +120,7 @@ void test_router_basic(void)
     };
 
     wrouter_params_t project_params = {
-        .base = (param_t[]) {
+        .items = {
             { "project_id", "400", 3 },
         },
         .count = 1
