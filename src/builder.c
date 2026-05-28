@@ -38,15 +38,17 @@ struct builder *wrouter_builder_create(const wrouter_options_t options)
     builder->fallback.ctx = options.fallback_ctx;
 
     builder->root = calloc(1, sizeof(segment_t));
-    if (builder->root == NULL) {
-        free(builder);
-        return NULL;
-    }
+    if (builder->root == NULL)
+        goto failure;
 
     symbol_table_init(&builder->literals);
     symbol_table_init(&builder->params);
 
     return builder;
+
+failure:
+    free(builder);
+    return NULL;
 }
 
 static bool token_matches(token_t tok, const segment_t *seg)
