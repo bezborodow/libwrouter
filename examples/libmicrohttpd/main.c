@@ -14,7 +14,7 @@ typedef struct app_dispatch_ctx {
     struct MHD_Response *response;
 } app_dispatch_ctx_t;
 
-static void rcb_root(void *dispatch_ctx, void *route_ctx, const wrouter_params_t *params)
+static void rcb_root(void *dispatch_ctx, const void *route_ctx, const wrouter_params_t *params)
 {
     (void)params;
     (void)route_ctx;
@@ -28,7 +28,7 @@ static void rcb_root(void *dispatch_ctx, void *route_ctx, const wrouter_params_t
     MHD_add_response_header(dx->response, MHD_HTTP_HEADER_CONTENT_TYPE, "text/html");
 }
 
-static void rcb_hello(void *dispatch_ctx, void *route_ctx, const wrouter_params_t *params)
+static void rcb_hello(void *dispatch_ctx, const void *route_ctx, const wrouter_params_t *params)
 {
     const char *addressee = params->base[0].value;
     const char *port = route_ctx;
@@ -53,7 +53,7 @@ static void rcb_hello(void *dispatch_ctx, void *route_ctx, const wrouter_params_
     MHD_add_response_header(dx->response, MHD_HTTP_HEADER_CONTENT_TYPE, "text/html");
 }
 
-static void rcb_not_found(void *dispatch_ctx, void *route_ctx, const wrouter_params_t *params)
+static void rcb_not_found(void *dispatch_ctx, const void *route_ctx, const wrouter_params_t *params)
 {
     (void)params;
     (void)route_ctx;
