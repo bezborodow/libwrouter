@@ -46,6 +46,9 @@ static const struct route *route_match(const struct router *router, dispatcher_t
     const node_t *cur = g;
     const edge_t *l_edge = NULL, *s_edge = NULL, *w_edge = NULL, *l_edge_base = NULL;
 
+    if (g == NULL)
+        goto not_found;
+
 lexer_next:
 
     // Consume next token from the lexer.

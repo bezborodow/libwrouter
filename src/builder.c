@@ -410,6 +410,12 @@ struct router *wrouter_compile(const struct builder *builder)
 
     router->fallback = builder->fallback;
 
+    graph_stats(builder->root, &stats);
+
+    // If no terminals, return an empty router.
+    if (!stats.terminals)
+        return router;
+
     router->literals = symbol_compile(&builder->literals);
     if (router->literals.base == NULL && router->literals.count)
         goto failure;
@@ -417,8 +423,6 @@ struct router *wrouter_compile(const struct builder *builder)
     router->params = symbol_compile(&builder->params);
     if (router->params.base == NULL && router->params.count)
         goto failure;
-
-    graph_stats(builder->root, &stats);
 
     router->num_routes = stats.terminals;
     router->max_params = stats.max_params;
@@ -429,20 +433,6 @@ struct router *wrouter_compile(const struct builder *builder)
     if (router->terminals.base == NULL)
         goto failure;
 
-#if 0
-#include <stdio.h>
-    // Using stats does not work if alignment is broken. Needs to use an actual
-    // layout pass calculation.  This is kept here for demonstration.  To break
-    // it, add an extra byte to the node struct, which will throw off
-    // alignment.
-    {
-        printf("GRAPH BYTES FIRST PASS: %lu\n", stats.size);
-        size_t other_bytes = sizeof(node_t) * stats.nodes;
-        other_bytes += sizeof(edge_t) * (stats.edges + stats.symbolic_edges);
-        printf("GRAPH BYTES STATS:      %lu\n", other_bytes);
-    }
-#endif
-
     graph = malloc(stats.size);
     if (graph == NULL)
         goto failure;
@@ -450,17 +440,6 @@ struct router *wrouter_compile(const struct builder *builder)
     router->graph = graph;
 
     graph_compile(router, builder->root, &cursor);
-
-#if 0
-#include <stdio.h>
-    // Check that the terminals were saved.
-    printf("TERMINAL REFS FOUND: %u\n", router->terminals.count);
-    printf("TERMINALS STATS: %lu\n", stats.terminals);
-    for (size_t i = 0; i < stats.terminals; i++) {
-        printf("%u ", router->terminals.refs[i]);
-    }
-    printf("\n");
-#endif
 
     return router;
 
