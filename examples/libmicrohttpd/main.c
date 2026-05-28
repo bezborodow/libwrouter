@@ -1,18 +1,47 @@
 #include <microhttpd.h>
+#include <wrouter.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 
-#define PAGE                                                                                       \
-    "<html><head><title>libmicrohttpd demo</title>"                                                \
-    "</head><body>libmicrohttpd demo</body></html>"
+struct app {
+    wrouter_t *router;
+};
+
+static void rcb_root(void *dispatch_ctx, void *route_ctx, const wrouter_params_t *params)
+{
+    printf("Root.\n");
+}
+
+static void rcb_not_found(void *dispatch_ctx, void *route_ctx, const wrouter_params_t *params)
+{
+    printf("Not found.\n");
+}
+
+static _Thread_local wrouter_dispatcher_t *tls_disp;
+
+static struct dispatcher * get_thread_dispatcher(struct router *router)
+{
+    if (!tls_disp)
+        tls_disp = wrouter_dispatcher_create(router);
+
+    return tls_disp;
+}
 
 static enum MHD_Result ahc_echo(void *cls, struct MHD_Connection *connection, const char *url,
                                 const char *method, const char *version, const char *upload_data,
                                 size_t *upload_data_size, void **ptr)
 {
+    (void)upload_data;
+    (void)version;
+
     static int dummy;
-    const char *page = (const char *)cls;
+
+    const char *page = "<b>Test</b>";
+    struct app *app = cls;
+
+    struct dispatcher *dispatcher = get_thread_dispatcher(app->router);
+
     struct MHD_Response *response;
     enum MHD_Result ret;
 
@@ -28,6 +57,9 @@ static enum MHD_Result ahc_echo(void *cls, struct MHD_Connection *connection, co
         return MHD_NO; /* upload data in a GET!? */
     *ptr = NULL;       /* clear context pointer */
     response = MHD_create_response_from_buffer(strlen(page), (void *)page, MHD_RESPMEM_PERSISTENT);
+
+    wrouter_dispatch(dispatcher, url, NULL);
+
     ret = MHD_queue_response(connection, MHD_HTTP_OK, response);
     MHD_destroy_response(response);
     return ret;
@@ -41,11 +73,33 @@ int main(int argc, char **argv)
         printf("%s PORT\n", argv[0]);
         return 1;
     }
-    d = MHD_start_daemon(MHD_USE_THREAD_PER_CONNECTION, atoi(argv[1]), NULL, NULL, &ahc_echo, PAGE,
+
+    struct app app = { 0 };
+
+    wrouter_route_t route_root = {
+        .handler = rcb_root,
+        .ctx = NULL,
+    };
+
+    wrouter_options_t router_options = {
+        .param_syntax = WROUTER_SYNTAX_ANGLE,
+        .fallback_handler = rcb_not_found,
+        .fallback_ctx = NULL,
+    };
+    wrouter_builder_t *builder = wrouter_builder_create(router_options);
+    wrouter_add_route(builder, "/", route_root);
+
+    app.router = wrouter_compile(builder);
+    wrouter_builder_free(builder);
+
+    d = MHD_start_daemon(MHD_USE_THREAD_PER_CONNECTION, atoi(argv[1]), NULL, NULL, &ahc_echo, &app,
                          MHD_OPTION_END);
     if (NULL == d)
         return 1;
     (void)getc(stdin);
     MHD_stop_daemon(d);
+
+    wrouter_free(app.router);
+
     return 0;
 }
