@@ -19,10 +19,23 @@ static void rcb_root(void *dispatch_ctx, void *route_ctx, const wrouter_params_t
     (void)params;
     (void)route_ctx;
 
-    const char *page = "<b>Root</b>";
+    const char *page = "<html><body>Go <a href=\"/hello/world\">somewhere interesting</a>.</body></html>";
 
     app_dispatch_ctx_t *dx = dispatch_ctx;
     dx->response = MHD_create_response_from_buffer(strlen(page), (void *)page, MHD_RESPMEM_PERSISTENT);
+}
+
+static void rcb_hello(void *dispatch_ctx, void *route_ctx, const wrouter_params_t *params)
+{
+    const char *addressee = params->base[0].value;
+
+    const char *port = route_ctx;
+
+    char page[128];
+    snprintf(page, sizeof(page), "<html><body>Hello, %s, from port %s.</body></html>", addressee, port);
+
+    app_dispatch_ctx_t *dx = dispatch_ctx;
+    dx->response = MHD_create_response_from_buffer(strlen(page), (void *)&page, MHD_RESPMEM_PERSISTENT);
 }
 
 static void rcb_not_found(void *dispatch_ctx, void *route_ctx, const wrouter_params_t *params)
@@ -30,7 +43,7 @@ static void rcb_not_found(void *dispatch_ctx, void *route_ctx, const wrouter_par
     (void)params;
     (void)route_ctx;
 
-    const char *page = "<b>Not found.</b>";
+    const char *page = "<html><b>Not found.</b></html>";
 
     app_dispatch_ctx_t *dx = dispatch_ctx;
     dx->response = MHD_create_response_from_buffer(strlen(page), (void *)page, MHD_RESPMEM_PERSISTENT);
@@ -97,18 +110,15 @@ int main(int argc, char **argv)
 
     struct app app = { 0 };
 
-    wrouter_route_t route_root = {
-        .handler = rcb_root,
-        .ctx = NULL,
-    };
-
     wrouter_options_t router_options = {
-        .param_syntax = WROUTER_SYNTAX_ANGLE,
+        .param_syntax = WROUTER_SYNTAX_COLON,
         .fallback_handler = rcb_not_found,
         .fallback_ctx = NULL,
     };
+
     wrouter_builder_t *builder = wrouter_builder_create(router_options);
-    wrouter_add_route(builder, "/", route_root);
+    wrouter_add_handler(builder, "/", rcb_root, NULL);
+    wrouter_add_handler(builder, "/hello/:addressee", rcb_hello, argv[1]);
 
     app.router = wrouter_compile(builder);
     wrouter_builder_free(builder);

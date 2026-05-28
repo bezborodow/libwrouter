@@ -72,6 +72,16 @@ static segment_t *find_child(segment_t *segment, token_t tok)
     return NULL;
 }
 
+int wrouter_add_handler(wrouter_builder_t *builder, const char *pattern, wrouter_handler_fn handler, void *ctx)
+{
+    struct route route = {
+        .handler = handler,
+        .ctx = ctx,
+    };
+
+    return wrouter_add_route(builder, pattern, route);
+}
+
 int wrouter_add_route(struct builder *builder, const char *pattern, struct route route)
 {
     if (route.handler == NULL)
