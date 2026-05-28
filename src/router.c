@@ -36,7 +36,7 @@ static struct route *terminal_lookup(const struct router *router, uint16_t ref)
     return NULL;
 }
 
-static const struct route *route_match(const struct router *router, struct params *params)
+static const struct route *route_match(const struct router *router, dispatcher_t *d)
 {
     token_t tok = { 0 };
     size_t symbol = 0;
@@ -48,7 +48,7 @@ static const struct route *route_match(const struct router *router, struct param
 lexer_next:
 
     // Consume next token from the lexer.
-    tok = lexer_next(router->lx);
+    tok = lexer_next(&d->lx);
 
     // Align the edge base memory location to after the current node.
     l_edge_base = s_edge = node_edge_base(cur);
@@ -98,7 +98,7 @@ lexer_next:
                 cur = next_node(g, s_edge);
 
                 // Record parameter name and value.
-                param_t *param = &params->items[params->count++];
+                wrouter_param_t *param = &d->params.base[d->params.count++];
                 param->name = router->params.base[s_edge->symbol - 1];
                 param->value = tok.ptr;
                 param->length = tok.length;
@@ -126,7 +126,7 @@ lexer_next:
     }
 
 not_found:
-    params->count = 0;
+    d->params.count = 0;
     return NULL;
 
 wildcard:
@@ -137,24 +137,32 @@ terminal:
     return terminal_lookup(router, graph_offset(g, cur));
 }
 
-void wrouter_dispatch(const struct router *router, const char *path, void *dispatch_ctx)
+int wrouter_dispatch(const struct router *router, const char *path, void *dispatch_ctx)
 {
-    wrouter_ndispatch(router, path, strlen(path), dispatch_ctx);
+    return wrouter_ndispatch(router, path, strlen(path), dispatch_ctx);
 }
 
-void wrouter_ndispatch(const struct router *router, const char *path, size_t length,
+int wrouter_ndispatch(const struct router *router, const char *path, size_t length,
                        void *dispatch_ctx)
 {
-    lexer_load(router->lx, path, length);
+    dispatcher_t dispatcher = { 0 };
+    lexer_load(&dispatcher.lx, path, length);
+    dispatcher.params.base = calloc(router->max_params, sizeof(wrouter_param_t));
+    if (dispatcher.params.base == NULL)
+        return -1;
 
     struct params params = { 0 };
 
-    const struct route *route = route_match(router, &params);
+    const struct route *route = route_match(router, &dispatcher);
 
     if (route == NULL)
         route = &router->fallback;
 
     route->handler(dispatch_ctx, route->ctx, &params);
+
+    free(dispatcher.params.base);
+
+    return 0;
 }
 
 void wrouter_free(struct router *router)
@@ -169,6 +177,5 @@ void wrouter_free(struct router *router)
     free(router->graph);
     free(router->terminals.base);
     free(router->terminals.refs);
-    free(router->lx);
     free(router);
 }

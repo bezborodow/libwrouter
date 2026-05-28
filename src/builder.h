@@ -60,6 +60,8 @@ typedef struct graph_stats {
     size_t symbolic_edges;
     size_t terminals;
     size_t size;
+    size_t param_depth;
+    size_t max_params;
 } graph_stats_t;
 
 void graph_stats(const segment_t *segment, graph_stats_t *stats);

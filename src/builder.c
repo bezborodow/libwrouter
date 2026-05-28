@@ -331,13 +331,19 @@ void graph_stats(const segment_t *seg, graph_stats_t *stats)
     switch (seg->spec_type) {
         case SPEC_PARAM:
             stats->edges++;
+            stats->param_depth++;
+            if (stats->param_depth > stats->max_params)
+                stats->max_params++;
             graph_stats(seg->special.param, stats);
+            stats->param_depth--;
             break;
 
         case SPEC_WILDCARD:
             stats->edges++;
             stats->nodes++;
             stats->terminals++;
+            if (stats->param_depth >= stats->max_params)
+                stats->max_params++;
             size_up(&stats->size, _Alignof(node_t), sizeof(node_t));
             break;
 
@@ -403,9 +409,6 @@ struct router *wrouter_compile(const struct builder *builder)
         return NULL;
 
     router->fallback = builder->fallback;
-    router->lx = calloc(1, sizeof(lexer_t));
-    if (router->lx == NULL)
-        goto failure;
 
     router->literals = symbol_compile(&builder->literals);
     if (router->literals.base == NULL && router->literals.count)
@@ -417,8 +420,10 @@ struct router *wrouter_compile(const struct builder *builder)
 
     graph_stats(builder->root, &stats);
 
+    router->max_params = stats.max_params;
     router->terminals.refs = calloc(stats.terminals, sizeof(uint16_t));
     router->terminals.base = calloc(stats.terminals, sizeof(struct route));
+    // TODO handle calloc failure.
 
 #if 0
 #include <stdio.h>
