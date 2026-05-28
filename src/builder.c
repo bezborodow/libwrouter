@@ -359,12 +359,15 @@ symbols_t symbol_compile(const symbol_table_t *tbl)
 {
     symbols_t sym = { 0 };
 
+    sym.count = tbl->count;
+
+    if (!tbl->count || tbl->base == NULL)
+        return sym;
+
     // Allocate space for the string pointers.
     sym.base = malloc(sizeof(char *) * tbl->count);
     if (sym.base == NULL)
         return sym;
-
-    sym.count = tbl->count;
 
     // Copy and sort string pointers by string contents.
     memcpy(sym.base, tbl->base, sizeof(char *) * tbl->count);
@@ -396,20 +399,27 @@ symbols_t symbol_compile(const symbol_table_t *tbl)
 
 struct router *wrouter_compile(const struct builder *builder)
 {
+    graph_stats_t stats = { 0 };
+    size_t cursor = 0;
+    void *graph;
+
     wrouter_t *router = calloc(1, sizeof(struct router));
     if (router == NULL)
         return NULL;
 
     router->fallback = builder->fallback;
     router->lx = calloc(1, sizeof(lexer_t));
-    router->literals = symbol_compile(&builder->literals);
-    router->params = symbol_compile(&builder->params);
-    if (router->lx == NULL || router->literals.base == NULL || router->params.base == NULL) {
-        wrouter_free(router);
-        return NULL;
-    }
+    if (router->lx == NULL)
+        goto failure;
 
-    graph_stats_t stats = { 0 };
+    router->literals = symbol_compile(&builder->literals);
+    if (router->literals.base == NULL && router->literals.count)
+        goto failure;
+
+    router->params = symbol_compile(&builder->params);
+    if (router->params.base == NULL && router->params.count)
+        goto failure;
+
     graph_stats(builder->root, &stats);
 
     router->terminals.refs = calloc(stats.terminals, sizeof(uint16_t));
@@ -427,14 +437,12 @@ struct router *wrouter_compile(const struct builder *builder)
     printf("GRAPH BYTES STATS: %lu\n", other_bytes);
 #endif
 
-    void *graph = malloc(stats.size);
-    if (graph == NULL) {
-        wrouter_free(router);
-        return NULL;
-    }
+    graph = malloc(stats.size);
+    if (graph == NULL)
+        goto failure;
+
     router->graph = graph;
 
-    size_t cursor = 0;
     graph_compile(router, builder->root, &cursor);
 
 #if 0
@@ -449,6 +457,10 @@ struct router *wrouter_compile(const struct builder *builder)
 #endif
 
     return router;
+
+failure:
+    wrouter_free(router);
+    return NULL;
 }
 
 static void segment_free(segment_t *segment)
