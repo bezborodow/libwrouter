@@ -22,6 +22,12 @@ static void size_up(size_t *total_size, size_t align, size_t size)
     *total_size += size;
 }
 
+/**
+ * Create a route builder.
+ *
+ * Use the builder to create a router tree by adding routes to it. Then compile
+ * the tree into a router graph. After this, free the builder.
+ */
 struct builder *wrouter_builder_create(const wrouter_options_t options)
 {
     struct builder *builder;
@@ -72,6 +78,9 @@ static segment_t *find_child(segment_t *segment, token_t tok)
     return NULL;
 }
 
+/**
+ * Add a route handler and context to the route tree.
+ */
 int wrouter_add_handler(wrouter_builder_t *builder, const char *pattern, wrouter_handler_fn handler,
                         void *ctx)
 {
@@ -83,6 +92,9 @@ int wrouter_add_handler(wrouter_builder_t *builder, const char *pattern, wrouter
     return wrouter_add_route(builder, pattern, route);
 }
 
+/**
+ * Add a route to the route tree.
+ */
 int wrouter_add_route(struct builder *builder, const char *pattern, struct route route)
 {
     if (route.handler == NULL)
@@ -427,6 +439,12 @@ symbols_t symbol_compile(const symbol_table_t *tbl)
     return sym;
 }
 
+/**
+ * Compile the route tree.
+ *
+ * This will compile an immutable router from a route tree, which is therefore
+ * thread-safe. The router consists of a graph, symbols, and terminals.
+ */
 struct router *wrouter_compile(const struct builder *builder)
 {
     graph_stats_t stats = { 0 };
@@ -509,6 +527,12 @@ static void segment_free(segment_t *segment)
     free(segment);
 }
 
+/**
+ * Free the route tree builder.
+ *
+ * After compiling the router, there is no need for the builder, and it should
+ * therefore be freed to save memory.
+ */
 void wrouter_builder_free(struct builder *builder)
 {
     if (builder == NULL)
