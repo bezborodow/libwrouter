@@ -36,12 +36,18 @@ lexer_next:
     tok = lexer_next(router->lx);
     edge_base = s_edge = (edge_t *)((uint8_t *)cur + sizeof(node_t));
 
+    // If the node has a special edge, then advance the base edge beyond it.
+    // The literal edges start after the special edge, if present.  A special
+    // edge is either a parameter or a wildcard. They cannot coexist; that is,
+    // there is only ever one or zero special edges.
     if (cur->flags & (NODE_FLAG_HAS_PARAM | NODE_FLAG_HAS_WILDCARD))
         edge_base++;
 
+    // Remember the most specific wildcard edge, if present.
     if (cur->flags & NODE_FLAG_HAS_WILDCARD)
         w_edge = s_edge;
 
+    // Process the segment token against the current node.
     switch (tok.type) {
 
         // Literal string.
@@ -107,6 +113,7 @@ not_found:
     return NULL;
 
 wildcard:
+    // Follow the wildcard edge and terminate.
     cur = (node_t *)((uint8_t *)g + w_edge->next);
 
 terminal:
