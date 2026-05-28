@@ -24,6 +24,7 @@ inc = include_directories(
 src = files(
     'src/arena.c',
     'src/builder.c',
+    'src/dispatcher.c',
     'src/lexer.c',
     'src/prelexer.c',
     'src/router.c',

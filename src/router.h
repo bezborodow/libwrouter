@@ -55,12 +55,8 @@ struct router_options {
     wrouter_param_syntax_t param_syntax;
 };
 
-struct dispatcher {
-    const struct router *router;
-    lexer_t lx;
-    struct params params;
-};
-
 size_t graph_offset(const void *graph, const void *entry);
+
+const struct route *route_match(struct dispatcher *d);
 
 #endif

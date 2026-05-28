@@ -2,6 +2,7 @@
 #include "router.h"
 #include "lexer.h"
 #include "symbol.h"
+#include "dispatcher.h"
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
@@ -37,7 +38,7 @@ static struct route *terminal_lookup(const struct router *router, uint16_t ref)
     return NULL;
 }
 
-static const struct route *route_match(struct dispatcher *d)
+const struct route *route_match(struct dispatcher *d)
 {
     token_t tok = { 0 };
     size_t symbol = 0;
@@ -143,55 +144,6 @@ wildcard:
 terminal:
     return terminal_lookup(router, graph_offset(g, cur));
 }
-
-void wrouter_dispatch(struct dispatcher *dispatcher, const char *path, void *dispatch_ctx)
-{
-    wrouter_ndispatch(dispatcher, path, strlen(path), dispatch_ctx);
-}
-
-void wrouter_ndispatch(struct dispatcher *dispatcher, const char *path, size_t length,
-                       void *dispatch_ctx)
-{
-    lexer_load(&dispatcher->lx, path, length);
-
-    const struct route *route = route_match(dispatcher);
-
-    if (route == NULL)
-        route = &dispatcher->router->fallback;
-
-    route->handler(dispatch_ctx, route->ctx, &dispatcher->params);
-}
-
-wrouter_dispatcher_t *wrouter_dispatcher_create(const wrouter_t *router)
-{
-    struct dispatcher *dispatcher = calloc(1, sizeof(struct dispatcher));
-    if (dispatcher == NULL)
-        return NULL;
-
-    if (router->max_params) {
-        dispatcher->params.base = calloc(router->max_params, sizeof(wrouter_param_t));
-        if (dispatcher->params.base == NULL)
-            goto failure;
-    }
-
-    dispatcher->router = router;
-
-    return dispatcher;
-
-failure:
-    free(dispatcher);
-    return NULL;
-}
-
-void wrouter_dispatcher_free(wrouter_dispatcher_t *dispatcher)
-{
-    if (dispatcher == NULL)
-        return;
-
-    free(dispatcher->params.base);
-    free(dispatcher);
-}
-
 
 void wrouter_free(struct router *router)
 {
