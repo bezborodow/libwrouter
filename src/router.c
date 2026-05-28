@@ -5,6 +5,11 @@
 #include <stddef.h>
 #include <string.h>
 
+static inline const edge_t *node_edge_base(const node_t *node)
+{
+    return (const edge_t *)((const uint8_t *)node + sizeof(node_t));
+}
+
 size_t graph_offset(const void *graph, const void *entry)
 {
     return (const uint8_t *)entry - (const uint8_t *)graph;
@@ -37,8 +42,12 @@ static const struct route *route_match(const struct router *router, struct param
     const edge_t *l_edge = NULL, *s_edge = NULL, *w_edge = NULL, *l_edge_base = NULL;
 
 lexer_next:
+
+    // Consume next token from the lexer.
     tok = lexer_next(router->lx);
-    l_edge_base = s_edge = (const edge_t *)((const uint8_t *)cur + sizeof(node_t));
+
+    // Align the edge base memory location to after the current node.
+    l_edge_base = s_edge = node_edge_base(cur);
 
     // If the node has a special edge, then advance the base edge beyond it.
     // The literal edges start after the special edge, if present.  A special

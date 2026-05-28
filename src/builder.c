@@ -8,7 +8,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-static inline size_t align_up(size_t cursor, size_t align)
+static inline uintptr_t align_up(size_t cursor, size_t align)
 {
     return (cursor + align - 1) & ~(align - 1);
 }
