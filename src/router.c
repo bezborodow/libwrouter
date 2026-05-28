@@ -30,18 +30,18 @@ static const struct route *route_match(const struct router *router, struct param
 
     void *g = router->graph;
     node_t *cur = g;
-    edge_t *edge = NULL, *s_edge = NULL, *w_edge = NULL, *edge_base = NULL;
+    edge_t *l_edge = NULL, *s_edge = NULL, *w_edge = NULL, *l_edge_base = NULL;
 
 lexer_next:
     tok = lexer_next(router->lx);
-    edge_base = s_edge = (edge_t *)((uint8_t *)cur + sizeof(node_t));
+    l_edge_base = s_edge = (edge_t *)((uint8_t *)cur + sizeof(node_t));
 
     // If the node has a special edge, then advance the base edge beyond it.
     // The literal edges start after the special edge, if present.  A special
     // edge is either a parameter or a wildcard. They cannot coexist; that is,
     // there is only ever one or zero special edges.
     if (cur->flags & (NODE_FLAG_HAS_PARAM | NODE_FLAG_HAS_WILDCARD))
-        edge_base++;
+        l_edge_base++;
 
     // Remember the most specific wildcard edge, if present.
     if (cur->flags & NODE_FLAG_HAS_WILDCARD)
@@ -64,10 +64,10 @@ lexer_next:
 
                     // TODO do bsearch if n > 8. Need to sort symbols first though when compiling.
                     for (uint16_t i = 0; i < cur->literals; i++) {
-                        edge = &edge_base[i];
+                        l_edge = &l_edge_base[i];
 
-                        if (edge->symbol == symbol) {
-                            cur = (node_t *)((uint8_t *)g + edge->next);
+                        if (l_edge->symbol == symbol) {
+                            cur = (node_t *)((uint8_t *)g + l_edge->next);
 
                             // Follow symbol.
                             goto lexer_next;
