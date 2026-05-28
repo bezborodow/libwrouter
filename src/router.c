@@ -38,6 +38,11 @@ static struct route *terminal_lookup(const struct router *router, uint16_t ref)
     return NULL;
 }
 
+/**
+ * Match a route in the dispatcher.
+ *
+ * @param dispatcher Request dispatcher.
+ */
 const struct route *route_match(struct dispatcher *d)
 {
     token_t tok = { 0 };
@@ -145,6 +150,9 @@ terminal:
     return terminal_lookup(router, graph_offset(g, cur));
 }
 
+/**
+ * Free the router.
+ */
 void wrouter_free(struct router *router)
 {
     if (router == NULL)
@@ -160,6 +168,9 @@ void wrouter_free(struct router *router)
     free(router);
 }
 
+/**
+ * Number of terminal routes in the router.
+ */
 size_t wrouter_route_count(const wrouter_t *router)
 {
     return router->num_routes;
