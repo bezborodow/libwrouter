@@ -8,7 +8,12 @@
 // TODO common graph_offset
 static size_t graph_offset(const void *graph, const void *entry)
 {
-    return (uint8_t *)entry - (uint8_t *)graph;
+    return (const uint8_t *)entry - (const uint8_t *)graph;
+}
+
+static inline const node_t *next_node(const uint8_t *graph, const edge_t *edge)
+{
+    return (const node_t *)(graph + edge->next);
 }
 
 static struct route *terminal_lookup(const struct router *router, uint16_t ref)
@@ -28,13 +33,13 @@ static const struct route *route_match(const struct router *router, struct param
     token_t tok = { 0 };
     size_t symbol = 0;
 
-    void *g = router->graph;
-    node_t *cur = g;
-    edge_t *l_edge = NULL, *s_edge = NULL, *w_edge = NULL, *l_edge_base = NULL;
+    const void *g = router->graph;
+    const node_t *cur = g;
+    const edge_t *l_edge = NULL, *s_edge = NULL, *w_edge = NULL, *l_edge_base = NULL;
 
 lexer_next:
     tok = lexer_next(router->lx);
-    l_edge_base = s_edge = (edge_t *)((uint8_t *)cur + sizeof(node_t));
+    l_edge_base = s_edge = (const edge_t *)((const uint8_t *)cur + sizeof(node_t));
 
     // If the node has a special edge, then advance the base edge beyond it.
     // The literal edges start after the special edge, if present.  A special
@@ -67,7 +72,7 @@ lexer_next:
                         l_edge = &l_edge_base[i];
 
                         if (l_edge->symbol == symbol) {
-                            cur = (node_t *)((uint8_t *)g + l_edge->next);
+                            cur = next_node(g, l_edge);
 
                             // Follow symbol.
                             goto lexer_next;
@@ -78,7 +83,7 @@ lexer_next:
 
             // Check for parameter.
             if (cur->flags & NODE_FLAG_HAS_PARAM) {
-                cur = (node_t *)((uint8_t *)g + s_edge->next);
+                cur = next_node(g, s_edge);
 
                 // Record parameter name and value.
                 param_t *param = &params->items[params->count++];
@@ -114,7 +119,7 @@ not_found:
 
 wildcard:
     // Follow the wildcard edge and terminate.
-    cur = (node_t *)((uint8_t *)g + w_edge->next);
+    cur = next_node(g, w_edge);
 
 terminal:
     return terminal_lookup(router, graph_offset(g, cur));
