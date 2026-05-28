@@ -8,14 +8,33 @@ struct app {
     wrouter_t *router;
 };
 
+typedef struct app_dispatch_ctx {
+    struct app *app;
+    unsigned int code;
+    struct MHD_Response *response;
+} app_dispatch_ctx_t;
+
 static void rcb_root(void *dispatch_ctx, void *route_ctx, const wrouter_params_t *params)
 {
-    printf("Root.\n");
+    (void)params;
+    (void)route_ctx;
+
+    const char *page = "<b>Root</b>";
+
+    app_dispatch_ctx_t *dx = dispatch_ctx;
+    dx->response = MHD_create_response_from_buffer(strlen(page), (void *)page, MHD_RESPMEM_PERSISTENT);
 }
 
 static void rcb_not_found(void *dispatch_ctx, void *route_ctx, const wrouter_params_t *params)
 {
-    printf("Not found.\n");
+    (void)params;
+    (void)route_ctx;
+
+    const char *page = "<b>Not found.</b>";
+
+    app_dispatch_ctx_t *dx = dispatch_ctx;
+    dx->response = MHD_create_response_from_buffer(strlen(page), (void *)page, MHD_RESPMEM_PERSISTENT);
+    dx->code = MHD_HTTP_NOT_FOUND;
 }
 
 static _Thread_local wrouter_dispatcher_t *tls_disp;
@@ -37,12 +56,10 @@ static enum MHD_Result ahc_echo(void *cls, struct MHD_Connection *connection, co
 
     static int dummy;
 
-    const char *page = "<b>Test</b>";
     struct app *app = cls;
 
     struct dispatcher *dispatcher = get_thread_dispatcher(app->router);
 
-    struct MHD_Response *response;
     enum MHD_Result ret;
 
     if (0 != strcmp(method, "GET"))
@@ -56,12 +73,16 @@ static enum MHD_Result ahc_echo(void *cls, struct MHD_Connection *connection, co
     if (0 != *upload_data_size)
         return MHD_NO; /* upload data in a GET!? */
     *ptr = NULL;       /* clear context pointer */
-    response = MHD_create_response_from_buffer(strlen(page), (void *)page, MHD_RESPMEM_PERSISTENT);
+    
+    app_dispatch_ctx_t dx = {
+        .app = app,
+        .code = MHD_HTTP_OK,
+    };
 
-    wrouter_dispatch(dispatcher, url, NULL);
+    wrouter_dispatch(dispatcher, url, &dx);
 
-    ret = MHD_queue_response(connection, MHD_HTTP_OK, response);
-    MHD_destroy_response(response);
+    ret = MHD_queue_response(connection, dx.code, dx.response);
+    MHD_destroy_response(dx.response);
     return ret;
 }
 
