@@ -24,7 +24,7 @@ static void cb_ignore(void *dispatch_ctx, void *route_ctx, const wrouter_params_
     assert(0);
 }
 
-static void cb_not_found(void *dispatch_ctx, void *route_ctx, const wrouter_params_t *params)
+static void cb_watch(void *dispatch_ctx, void *route_ctx, const wrouter_params_t *params)
 {
     (void)dispatch_ctx;
     assert(params->count == 0);
@@ -228,7 +228,7 @@ void test_router_basic(void)
     bool fallback_seen = false;
     wrouter_options_t options = {
         .param_syntax = WROUTER_SYNTAX_ANGLE,
-        .fallback_handler = cb_not_found,
+        .fallback_handler = cb_watch,
         .fallback_ctx = &fallback_seen,
     };
     wrouter_builder_t *builder = wrouter_builder_create(options);
@@ -275,7 +275,7 @@ void test_router_not_found(void)
     bool fallback_seen = false;
     wrouter_options_t options = {
         .param_syntax = WROUTER_SYNTAX_COLON,
-        .fallback_handler = cb_not_found,
+        .fallback_handler = cb_watch,
         .fallback_ctx = &fallback_seen,
     };
     wrouter_builder_t *builder = wrouter_builder_create(options);
@@ -293,7 +293,6 @@ void test_router_not_found(void)
     wrouter_builder_free(builder);
 
     // Dispatch.
-
     assert(!fallback_seen);
     wrouter_dispatch(router, "/this/does/not/exist", NULL);
     assert(fallback_seen);
@@ -303,6 +302,69 @@ void test_router_not_found(void)
     assert(fallback_seen);
 
     fallback_seen = false;
+    wrouter_dispatch(router, "/", NULL);
+    assert(fallback_seen);
+
+    wrouter_free(router);
+}
+
+void test_router_end_wildcard(void)
+{
+    // Create builder.
+    wrouter_options_t options = {
+        .param_syntax = WROUTER_SYNTAX_COLON,
+        .fallback_handler = cb_ignore,
+        .fallback_ctx = NULL,
+    };
+    wrouter_builder_t *builder = wrouter_builder_create(options);
+
+    // Route handler.
+    bool wilcard_seen = false;
+    struct route watch_route = { cb_watch, &wilcard_seen };
+    struct route ignore_route = { cb_ignore, NULL };
+
+    // Add routes.
+    assert(wrouter_add_route(builder, "/*", watch_route) == 0);
+    assert(wrouter_add_route(builder, "/literal", ignore_route) == 0);
+
+    builder_print_tree(builder);
+
+    // Compile.
+    wrouter_t *router = wrouter_compile(builder);
+    wrouter_builder_free(builder);
+
+    // Dispatch.
+    wrouter_dispatch(router, "/literal/go_to_wildcard", NULL);
+    assert(wilcard_seen);
+
+    wrouter_free(router);
+}
+
+void test_router_top_wildcard_is_not_root(void)
+{
+    // Create builder.
+    bool fallback_seen = false;
+    wrouter_options_t options = {
+        .param_syntax = WROUTER_SYNTAX_COLON,
+        .fallback_handler = cb_watch,
+        .fallback_ctx = &fallback_seen,
+    };
+    wrouter_builder_t *builder = wrouter_builder_create(options);
+
+    // Route handler.
+    struct route route = { cb_ignore, NULL };
+
+    // Add routes.
+    assert(wrouter_add_route(builder, "/*", route) == 0);
+
+    builder_print_tree(builder);
+
+    // Compile.
+    wrouter_t *router = wrouter_compile(builder);
+    wrouter_builder_free(builder);
+
+    // Dispatch.
+    // Calling / should not match /*.
     wrouter_dispatch(router, "/", NULL);
     assert(fallback_seen);
 
@@ -319,6 +381,8 @@ int main(void)
 {
     test_router_basic();
     test_router_not_found();
+    test_router_end_wildcard();
+    test_router_top_wildcard_is_not_root();
     test_router_free_null();
 
     return 0;

@@ -97,13 +97,11 @@ lexer_next:
                 return terminal_lookup(router, graph_offset(g, cur));
             }
 
-            if (w_node != NULL)
-                goto wildcard;
-
             goto not_found;
     }
 
 not_found:
+    printf("Not found.\n");
     params->count = 0;
     return NULL;
 
@@ -131,8 +129,10 @@ void wrouter_ndispatch(const struct router *router, const char *path, size_t len
 
     const struct route *route = route_match(router, &params);
 
-    if (route == NULL)
+    if (route == NULL) {
+        printf("Calling fallback.\n");
         route = &router->fallback;
+    }
 
     route->handler(dispatch_ctx, route->ctx, &params);
 }
