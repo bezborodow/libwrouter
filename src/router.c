@@ -4,7 +4,6 @@
 #include "symbol.h"
 #include <stddef.h>
 #include <string.h>
-#include <stdio.h>
 
 // TODO common graph_offset
 static size_t graph_offset(const void *graph, const void *entry)
@@ -34,8 +33,6 @@ static const struct route *route_match(const struct router *router, struct param
     node_t *cur = g, *w_node = NULL;
     edge_t *edge = NULL;
 
-    printf("Symbol count %u\n", router->literals.count);
-
 lexer_next:
     tok = lexer_next(router->lx);
     edge_t *edge_base = (edge_t *)((uint8_t *)cur + sizeof(node_t));
@@ -47,76 +44,83 @@ lexer_next:
         w_node = cur;
 
     switch (tok.type) {
-        case TOKEN_LITERAL:
-            printf("Part %.*s\n", tok.length, tok.ptr);
 
+        // Literal string.
+        case TOKEN_LITERAL:
+
+            // Remember wildcard if set.
             if (cur->flags & NODE_FLAG_HAS_WILDCARD)
                 w_node = cur;
 
-            symbol = symbol_resolve(tok.ptr, router->literals.base, router->literals.count);
-            printf("Resolve %.*s to symbol %lu.\n", tok.length, tok.ptr, symbol);
-            if (symbol && cur->literals) {
+            // If this node has literals, try to resolve and match.
+            if (cur->literals) {
 
+                // Resolve the literal string to a symbol.
                 // TODO do bsearch if n > 8. Need to sort symbols first though when compiling.
-                for (uint16_t i = 0; i < cur->literals; i++) {
-                    edge = &edge_base[i];
-                    printf("Check symbol %u.\n", edge->symbol);
-                    printf("Check symbol of %s\n", router->literals.base[edge->symbol - 1]);
-                    if (edge->symbol == symbol) {
-                        cur = (node_t *)((uint8_t *)g + edge->next);
-                        printf("Follow symbol.\n");
-                        goto lexer_next;
+                symbol = symbol_resolve(tok.ptr, router->literals.base, router->literals.count);
+
+                // If the symbol is resolved, try to match against an edge.
+                if (symbol) {
+                    for (uint16_t i = 0; i < cur->literals; i++) {
+                        edge = &edge_base[i];
+
+                        if (edge->symbol == symbol) {
+                            cur = (node_t *)((uint8_t *)g + edge->next);
+
+                            // Follow symbol.
+                            goto lexer_next;
+                        }
                     }
                 }
             }
 
+            // Check for parameter.
             if (cur->flags & NODE_FLAG_HAS_PARAM) {
                 edge = (edge_t *)((uint8_t *)cur + sizeof(node_t));
                 cur = (node_t *)((uint8_t *)g + edge->next);
 
+                // Record parameter name and value.
                 param_t *param = &params->items[params->count++];
                 param->name = router->params.base[edge->symbol - 1];
                 param->value = tok.ptr;
                 param->length = tok.length;
 
-                printf("Follow param %s.\n", param->name);
-
+                // Follow parameter.
                 goto lexer_next;
             }
 
+            // Terminate at wildcard.
             if (w_node != NULL)
                 goto wildcard;
 
+            // Not found.
             goto not_found;
 
+        // End token.
         case TOKEN_END:
-            printf("End.\n");
-            if (cur->flags & NODE_FLAG_TERMINAL) {
-                printf("Found terminal.\n");
 
-                return terminal_lookup(router, graph_offset(g, cur));
-            }
+            // Check for terminal.
+            if (cur->flags & NODE_FLAG_TERMINAL)
+                goto terminal;
 
+            // Not found.
             goto not_found;
     }
 
 not_found:
-    printf("Not found.\n");
     params->count = 0;
     return NULL;
 
 wildcard:
-    printf("Found wildcard.\n");
     edge = (edge_t *)((uint8_t *)w_node + sizeof(node_t));
     cur = (node_t *)((uint8_t *)g + edge->next);
 
+terminal:
     return terminal_lookup(router, graph_offset(g, cur));
 }
 
 void wrouter_dispatch(const struct router *router, const char *path, void *dispatch_ctx)
 {
-    printf("-----------------------\n");
-    printf("%s\n", path);
     wrouter_ndispatch(router, path, strlen(path), dispatch_ctx);
 }
 
@@ -129,10 +133,8 @@ void wrouter_ndispatch(const struct router *router, const char *path, size_t len
 
     const struct route *route = route_match(router, &params);
 
-    if (route == NULL) {
-        printf("Calling fallback.\n");
+    if (route == NULL)
         route = &router->fallback;
-    }
 
     route->handler(dispatch_ctx, route->ctx, &params);
 }
