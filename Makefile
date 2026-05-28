@@ -1,4 +1,4 @@
-.PHONY: build test ctags format install
+.PHONY: build test ctags format install clean
 
 build:
 	meson setup build
@@ -20,6 +20,10 @@ coverage:
 	lcov --capture --directory build-coverage --output-file coverage.info
 	lcov --extract coverage.info "$$(pwd)/src/*" --output-file coverage.filtered.info
 	genhtml coverage.filtered.info --output-directory coverage_html
+
+clean:
+	meson setup --wipe build
+	meson setup --wipe build-coverage
 
 install:
 	meson setup build

@@ -2,22 +2,23 @@
 
 ## Building
 
-Configure build directory:
-
-```bash
-meson setup build
-```
 
 Compile:
 
 ```bash
-meson compile -C build
+make
 ```
 
 Run tests:
 
 ```bash
-meson test -C build --print-errorlogs -v
+make test
+```
+
+Install:
+
+```bash
+sudo make install
 ```
 
 ## Constraints
