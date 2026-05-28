@@ -22,7 +22,7 @@ typedef struct params {
     uint32_t count;
 } wrouter_params_t;
 
-typedef void (*wrouter_handler_fn)(void *dispatch_ctx, void *route_ctx,
+typedef void (*wrouter_handler_fn)(void *dispatch_ctx, const void *route_ctx,
                                    const wrouter_params_t *params);
 
 typedef struct route {
