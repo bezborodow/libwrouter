@@ -181,3 +181,8 @@ void wrouter_free(struct router *router)
     free(router->terminals.refs);
     free(router);
 }
+
+size_t wrouter_route_count(const wrouter_t *router)
+{
+    return router->num_routes;
+}

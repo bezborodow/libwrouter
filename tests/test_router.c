@@ -260,6 +260,8 @@ void test_router_basic(void)
     wrouter_t *router = wrouter_compile(builder);
     wrouter_builder_free(builder);
 
+    assert(wrouter_route_count(router) == n);
+
     // Dispatch.
     for (size_t i = 0; i < n; i++) {
         assert(cases[i].seen == false);

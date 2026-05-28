@@ -53,7 +53,7 @@ int wrouter_dispatch(const wrouter_t *router, const char *path, void *dispatch_c
 int wrouter_ndispatch(const wrouter_t *router, const char *path, size_t length,
                        void *dispatch_ctx);
 
-int wrouter_route_count(const wrouter_t *router);
+size_t wrouter_route_count(const wrouter_t *router);
 
 void wrouter_free(wrouter_t *router);
 
