@@ -31,11 +31,11 @@ static const struct route *route_match(const struct router *router, struct param
 
     void *g = router->graph;
     node_t *cur = g, *w_node = NULL;
-    edge_t *edge = NULL;
+    edge_t *edge = NULL, *spec_edge = NULL, *edge_base = NULL;
 
 lexer_next:
     tok = lexer_next(router->lx);
-    edge_t *edge_base = (edge_t *)((uint8_t *)cur + sizeof(node_t));
+    edge_base = spec_edge = (edge_t *)((uint8_t *)cur + sizeof(node_t));
 
     if (cur->flags & (NODE_FLAG_HAS_PARAM | NODE_FLAG_HAS_WILDCARD))
         edge_base++;
@@ -47,10 +47,6 @@ lexer_next:
 
         // Literal string.
         case TOKEN_LITERAL:
-
-            // Remember wildcard if set.
-            if (cur->flags & NODE_FLAG_HAS_WILDCARD)
-                w_node = cur;
 
             // If this node has literals, try to resolve and match.
             if (cur->literals) {
@@ -77,12 +73,11 @@ lexer_next:
 
             // Check for parameter.
             if (cur->flags & NODE_FLAG_HAS_PARAM) {
-                edge = (edge_t *)((uint8_t *)cur + sizeof(node_t));
-                cur = (node_t *)((uint8_t *)g + edge->next);
+                cur = (node_t *)((uint8_t *)g + spec_edge->next);
 
                 // Record parameter name and value.
                 param_t *param = &params->items[params->count++];
-                param->name = router->params.base[edge->symbol - 1];
+                param->name = router->params.base[spec_edge->symbol - 1];
                 param->value = tok.ptr;
                 param->length = tok.length;
 
