@@ -309,9 +309,17 @@ void test_router_not_found(void)
     wrouter_free(router);
 }
 
+void test_router_free_null(void)
+{
+    // Calling on NULL will do nothing.
+    wrouter_free(NULL);
+}
+
 int main(void)
 {
     test_router_basic();
     test_router_not_found();
+    test_router_free_null();
+
     return 0;
 }
