@@ -138,6 +138,12 @@ void test_router_basic(void)
             .seen = false,
         },
         {
+            .pattern = "/downloads/",
+            .request = "/downloads/",
+            .params = NULL,
+            .seen = false,
+        },
+        {
             .pattern = "/",
             .request = "/",
             .params = NULL,
