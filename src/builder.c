@@ -223,11 +223,6 @@ static void *graph_append(void *g, size_t *cursor, size_t size, size_t align)
     return base;
 }
 
-static size_t graph_offset(const void *graph, const void *entry)
-{
-    return (uint8_t *)entry - (uint8_t *)graph;
-}
-
 static node_t *graph_compile(struct router *router, const segment_t *segment, size_t *cursor)
 {
     void *g = router->graph;

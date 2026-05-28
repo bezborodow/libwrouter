@@ -73,4 +73,6 @@ struct router_options {
     wrouter_param_syntax_t param_syntax;
 };
 
+size_t graph_offset(const void *graph, const void *entry);
+
 #endif
