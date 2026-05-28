@@ -19,23 +19,38 @@ static void rcb_root(void *dispatch_ctx, void *route_ctx, const wrouter_params_t
     (void)params;
     (void)route_ctx;
 
-    const char *page = "<html><body>Go <a href=\"/hello/world\">somewhere interesting</a>.</body></html>";
+    const char *page = "<html><body>Go <a href=\"/hello/world\">"
+                       "somewhere interesting</a>.</body></html>";
 
     app_dispatch_ctx_t *dx = dispatch_ctx;
-    dx->response = MHD_create_response_from_buffer(strlen(page), (void *)page, MHD_RESPMEM_PERSISTENT);
+    dx->response =
+        MHD_create_response_from_buffer(strlen(page), (void *)page, MHD_RESPMEM_PERSISTENT);
+    MHD_add_response_header(dx->response, MHD_HTTP_HEADER_CONTENT_TYPE, "text/html");
 }
 
 static void rcb_hello(void *dispatch_ctx, void *route_ctx, const wrouter_params_t *params)
 {
     const char *addressee = params->base[0].value;
-
     const char *port = route_ctx;
 
     char page[128];
-    snprintf(page, sizeof(page), "<html><body>Hello, %s, from port %s.</body></html>", addressee, port);
+    char *welcome = "<html><body>Hello, %s; from %s.</body></html>";
+    int n = snprintf(page, sizeof(page), welcome, addressee, port);
+
+    if (n < 0)
+        return;
+
+    char *copy = malloc((size_t)n + 1);
+    if (!copy)
+        return;
+
+    memcpy(copy, page, (size_t)n + 1);
 
     app_dispatch_ctx_t *dx = dispatch_ctx;
-    dx->response = MHD_create_response_from_buffer(strlen(page), (void *)&page, MHD_RESPMEM_PERSISTENT);
+
+    dx->response = MHD_create_response_from_buffer((size_t)n, copy, MHD_RESPMEM_MUST_FREE);
+
+    MHD_add_response_header(dx->response, MHD_HTTP_HEADER_CONTENT_TYPE, "text/html");
 }
 
 static void rcb_not_found(void *dispatch_ctx, void *route_ctx, const wrouter_params_t *params)
@@ -46,13 +61,15 @@ static void rcb_not_found(void *dispatch_ctx, void *route_ctx, const wrouter_par
     const char *page = "<html><b>Not found.</b></html>";
 
     app_dispatch_ctx_t *dx = dispatch_ctx;
-    dx->response = MHD_create_response_from_buffer(strlen(page), (void *)page, MHD_RESPMEM_PERSISTENT);
+    dx->response =
+        MHD_create_response_from_buffer(strlen(page), (void *)page, MHD_RESPMEM_PERSISTENT);
     dx->code = MHD_HTTP_NOT_FOUND;
+    MHD_add_response_header(dx->response, MHD_HTTP_HEADER_CONTENT_TYPE, "text/html");
 }
 
 static _Thread_local wrouter_dispatcher_t *tls_disp;
 
-static struct dispatcher * get_thread_dispatcher(struct router *router)
+static struct dispatcher *get_thread_dispatcher(struct router *router)
 {
     if (!tls_disp)
         tls_disp = wrouter_dispatcher_create(router);
@@ -86,7 +103,7 @@ static enum MHD_Result ahc_echo(void *cls, struct MHD_Connection *connection, co
     if (0 != *upload_data_size)
         return MHD_NO; /* upload data in a GET!? */
     *ptr = NULL;       /* clear context pointer */
-    
+
     app_dispatch_ctx_t dx = {
         .app = app,
         .code = MHD_HTTP_OK,
@@ -107,6 +124,7 @@ int main(int argc, char **argv)
         printf("%s PORT\n", argv[0]);
         return 1;
     }
+    const char *port = argv[1];
 
     struct app app = { 0 };
 
@@ -118,12 +136,12 @@ int main(int argc, char **argv)
 
     wrouter_builder_t *builder = wrouter_builder_create(router_options);
     wrouter_add_handler(builder, "/", rcb_root, NULL);
-    wrouter_add_handler(builder, "/hello/:addressee", rcb_hello, argv[1]);
+    wrouter_add_handler(builder, "/hello/:addressee", rcb_hello, (void *)port);
 
     app.router = wrouter_compile(builder);
     wrouter_builder_free(builder);
 
-    d = MHD_start_daemon(MHD_USE_THREAD_PER_CONNECTION, atoi(argv[1]), NULL, NULL, &ahc_echo, &app,
+    d = MHD_start_daemon(MHD_USE_THREAD_PER_CONNECTION, atoi(port), NULL, NULL, &ahc_echo, &app,
                          MHD_OPTION_END);
     if (NULL == d)
         return 1;
