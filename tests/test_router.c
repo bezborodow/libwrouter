@@ -7,11 +7,13 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <assert.h>
+#include <stdbool.h>
 
 typedef struct {
     const char *pattern;
     const char *request;
     const wrouter_params_t *params;
+    bool seen;
 } terminal_test_case_t;
 
 static void cb_fail(void *dispatch_ctx, void *route_ctx, const wrouter_params_t *params)
@@ -24,8 +26,6 @@ static void cb_fail(void *dispatch_ctx, void *route_ctx, const wrouter_params_t 
 
 static void cb_test(void *dispatch_ctx, void *route_ctx, const wrouter_params_t *params)
 {
-    // TODO COUNT HOW MANY ENTRIES.
-
     terminal_test_case_t *dtc = dispatch_ctx, *rtc = route_ctx;
     printf("REQUEST HANLDER CALLBACK\n");
     printf("Dispatch request: %s\n", dtc->request);
@@ -46,6 +46,8 @@ static void cb_test(void *dispatch_ctx, void *route_ctx, const wrouter_params_t 
             printf("Param %s: %.*s\n", param->name, param->length, param->value);
         }
     }
+
+    rtc->seen = true;
 }
 
 static void print_route_node(const segment_t *seg, int depth, int is_param)
@@ -130,77 +132,92 @@ void test_router_basic(void)
         {
             .pattern = "/downloads/*",
             .request = "/downloads/documents/schematic.pdf",
-            .params = NULL
+            .params = NULL,
+            .seen = false,
         },
         {
             .pattern = "/",
             .request = "/",
-            .params = NULL
+            .params = NULL,
+            .seen = false,
         },
         {
             .pattern = "/*",
             .request = "/hello",
-            .params = NULL
+            .params = NULL,
+            .seen = false,
         },
         {
             .pattern = "/accounts",
             .request = "/accounts",
-            .params = NULL
+            .params = NULL,
+            .seen = false,
         },
         {
             .pattern = "/accounts/create",
             .request = "/accounts/create",
-            .params = NULL
+            .params = NULL,
+            .seen = false,
         },
         {
             .pattern = "/account/<account_id>",
             .request = "/account/100",
-            .params = &account_params
+            .params = &account_params,
+            .seen = false,
         },
         {
             .pattern = "/account/<account_id>/edit",
             .request = "/account/100/edit",
-            .params = &account_params
+            .params = &account_params,
+            .seen = false,
         },
         {
             .pattern = "/account/<account_id>/projects",
             .request = "/account/100/projects",
-            .params = &account_params
+            .params = &account_params,
+            .seen = false,
         },
         {
             .pattern = "/account/<account_id>/contacts",
             .request = "/account/100/contacts",
-            .params = &account_params
+            .params = &account_params,
+            .seen = false,
         },
         {
             .pattern = "/account/<account_id>/contact/<account_contact_id>",
             .request = "/account/200/contact/300",
-            .params = &account_contact_params
+            .params = &account_contact_params,
+            .seen = false,
         },
         {
             .pattern = "/account/<account_id>/contact/<account_contact_id>/credentials/*",
             .request = "/account/200/contact/300/credentials/letter_of_endorsement.pdf",
-            .params = &account_contact_params
+            .params = &account_contact_params,
+            .seen = false,
         },
         {
             .pattern = "/projects",
             .request = "/projects",
-            .params = NULL
+            .params = NULL,
+            .seen = false,
         },
         {
             .pattern = "/projects/create",
             .request = "/projects/create",
-            .params = NULL
+            .params = NULL,
+            .seen = false,
         },
         {
             .pattern = "/project/<project_id>",
             .request = "/project/400",
-            .params = &project_params
+            .params = &project_params,
+            .seen = false,
         },
         {
             .pattern = "/project/<project_id>/edit",
             .request = "/project/400/edit",
-            .params = &project_params
+            .params = &project_params,
+            .seen = false,
         },
     };
     // clang-format on
@@ -236,7 +253,11 @@ void test_router_basic(void)
 
     // Dispatch.
     for (size_t i = 0; i < n; i++) {
+        assert(cases[i].seen == false);
+
         wrouter_dispatch(router, cases[i].request, &cases[i]);
+
+        assert(cases[i].seen == true);
     }
 
     wrouter_free(router);
