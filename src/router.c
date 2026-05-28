@@ -162,15 +162,17 @@ void wrouter_ndispatch(struct dispatcher *dispatcher, const char *path, size_t l
     route->handler(dispatch_ctx, route->ctx, &dispatcher->params);
 }
 
-struct dispatcher *wrouter_dispatcher_create(const struct router *router)
+wrouter_dispatcher_t *wrouter_dispatcher_create(const wrouter_t *router)
 {
     struct dispatcher *dispatcher = calloc(1, sizeof(struct dispatcher));
     if (dispatcher == NULL)
         return NULL;
 
-    dispatcher->params.base = calloc(router->max_params, sizeof(wrouter_param_t));
-    if (dispatcher->params.base == NULL)
-        goto failure;
+    if (router->max_params) {
+        dispatcher->params.base = calloc(router->max_params, sizeof(wrouter_param_t));
+        if (dispatcher->params.base == NULL)
+            goto failure;
+    }
 
     dispatcher->router = router;
 
