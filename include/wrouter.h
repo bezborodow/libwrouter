@@ -9,6 +9,7 @@
  */
 typedef struct router wrouter_t;
 typedef struct builder wrouter_builder_t;
+typedef struct dispatcher wrouter_dispatcher_t;
 
 typedef struct param {
     const char *name;
@@ -47,10 +48,14 @@ int wrouter_add_route(wrouter_builder_t *builder, const char *pattern, wrouter_r
 
 wrouter_t *wrouter_compile(const wrouter_builder_t *builder);
 
+wrouter_dispatcher_t *wrouter_dispatcher_create(const struct router *router);
+
+void wrouter_dispatcher_free(wrouter_dispatcher_t *dispatcher);
+
 void wrouter_builder_free(wrouter_builder_t *builder);
 
-int wrouter_dispatch(const wrouter_t *router, const char *path, void *dispatch_ctx);
-int wrouter_ndispatch(const wrouter_t *router, const char *path, size_t length,
+void wrouter_dispatch(struct dispatcher *dispatcher, const char *path, void *dispatch_ctx);
+void wrouter_ndispatch(struct dispatcher *dispatcher, const char *path, size_t length,
                        void *dispatch_ctx);
 
 size_t wrouter_route_count(const wrouter_t *router);

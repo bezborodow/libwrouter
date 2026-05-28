@@ -259,14 +259,17 @@ void test_router_basic(void)
     // Compile.
     wrouter_t *router = wrouter_compile(builder);
     wrouter_builder_free(builder);
+    assert(router != NULL);
 
     assert(wrouter_route_count(router) == n);
 
     // Dispatch.
+    wrouter_dispatcher_t *dispatcher = wrouter_dispatcher_create(router);
+    assert(dispatcher != NULL);
     for (size_t i = 0; i < n; i++) {
         assert(cases[i].seen == false);
 
-        wrouter_dispatch(router, cases[i].request, &cases[i]);
+        wrouter_dispatch(dispatcher, cases[i].request, &cases[i]);
 
         assert(cases[i].seen == true);
     }
@@ -274,6 +277,7 @@ void test_router_basic(void)
     // Fallback handler should not have been called.
     assert(!fallback_seen);
 
+    wrouter_dispatcher_free(dispatcher);
     wrouter_free(router);
 }
 
@@ -299,20 +303,25 @@ void test_router_not_found(void)
     // Compile.
     wrouter_t *router = wrouter_compile(builder);
     wrouter_builder_free(builder);
+    assert(router != NULL);
 
     // Dispatch.
+    wrouter_dispatcher_t *dispatcher = wrouter_dispatcher_create(router);
+    assert(dispatcher != NULL);
+
     assert(!fallback_seen);
-    wrouter_dispatch(router, "/this/does/not/exist", NULL);
+    wrouter_dispatch(dispatcher, "/this/does/not/exist", NULL);
     assert(fallback_seen);
 
     fallback_seen = false;
-    wrouter_dispatch(router, "/hello/world/hello", NULL);
+    wrouter_dispatch(dispatcher, "/hello/world/hello", NULL);
     assert(fallback_seen);
 
     fallback_seen = false;
-    wrouter_dispatch(router, "/", NULL);
+    wrouter_dispatch(dispatcher, "/", NULL);
     assert(fallback_seen);
 
+    wrouter_dispatcher_free(dispatcher);
     wrouter_free(router);
 }
 
@@ -340,11 +349,15 @@ void test_router_end_wildcard(void)
     // Compile.
     wrouter_t *router = wrouter_compile(builder);
     wrouter_builder_free(builder);
+    assert(router != NULL);
 
     // Dispatch.
-    wrouter_dispatch(router, "/literal/go_to_wildcard", NULL);
+    wrouter_dispatcher_t *dispatcher = wrouter_dispatcher_create(router);
+    assert(dispatcher != NULL);
+    wrouter_dispatch(dispatcher, "/literal/go_to_wildcard", NULL);
     assert(wilcard_seen);
 
+    wrouter_dispatcher_free(dispatcher);
     wrouter_free(router);
 }
 
@@ -370,12 +383,16 @@ void test_router_top_wildcard_is_not_root(void)
     // Compile.
     wrouter_t *router = wrouter_compile(builder);
     wrouter_builder_free(builder);
+    assert(router != NULL);
 
     // Dispatch.
     // Calling / should not match /*.
-    wrouter_dispatch(router, "/", NULL);
+    wrouter_dispatcher_t *dispatcher = wrouter_dispatcher_create(router);
+    assert(dispatcher != NULL);
+    wrouter_dispatch(dispatcher, "/", NULL);
     assert(fallback_seen);
 
+    wrouter_dispatcher_free(dispatcher);
     wrouter_free(router);
 }
 
@@ -395,18 +412,23 @@ void test_router_empty_router(void)
     // Compile.
     wrouter_t *router = wrouter_compile(builder);
     wrouter_builder_free(builder);
+    assert(router != NULL);
 
     // Dispatch.
     // Calling / should not match /*.
-    wrouter_dispatch(router, "/", NULL);
+    wrouter_dispatcher_t *dispatcher = wrouter_dispatcher_create(router);
+    assert(dispatcher != NULL);
+    wrouter_dispatch(dispatcher, "/", NULL);
     assert(fallback_seen);
 
+    wrouter_dispatcher_free(dispatcher);
     wrouter_free(router);
 }
 
 void test_router_free_null(void)
 {
     // Calling on NULL will do nothing.
+    wrouter_dispatcher_free(NULL);
     wrouter_free(NULL);
 }
 
