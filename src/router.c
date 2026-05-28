@@ -16,11 +16,10 @@ static struct route *terminal_lookup(const struct router *router, uint16_t ref)
     // TODO custom binary search.
     const terminals_t *t = &router->terminals;
 
-    for (uint16_t i = 0; i < t->count; i++) {
-        if (t->refs[i] == ref) {
+    for (uint16_t i = 0; i < t->count; i++)
+        if (t->refs[i] == ref)
             return &t->base[i];
-        }
-    }
+
     return NULL;
 }
 
