@@ -1,0 +1,8 @@
+TODO
+
+Bounds checking.
+Support trailing '/'.
+Installer.
+Test with an HTTP daemon.
+Test with Python ctypes.
+Improve linear to binary search.
