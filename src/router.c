@@ -5,8 +5,7 @@
 #include <stddef.h>
 #include <string.h>
 
-// TODO common graph_offset
-static size_t graph_offset(const void *graph, const void *entry)
+size_t graph_offset(const void *graph, const void *entry)
 {
     return (const uint8_t *)entry - (const uint8_t *)graph;
 }
