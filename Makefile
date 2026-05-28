@@ -22,6 +22,6 @@ coverage:
 	genhtml coverage.filtered.info --output-directory coverage_html
 
 install:
-	meson setup build-install --prefix=$(HOME)/.local
-	meson compile -C build-install
-	meson install -C build-install
+	meson setup build
+	meson compile -C build
+	meson install -C build
