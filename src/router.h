@@ -47,6 +47,7 @@ struct router {
     terminals_t terminals;
     struct route fallback;
     size_t max_params;
+    size_t num_routes;
 };
 
 struct router_options {

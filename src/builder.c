@@ -420,6 +420,7 @@ struct router *wrouter_compile(const struct builder *builder)
 
     graph_stats(builder->root, &stats);
 
+    router->num_routes = stats.terminals;
     router->max_params = stats.max_params;
     router->terminals.refs = calloc(stats.terminals, sizeof(uint16_t));
     router->terminals.base = calloc(stats.terminals, sizeof(struct route));
