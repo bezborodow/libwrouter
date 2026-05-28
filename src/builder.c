@@ -423,8 +423,11 @@ struct router *wrouter_compile(const struct builder *builder)
     router->num_routes = stats.terminals;
     router->max_params = stats.max_params;
     router->terminals.refs = calloc(stats.terminals, sizeof(uint16_t));
+    if (router->terminals.refs == NULL)
+        goto failure;
     router->terminals.base = calloc(stats.terminals, sizeof(struct route));
-    // TODO handle calloc failure.
+    if (router->terminals.base == NULL)
+        goto failure;
 
 #if 0
 #include <stdio.h>
