@@ -1,8 +1,9 @@
 TODO
 
 Bounds checking.
+Error codes for add route.
 Support trailing '/'.
-Installer.
 Test with an HTTP daemon.
 Test with Python ctypes.
 Improve linear to binary search.
+Linker.
