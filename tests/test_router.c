@@ -336,13 +336,11 @@ void test_router_end_wildcard(void)
     wrouter_builder_t *builder = wrouter_builder_create(options);
 
     // Route handler.
-    bool wilcard_seen = false;
-    struct route watch_route = { cb_watch, &wilcard_seen };
-    struct route ignore_route = { cb_ignore, NULL };
+    bool wildcard_seen = false;
 
     // Add routes.
-    assert(wrouter_add_route(builder, "/*", watch_route) == 0);
-    assert(wrouter_add_route(builder, "/literal", ignore_route) == 0);
+    assert(wrouter_add_handler(builder, "/*", cb_watch, &wildcard_seen) == 0);
+    assert(wrouter_add_handler(builder, "/literal", cb_ignore, NULL) == 0);
 
     builder_print_tree(builder);
 
@@ -355,7 +353,7 @@ void test_router_end_wildcard(void)
     wrouter_dispatcher_t *dispatcher = wrouter_dispatcher_create(router);
     assert(dispatcher != NULL);
     wrouter_dispatch(dispatcher, "/literal/go_to_wildcard", NULL);
-    assert(wilcard_seen);
+    assert(wildcard_seen);
 
     wrouter_dispatcher_free(dispatcher);
     wrouter_free(router);
