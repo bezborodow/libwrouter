@@ -30,18 +30,18 @@ static const struct route *route_match(const struct router *router, struct param
     size_t symbol = 0;
 
     void *g = router->graph;
-    node_t *cur = g, *w_node = NULL;
-    edge_t *edge = NULL, *spec_edge = NULL, *edge_base = NULL;
+    node_t *cur = g;
+    edge_t *edge = NULL, *s_edge = NULL, *w_edge = NULL, *edge_base = NULL;
 
 lexer_next:
     tok = lexer_next(router->lx);
-    edge_base = spec_edge = (edge_t *)((uint8_t *)cur + sizeof(node_t));
+    edge_base = s_edge = (edge_t *)((uint8_t *)cur + sizeof(node_t));
 
     if (cur->flags & (NODE_FLAG_HAS_PARAM | NODE_FLAG_HAS_WILDCARD))
         edge_base++;
 
     if (cur->flags & NODE_FLAG_HAS_WILDCARD)
-        w_node = cur;
+        w_edge = s_edge;
 
     switch (tok.type) {
 
@@ -73,11 +73,11 @@ lexer_next:
 
             // Check for parameter.
             if (cur->flags & NODE_FLAG_HAS_PARAM) {
-                cur = (node_t *)((uint8_t *)g + spec_edge->next);
+                cur = (node_t *)((uint8_t *)g + s_edge->next);
 
                 // Record parameter name and value.
                 param_t *param = &params->items[params->count++];
-                param->name = router->params.base[spec_edge->symbol - 1];
+                param->name = router->params.base[s_edge->symbol - 1];
                 param->value = tok.ptr;
                 param->length = tok.length;
 
@@ -86,7 +86,7 @@ lexer_next:
             }
 
             // Terminate at wildcard.
-            if (w_node != NULL)
+            if (w_edge != NULL)
                 goto wildcard;
 
             // Not found.
@@ -108,8 +108,7 @@ not_found:
     return NULL;
 
 wildcard:
-    edge = (edge_t *)((uint8_t *)w_node + sizeof(node_t));
-    cur = (node_t *)((uint8_t *)g + edge->next);
+    cur = (node_t *)((uint8_t *)g + w_edge->next);
 
 terminal:
     return terminal_lookup(router, graph_offset(g, cur));
