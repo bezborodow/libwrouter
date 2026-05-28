@@ -56,11 +56,12 @@ lexer_next:
             if (cur->literals) {
 
                 // Resolve the literal string to a symbol.
-                // TODO do bsearch if n > 8. Need to sort symbols first though when compiling.
                 symbol = symbol_resolve(tok.ptr, router->literals.base, router->literals.count);
 
                 // If the symbol is resolved, try to match against an edge.
                 if (symbol) {
+
+                    // TODO do bsearch if n > 8. Need to sort symbols first though when compiling.
                     for (uint16_t i = 0; i < cur->literals; i++) {
                         edge = &edge_base[i];
 
