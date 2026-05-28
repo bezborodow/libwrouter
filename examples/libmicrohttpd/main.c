@@ -135,8 +135,13 @@ int main(int argc, char **argv)
     };
 
     wrouter_builder_t *builder = wrouter_builder_create(router_options);
-    wrouter_add_handler(builder, "/", rcb_root, NULL);
-    wrouter_add_handler(builder, "/hello/:addressee", rcb_hello, (void *)port);
+    wrouter_add_handler(builder, "/", rcb_root);
+
+    wrouter_route_t route_hello = {
+        .handler = rcb_hello,
+        .ctx = (const void *) port,
+    };
+    wrouter_add_route(builder, "/hello/:addressee", route_hello);
 
     app.router = wrouter_compile(builder);
     wrouter_builder_free(builder);

@@ -337,8 +337,8 @@ void test_router_end_wildcard(void)
     bool wildcard_seen = false;
 
     // Add routes.
-    assert(wrouter_add_handler(builder, "/*", cb_watch, NULL) == 0);
-    assert(wrouter_add_handler(builder, "/literal", cb_ignore, NULL) == 0);
+    assert(wrouter_add_handler(builder, "/*", cb_watch) == 0);
+    assert(wrouter_add_handler(builder, "/literal", cb_ignore) == 0);
 
     builder_print_tree(builder);
 

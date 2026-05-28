@@ -27,7 +27,7 @@ typedef void (*wrouter_handler_fn)(void *dispatch_ctx, const void *route_ctx,
 
 typedef struct route {
     wrouter_handler_fn handler;
-    void *ctx;
+    const void *ctx;
 } wrouter_route_t;
 
 typedef enum {
@@ -45,8 +45,7 @@ typedef struct wrouter_options {
 wrouter_builder_t *wrouter_builder_create(const wrouter_options_t options);
 
 int wrouter_add_route(wrouter_builder_t *builder, const char *pattern, wrouter_route_t route);
-int wrouter_add_handler(wrouter_builder_t *builder, const char *pattern, wrouter_handler_fn handler,
-                        void *ctx);
+int wrouter_add_handler(wrouter_builder_t *builder, const char *pattern, wrouter_handler_fn handler);
 
 wrouter_t *wrouter_compile(const wrouter_builder_t *builder);
 
