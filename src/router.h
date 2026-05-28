@@ -11,20 +11,6 @@
 #define NODE_FLAG_HAS_PARAM 2
 #define NODE_FLAG_HAS_WILDCARD 4
 
-// TODO enforce max params.
-#define MAX_PARAMS 16
-
-typedef struct { // TODO Make public?
-    const char *name;
-    const char *value;
-    uint16_t length;
-} param_t;
-
-struct params {
-    param_t items[MAX_PARAMS]; // TODO make const? Would need a mutable version for router.
-    uint32_t count;
-};
-
 typedef struct node {
     uint8_t literals; // Number of literal edges.
     uint8_t flags;
@@ -61,17 +47,22 @@ typedef struct terminals {
 
 struct router {
     void *graph;
-    lexer_t *lx;
     symbols_t literals;
     symbols_t params;
     terminals_t terminals;
     struct route fallback;
+    size_t max_params;
 };
 
 struct router_options {
     struct route fallback;
     wrouter_param_syntax_t param_syntax;
 };
+
+typedef struct dispatcher {
+    lexer_t lx;
+    struct params params;
+} dispatcher_t;
 
 size_t graph_offset(const void *graph, const void *entry);
 

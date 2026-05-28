@@ -7,7 +7,7 @@
 #ifndef WROUTER_LEXER_H
 #define WROUTER_LEXER_H
 
-typedef struct {
+typedef struct lexer {
     const char *str;
     const char *cursor;
     size_t length;

@@ -10,7 +10,17 @@
 typedef struct router wrouter_t;
 typedef struct route wrouter_route_t;
 typedef struct builder wrouter_builder_t;
-typedef struct params wrouter_params_t;
+
+typedef struct param {
+    const char *name;
+    const char *value;
+    uint16_t length;
+} wrouter_param_t;
+
+typedef struct params {
+    wrouter_param_t *base;
+    uint32_t count;
+} wrouter_params_t;
 
 typedef void (*wrouter_handler_fn)(void *dispatch_ctx, void *route_ctx,
                                    const wrouter_params_t *params);
@@ -35,8 +45,8 @@ wrouter_t *wrouter_compile(const wrouter_builder_t *builder);
 
 void wrouter_builder_free(wrouter_builder_t *builder);
 
-void wrouter_dispatch(const wrouter_t *router, const char *path, void *dispatch_ctx);
-void wrouter_ndispatch(const wrouter_t *router, const char *path, size_t length,
+int wrouter_dispatch(const wrouter_t *router, const char *path, void *dispatch_ctx);
+int wrouter_ndispatch(const wrouter_t *router, const char *path, size_t length,
                        void *dispatch_ctx);
 
 int wrouter_route_count(const wrouter_t *router);
