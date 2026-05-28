@@ -206,6 +206,7 @@ static int edge_cmp(const void *p1, const void *p2)
 {
     const edge_t *e1 = p1;
     const edge_t *e2 = p2;
+
     return e1->symbol - e2->symbol;
 }
 
@@ -222,7 +223,23 @@ static void *graph_append(void *g, size_t *cursor, size_t size, size_t align)
     void *base = (uint8_t *)g + *cursor;
     memset(base, 0, size);
     *cursor += size;
+
     return base;
+}
+
+static node_t *graph_append_node(void *g, size_t *cursor)
+{
+    return graph_append(g, cursor, sizeof(node_t), _Alignof(node_t));
+}
+
+static edge_t *graph_append_edge(void *g, size_t *cursor)
+{
+    return graph_append(g, cursor, sizeof(edge_t), _Alignof(edge_t));
+}
+
+static edge_t *graph_append_edges(void *g, size_t *cursor, size_t nmemb)
+{
+    return graph_append(g, cursor, nmemb * sizeof(edge_t), _Alignof(edge_t));
 }
 
 static node_t *graph_compile(struct router *router, const segment_t *segment, size_t *cursor)
@@ -230,7 +247,7 @@ static node_t *graph_compile(struct router *router, const segment_t *segment, si
     void *g = router->graph;
 
     // Append node.
-    node_t *node = graph_append(g, cursor, sizeof(node_t), _Alignof(node_t));
+    node_t *node = graph_append_node(g, cursor);
 
     node->literals = segment->child_count;
     if (segment->route.handler != NULL) {
@@ -239,20 +256,19 @@ static node_t *graph_compile(struct router *router, const segment_t *segment, si
         router->terminals.base[router->terminals.count++] = segment->route;
     }
 
-    edge_t *p_edge = NULL;
-    edge_t *w_edge = NULL;
+    edge_t *p_edge = NULL, *w_edge = NULL;
 
     switch (segment->spec_type) {
         case SPEC_PARAM:
             node->flags |= NODE_FLAG_HAS_PARAM;
-            p_edge = graph_append(g, cursor, sizeof(edge_t), _Alignof(edge_t));
+            p_edge = graph_append_edge(g, cursor);
             p_edge->symbol = symbol_resolve(segment->special.param->str, router->params.base,
                                             router->params.count);
             break;
 
         case SPEC_WILDCARD:
             node->flags |= NODE_FLAG_HAS_WILDCARD;
-            w_edge = graph_append(g, cursor, sizeof(edge_t), _Alignof(edge_t));
+            w_edge = graph_append_edge(g, cursor);
             break;
 
         case SPEC_NONE:
@@ -262,8 +278,7 @@ static node_t *graph_compile(struct router *router, const segment_t *segment, si
     // Descend into literals.
     if (segment->child_count) {
         // Find the start address for literal edges.
-        edge_t *l_edge_base =
-            graph_append(g, cursor, segment->child_count * sizeof(edge_t), _Alignof(edge_t));
+        edge_t *l_edge_base = graph_append_edges(g, cursor, segment->child_count);
 
         // Resolve symbols and save into into the literal edges.
         for (uint16_t i = 0; i < segment->child_count; i++) {
@@ -295,7 +310,7 @@ static node_t *graph_compile(struct router *router, const segment_t *segment, si
 
     // Append wildcard node.
     if (w_edge != NULL) {
-        node_t *w_node = graph_append(g, cursor, sizeof(node_t), _Alignof(node_t));
+        node_t *w_node = graph_append_node(g, cursor);
         w_node->flags |= NODE_FLAG_TERMINAL;
         w_edge->next = graph_offset(g, w_node);
         router->terminals.refs[router->terminals.count] = w_edge->next;
