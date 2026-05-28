@@ -342,6 +342,7 @@ void graph_stats(const segment_t *seg, graph_stats_t *stats)
             stats->edges++;
             stats->nodes++;
             stats->terminals++;
+            // TODO reserve space for future wildcard param '_' implementation.
             if (stats->param_depth >= stats->max_params)
                 stats->max_params++;
             size_up(&stats->size, _Alignof(node_t), sizeof(node_t));
