@@ -12,16 +12,23 @@ static size_t graph_offset(const void *graph, const void *entry)
     return (uint8_t *)entry - (uint8_t *)graph;
 }
 
+static int uint16cmp(const void *a, const void *b)
+{
+    int ia = *(const uint16_t *)a;
+    int ib = *(const uint16_t *)b;
+
+    return (ia > ib) - (ia < ib);
+}
+
 static struct route *terminal_lookup(const struct router *router, uint16_t ref)
 {
-    // TODO bsearch.
-    for (uint16_t i = 0; i < router->terminals.count; i++) {
-        if (router->terminals.refs[i] == ref) {
-            return &router->terminals.base[i];
-        }
-    }
+    const terminals_t *t = &router->terminals;
 
-    return NULL;
+    uint16_t *rref = bsearch(&ref, t->refs, t->count, sizeof(uint16_t), uint16cmp);
+    if (rref == NULL)
+        return NULL;
+
+    return &t->base[rref - t->refs];
 }
 
 static const struct route *route_match(const struct router *router, struct params *params)
