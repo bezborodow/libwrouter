@@ -379,6 +379,31 @@ void test_router_top_wildcard_is_not_root(void)
     wrouter_free(router);
 }
 
+void test_router_empty_router(void)
+{
+    // Create builder.
+    bool fallback_seen = false;
+    wrouter_options_t options = {
+        .param_syntax = WROUTER_SYNTAX_COLON,
+        .fallback_handler = cb_watch,
+        .fallback_ctx = &fallback_seen,
+    };
+    wrouter_builder_t *builder = wrouter_builder_create(options);
+
+    builder_print_tree(builder);
+
+    // Compile.
+    wrouter_t *router = wrouter_compile(builder);
+    wrouter_builder_free(builder);
+
+    // Dispatch.
+    // Calling / should not match /*.
+    wrouter_dispatch(router, "/", NULL);
+    assert(fallback_seen);
+
+    wrouter_free(router);
+}
+
 void test_router_free_null(void)
 {
     // Calling on NULL will do nothing.
@@ -391,6 +416,7 @@ int main(void)
     test_router_not_found();
     test_router_end_wildcard();
     test_router_top_wildcard_is_not_root();
+    test_router_empty_router();
     test_router_free_null();
 
     return 0;
