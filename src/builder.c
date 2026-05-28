@@ -81,13 +81,27 @@ static segment_t *find_child(segment_t *segment, token_t tok)
 }
 
 /**
- * Add a route handler and context to the route tree.
+ * Add a route handler to the route tree.
  */
 int wrouter_add_handler(wrouter_builder_t *builder, const char *pattern, wrouter_handler_fn handler)
 {
     struct route route = {
         .handler = handler,
         .ctx = NULL,
+    };
+
+    return wrouter_add_route(builder, pattern, route);
+}
+
+/**
+ * Add a route handler and context to the route tree.
+ */
+int wrouter_add_handler_ctx(wrouter_builder_t *builder, const char *pattern, wrouter_handler_fn handler,
+        const void *ctx)
+{
+    struct route route = {
+        .handler = handler,
+        .ctx = ctx,
     };
 
     return wrouter_add_route(builder, pattern, route);
