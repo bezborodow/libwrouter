@@ -8,7 +8,6 @@
  * Router.
  */
 typedef struct router wrouter_t;
-typedef struct route wrouter_route_t;
 typedef struct builder wrouter_builder_t;
 
 typedef struct param {
@@ -24,6 +23,11 @@ typedef struct params {
 
 typedef void (*wrouter_handler_fn)(void *dispatch_ctx, void *route_ctx,
                                    const wrouter_params_t *params);
+
+typedef struct route {
+    wrouter_handler_fn handler;
+    void *ctx;
+} wrouter_route_t;
 
 typedef enum {
     WROUTER_SYNTAX_COLON, // :id
