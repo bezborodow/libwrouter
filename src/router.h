@@ -35,13 +35,13 @@ typedef struct edge {
     uint16_t next;
 } edge_t;
 
+_Static_assert(sizeof(node_t) % _Alignof(edge_t) == 0, "Node size breaks edge alignment.");
+_Static_assert(sizeof(edge_t) % _Alignof(node_t) == 0, "Edge size breaks node alignment.");
+
 struct route {
     wrouter_handler_fn handler;
     void *ctx;
 };
-
-_Static_assert(sizeof(node_t) % _Alignof(edge_t) == 0, "Node size breaks edge alignment.");
-_Static_assert(sizeof(edge_t) % _Alignof(node_t) == 0, "Edge size breaks node alignment.");
 
 typedef struct symbols {
     const char **base;
