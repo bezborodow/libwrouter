@@ -27,6 +27,8 @@ static void size_up(size_t *total_size, size_t align, size_t size)
  *
  * Use the builder to create a router tree by adding routes to it. Then compile
  * the tree into a router graph. After this, free the builder.
+ *
+ * The builder is not thread-safe.
  */
 struct builder *wrouter_builder_create(const wrouter_options_t options)
 {
