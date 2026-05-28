@@ -403,43 +403,50 @@ struct router *wrouter_compile(const struct builder *builder)
 {
     graph_stats_t stats = { 0 };
     size_t cursor = 0;
-    void *graph;
 
+    // New router.
     wrouter_t *router = calloc(1, sizeof(struct router));
     if (router == NULL)
         return NULL;
 
+    // Fallback route.
     router->fallback = builder->fallback;
 
+    // Obtain graph statistics.
     graph_stats(builder->root, &stats);
+    router->num_routes = stats.terminals;
+    router->max_params = stats.max_params;
 
     // If no terminals, return an empty router.
     if (!stats.terminals)
         return router;
 
+    // Allocate and compile symbols for literals.
     router->literals = symbol_compile(&builder->literals);
     if (router->literals.base == NULL && router->literals.count)
         goto failure;
 
+    // Allocate and compile symbols for parameters.
     router->params = symbol_compile(&builder->params);
     if (router->params.base == NULL && router->params.count)
         goto failure;
 
-    router->num_routes = stats.terminals;
-    router->max_params = stats.max_params;
+    // Allocate terminal refs.
     router->terminals.refs = calloc(stats.terminals, sizeof(uint16_t));
     if (router->terminals.refs == NULL)
         goto failure;
+
+    // Allocate terminals.
     router->terminals.base = calloc(stats.terminals, sizeof(struct route));
     if (router->terminals.base == NULL)
         goto failure;
 
-    graph = malloc(stats.size);
-    if (graph == NULL)
+    // Allocate the graph.
+    router->graph = malloc(stats.size);
+    if (router->graph == NULL)
         goto failure;
 
-    router->graph = graph;
-
+    // Compile the graph.
     graph_compile(router, builder->root, &cursor);
 
     return router;
