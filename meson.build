@@ -83,4 +83,8 @@ foreach t : [
     test(t, exe)
 endforeach
 
-subdir('examples/libmicrohttpd')
+microhttpd_dep = dependency('libmicrohttpd', required: false)
+
+if microhttpd_dep.found()
+  subdir('examples/libmicrohttpd')
+endif
