@@ -27,7 +27,7 @@ static void cb_ignore(void *dispatch_ctx, void *route_ctx, const wrouter_params_
 static void cb_not_found(void *dispatch_ctx, void *route_ctx, const wrouter_params_t *params)
 {
     (void)dispatch_ctx;
-    (void)params;
+    assert(params->count == 0);
 
     bool *seen = route_ctx;
     *seen = true;
