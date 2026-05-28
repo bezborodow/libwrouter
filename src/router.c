@@ -4,6 +4,7 @@
 #include "symbol.h"
 #include <stddef.h>
 #include <string.h>
+#include <stdlib.h>
 
 static inline const edge_t *node_edge_base(const node_t *node)
 {
@@ -147,18 +148,19 @@ int wrouter_ndispatch(const struct router *router, const char *path, size_t leng
 {
     dispatcher_t dispatcher = { 0 };
     lexer_load(&dispatcher.lx, path, length);
-    dispatcher.params.base = calloc(router->max_params, sizeof(wrouter_param_t));
-    if (dispatcher.params.base == NULL)
-        return -1;
 
-    struct params params = { 0 };
+    if (router->max_params) {
+        dispatcher.params.base = calloc(router->max_params, sizeof(wrouter_param_t));
+        if (dispatcher.params.base == NULL)
+            return -1;
+    }
 
     const struct route *route = route_match(router, &dispatcher);
 
     if (route == NULL)
         route = &router->fallback;
 
-    route->handler(dispatch_ctx, route->ctx, &params);
+    route->handler(dispatch_ctx, route->ctx, &dispatcher.params);
 
     free(dispatcher.params.base);
 

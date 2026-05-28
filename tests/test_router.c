@@ -38,8 +38,6 @@ static void cb_test(void *dispatch_ctx, void *route_ctx, const wrouter_params_t 
     terminal_test_case_t *dtc = dispatch_ctx, *rtc = route_ctx;
     assert(rtc == dtc);
 
-    printf("%u\n", params->count);
-    /*
     if (dtc->params != NULL && dtc->params->count) {
         assert(params->count == dtc->params->count);
         for (size_t i = 0; i < params->count; i++) {
@@ -50,7 +48,6 @@ static void cb_test(void *dispatch_ctx, void *route_ctx, const wrouter_params_t 
             assert(strcmp(param->name, param_e->name) == 0);
         }
     }
-    */
 
     rtc->seen = true;
 }
