@@ -35,6 +35,11 @@ libwrouter = library(
     soversion : '0',
 )
 
+libwrouter_dep = declare_dependency(
+    link_with : libwrouter,
+    include_directories : inc,
+)
+
 install_headers(
     'include/wrouter.h',
 )
@@ -77,3 +82,5 @@ foreach t : [
 
     test(t, exe)
 endforeach
+
+subdir('examples/libmicrohttpd')
