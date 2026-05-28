@@ -14,10 +14,7 @@ add_project_arguments(
     language : 'c'
 )
 
-inc = include_directories(
-    'include',
-    'src',
-)
+inc = include_directories('include')
 
 src = files(
     'src/arena.c',
@@ -32,8 +29,10 @@ src = files(
 libwrouter = library(
     'wrouter',
     src,
-    include_directories : inc,
+    include_directories : include_directories('include', 'src'),
     install : true,
+    version : meson.project_version(),
+    soversion : '0',
 )
 
 install_headers(
@@ -45,7 +44,9 @@ pkg = import('pkgconfig')
 pkg.generate(
     libwrouter,
     name : 'libwrouter',
-    description : 'High-performance URL router library.',
+    filebase : 'libwrouter',
+    description : 'High-performance Uniform Resource Locator (URL) symbolic router library for the Web.',
+    version : meson.project_version(),
 )
 
 #
@@ -69,7 +70,7 @@ foreach t : [
         'test_@0@'.format(t),
         'tests/test_@0@.c'.format(t),
         src,
-        include_directories : inc,
+        include_directories : include_directories('include', 'src'),
         c_args : san_args,
         link_args : san_args,
     )
