@@ -426,10 +426,12 @@ struct router *wrouter_compile(const struct builder *builder)
     // layout pass calculation.  This is kept here for demonstration.  To break
     // it, add an extra byte to the node struct, which will throw off
     // alignment.
-    printf("GRAPH BYTES FIRST PASS: %lu\n", stats.size);
-    size_t other_bytes = sizeof(node_t) * stats.nodes;
-    other_bytes += sizeof(edge_t) * (stats.edges + stats.symbolic_edges);
-    printf("GRAPH BYTES STATS: %lu\n", other_bytes);
+    {
+        printf("GRAPH BYTES FIRST PASS: %lu\n", stats.size);
+        size_t other_bytes = sizeof(node_t) * stats.nodes;
+        other_bytes += sizeof(edge_t) * (stats.edges + stats.symbolic_edges);
+        printf("GRAPH BYTES STATS:      %lu\n", other_bytes);
+    }
 #endif
 
     graph = malloc(stats.size);
