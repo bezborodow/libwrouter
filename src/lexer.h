@@ -1,11 +1,9 @@
+#pragma once
 #include "wrouter.h"
 #include "token.h"
 #include "symbol.h"
 #include <stdint.h>
 #include <stddef.h>
-
-#ifndef WROUTER_LEXER_H
-#define WROUTER_LEXER_H
 
 typedef struct lexer {
     const char *str;
@@ -16,5 +14,3 @@ typedef struct lexer {
 void lexer_load(lexer_t *lx, const char *request, size_t length);
 
 token_t lexer_next(lexer_t *lx);
-
-#endif

@@ -1,11 +1,9 @@
+#pragma once
 #include "symbol.h"
 #include "token.h"
 #include "router.h"
 #include <stdint.h>
 #include <stdbool.h>
-
-#ifndef WROUTER_BUILDER_H
-#define WROUTER_BUILDER_H
 
 typedef struct segment segment_t;
 
@@ -67,5 +65,3 @@ typedef struct graph_stats {
 } graph_stats_t;
 
 void graph_stats(const segment_t *segment, graph_stats_t *stats);
-
-#endif
