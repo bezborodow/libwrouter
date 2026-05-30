@@ -2,6 +2,21 @@
 #include <Python.h>
 #include "wrouter.h"
 
+typedef struct {
+    PyObject_HEAD
+    wrouter_param_syntax_t value;
+} PyParamSyntaxObject;
+
+static PyTypeObject PyParamSyntaxType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "wrouter.ParamSyntax",
+    .tp_basicsize = sizeof(PyParamSyntaxObject),
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+};
+static PyObject *PyParamSyntax_COLON;
+static PyObject *PyParamSyntax_BRACE;
+static PyObject *PyParamSyntax_ANGLE;
+
 static PyTypeObject PyBuilderType;
 static PyTypeObject PyRouterType;
 static PyTypeObject PyDispatcherType;
@@ -11,6 +26,30 @@ typedef struct {
     PyObject *value;   /* str or arbitrary object */
     int is_string;
 } PyRouteCtx;
+
+
+static PyObject *
+PyParamSyntax_New(wrouter_param_syntax_t v)
+{
+    PyParamSyntaxObject *obj = PyObject_New(PyParamSyntaxObject, &PyParamSyntaxType);
+
+    if (!obj) return NULL;
+
+    obj->value = v;
+    return (PyObject *)obj;
+}
+
+static int
+parse_syntax(PyObject *obj, wrouter_param_syntax_t *out)
+{
+    if (!PyObject_TypeCheck(obj, &PyParamSyntaxType)) {
+        PyErr_SetString(PyExc_TypeError, "ParamSyntax required");
+        return -1;
+    }
+
+    *out = ((PyParamSyntaxObject *)obj)->value;
+    return 0;
+}
 
 /* ---------------------------
    Builder
@@ -36,26 +75,43 @@ static void PyBuilder_dealloc(PyBuilderObject *self)
     Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
+
 static PyObject *PyBuilder_new(PyTypeObject *type, PyObject *args, PyObject *kw)
 {
-    (void)args;
-    (void)kw;
+    PyObject *syntax_obj = NULL;
+    PyBuilderObject *self = NULL;
+    wrouter_options_t opts = {0};
 
-    PyBuilderObject *self = (PyBuilderObject *)type->tp_alloc(type, 0);
-    if (!self) return NULL;
+    static char *kwlist[] = {"param_syntax", NULL};
+
+    if (!PyArg_ParseTupleAndKeywords(args, kw, "|O", kwlist, &syntax_obj))
+        return NULL;
+
+    self = (PyBuilderObject *)type->tp_alloc(type, 0);
+    if (!self)
+        return NULL;
 
     self->inner = PyMem_Calloc(1, sizeof(PyBuilder));
-    if (!self->inner) return PyErr_NoMemory();
+    if (!self->inner)
+        goto failure;
 
-    wrouter_options_t opts = {0};
-    self->inner->builder = wrouter_builder_create(opts);
-
-    if (!self->inner->builder) {
-        PyMem_Free(self->inner);
-        return PyErr_NoMemory();
+    if (syntax_obj) {
+        if (parse_syntax(syntax_obj, &opts.param_syntax) < 0)
+            goto failure;
     }
 
+    self->inner->builder = wrouter_builder_create(opts);
+    if (!self->inner->builder)
+        goto failure;
+
     return (PyObject *)self;
+
+failure:
+    Py_XDECREF(self);
+    if (self && self->inner)
+        PyMem_Free(self->inner);
+
+    return PyErr_NoMemory();
 }
 
 /* add route with ctx only */
@@ -263,14 +319,46 @@ static struct PyModuleDef moduledef = {
     NULL
 };
 
+
 PyMODINIT_FUNC PyInit_wrouter(void)
 {
-    if (PyType_Ready(&PyBuilderType) < 0) return NULL;
-    if (PyType_Ready(&PyRouterType) < 0) return NULL;
-    if (PyType_Ready(&PyDispatcherType) < 0) return NULL;
+    PyObject *m = NULL;
+    PyObject *enum_mod = NULL;
+    PyObject *int_enum = NULL;
+    PyObject *ParamSyntax = NULL;
+    PyObject *args = NULL;
 
-    PyObject *m = PyModule_Create(&moduledef);
-    if (!m) return NULL;
+    if (PyType_Ready(&PyBuilderType) < 0)
+        return NULL;
+    if (PyType_Ready(&PyRouterType) < 0)
+        return NULL;
+    if (PyType_Ready(&PyDispatcherType) < 0)
+        return NULL;
+
+    m = PyModule_Create(&moduledef);
+    if (!m)
+        goto failure;
+
+    if (PyType_Ready(&PyParamSyntaxType) < 0)
+        goto failure;
+
+    PyParamSyntax_COLON = PyParamSyntax_New(WROUTER_SYNTAX_COLON);
+    PyParamSyntax_BRACE = PyParamSyntax_New(WROUTER_SYNTAX_BRACE);
+    PyParamSyntax_ANGLE = PyParamSyntax_New(WROUTER_SYNTAX_ANGLE);
+
+    if (!PyParamSyntax_COLON || !PyParamSyntax_BRACE || !PyParamSyntax_ANGLE)
+        goto failure;
+
+    Py_INCREF(PyParamSyntax_COLON);
+    Py_INCREF(PyParamSyntax_BRACE);
+    Py_INCREF(PyParamSyntax_ANGLE);
+
+    PyModule_AddObject(m, "COLON", PyParamSyntax_COLON);
+    PyModule_AddObject(m, "BRACE", PyParamSyntax_BRACE);
+    PyModule_AddObject(m, "ANGLE", PyParamSyntax_ANGLE);
+
+    Py_INCREF(&PyParamSyntaxType);
+    PyModule_AddObject(m, "ParamSyntax", (PyObject *)&PyParamSyntaxType);
 
     Py_INCREF(&PyBuilderType);
     PyModule_AddObject(m, "Builder", (PyObject *)&PyBuilderType);
@@ -282,4 +370,12 @@ PyMODINIT_FUNC PyInit_wrouter(void)
     PyModule_AddObject(m, "Dispatcher", (PyObject *)&PyDispatcherType);
 
     return m;
+
+failure:
+    Py_XDECREF(args);
+    Py_XDECREF(int_enum);
+    Py_XDECREF(enum_mod);
+    Py_XDECREF(ParamSyntax);
+    Py_DECREF(m);
+    return NULL;
 }
