@@ -1,25 +1,100 @@
 # Wrouter: Symbolic Web Router
 
-## Building
+**Work-in-progress!**
 
+## Usage
 
-Compile:
+### Python
 
-```bash
-make
+```python
+import wrouter
+
+routes = [
+    ("/account", "account.list"),
+    ("/account/create", "account.create"),
+    ("/account/a/:account_id", "account.view")
+]
+
+builder = wrouter.Builder()
+
+for pattern, endpoint in routes:
+    builder.add(pattern, endpoint)
+
+router = builder.compile()
+dispatcher = wrouter.Dispatcher(router)
+
+endpoint, params = dispatcher.resolve("/account/a/1234")
+
+print(f"{endpoint} {params['account_id']}")
 ```
 
-Run tests:
+### C
 
-```bash
-make test
+```c
+#include <stdio.h>
+#include <stdint.h>
+#include <wrouter.h>
+
+static void route_hello(void *dispatch_ctx, const void *route_ctx,
+                        const wrouter_params_t *params)
+{
+    (void)dispatch_ctx;
+    (void)route_ctx;
+
+    const char *addressee = params->base[0].value;
+    uint16_t addressee_len = params->base[0].length;
+
+    printf("Hello, %.*s!\n", addressee_len, addressee);
+}
+
+int main(void)
+{
+    wrouter_options_t options = { 0 };
+
+    wrouter_builder_t *builder = wrouter_builder_create(options);
+    wrouter_add_handler(builder, "/hello/:addressee", route_hello);
+
+    wrouter_t *router = wrouter_compile(builder);
+    wrouter_builder_free(builder);
+
+    wrouter_dispatcher_t *dispatcher = wrouter_dispatcher_create(router);
+
+    wrouter_dispatch(dispatcher, "/hello/world", NULL);
+
+    wrouter_dispatcher_free(dispatcher);
+    wrouter_free(router);
+
+    return 0;
+}
 ```
 
-Install:
+Compile with:
 
 ```bash
-sudo make install
+gcc -o hello hello.c -lwrouter
 ```
+
+## Concepts
+
+This project is designed as a router for use in an application Web server that
+is assumed to be behind an HTTP proxy. As such, it makes not attempt to handle
+hostnames, subdomains, or aliases.
+
+The router is intended to be high-performance and deterministic. It is
+therefore deliberately restrictive in what forms of routes can be accepted into
+the routing graph (see constraints below). A side-effect of this is that the
+graph becomes very simple to traverse, although simplicity is not an aim of
+this project except as so far as it helps performance.  The strict routing
+graph prevents ambiguity in route resolution, avoiding the need for
+prioritisation or resolving the specificity of conflicting routes.
+
+The router has no concept of HTTP methods, and therefore requires that a router
+be instantiated by each method supported by the application, including a
+separate router for WebSockets, if desired.
+
+The router is immutable, and is therefore thread-safe, and may be shared
+between threads. The dispatcher is mutable and must not be shared between
+threads.
 
 ## Constraints
 
@@ -56,7 +131,29 @@ Incompatible:
  - `/project/<project_id>`
  - `/project/*`
 
-Routes with trailing slashes are treated the same. The following are equivalent:
+Routes with trailing slashes are (currently) treated the same. This will change
+in the future, as this library is a work-in-progress. The following are
+equivalent:
 
  - `/test/`
  - `/test`
+
+## Building
+
+Compile:
+
+```bash
+make
+```
+
+Run tests:
+
+```bash
+make test
+```
+
+Install:
+
+```bash
+sudo make install
+```
