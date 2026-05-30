@@ -21,6 +21,34 @@ static PyTypeObject PyBuilderType;
 static PyTypeObject PyRouterType;
 static PyTypeObject PyDispatcherType;
 
+typedef struct {
+    wrouter_builder_t *builder;
+    pthread_t owner_tid;
+} PyBuilder;
+
+typedef struct {
+    PyObject_HEAD
+    PyBuilder *inner;
+} PyBuilderObject;
+
+typedef struct {
+    wrouter_t *router;
+} PyRouter;
+
+typedef struct {
+    PyObject_HEAD
+    PyRouter *inner;
+} PyRouterObject;
+
+typedef struct {
+    wrouter_dispatcher_t *dispatcher;
+    pthread_t owner_tid;
+} PyDispatcher;
+
+typedef struct {
+    PyObject_HEAD
+    PyDispatcher *inner;
+} PyDispatcherObject;
 
 typedef struct {
     PyObject *value;   /* str or arbitrary object */
@@ -55,14 +83,6 @@ parse_syntax(PyObject *obj, wrouter_param_syntax_t *out)
    Builder
    --------------------------- */
 
-typedef struct {
-    wrouter_builder_t *builder;
-} PyBuilder;
-
-typedef struct {
-    PyObject_HEAD
-    PyBuilder *inner;
-} PyBuilderObject;
 
 static void PyBuilder_dealloc(PyBuilderObject *self)
 {
@@ -100,6 +120,7 @@ static PyObject *PyBuilder_new(PyTypeObject *type, PyObject *args, PyObject *kw)
             goto failure;
     }
 
+    self->inner->owner_tid = pthread_self();
     self->inner->builder = wrouter_builder_create(opts);
     if (!self->inner->builder)
         goto failure;
@@ -123,6 +144,11 @@ static PyObject *PyBuilder_add(PyBuilderObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "sO", &pattern, &ctx))
         return NULL;
 
+    if (!pthread_equal(self->inner->owner_tid, pthread_self())) {
+        PyErr_SetString(PyExc_RuntimeError, "Builder is thread-bound.");
+        return NULL;
+    }
+
     PyRouteCtx *rc = PyMem_Malloc(sizeof(PyRouteCtx));
     if (!rc) return PyErr_NoMemory();
 
@@ -139,20 +165,30 @@ static PyObject *PyBuilder_add(PyBuilderObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
-static PyObject *PyBuilder_compile(PyBuilderObject *self, PyObject *args);
+static PyObject *PyBuilder_compile(PyBuilderObject *self, PyObject *args)
+{
+    (void)args;
+    PyRouterObject *obj = PyObject_New(PyRouterObject, &PyRouterType);
+    if (!obj) return NULL;
+
+    if (!pthread_equal(self->inner->owner_tid, pthread_self())) {
+        PyErr_SetString(PyExc_RuntimeError, "Builder is thread-bound.");
+        return NULL;
+    }
+
+    obj->inner = PyMem_Calloc(1, sizeof(PyRouter));
+    if (!obj->inner) return PyErr_NoMemory();
+
+    obj->inner->router = wrouter_compile(self->inner->builder);
+    if (!obj->inner->router) return PyErr_NoMemory();
+
+    return (PyObject *)obj;
+}
+
 
 /* ---------------------------
    Router
    --------------------------- */
-
-typedef struct {
-    wrouter_t *router;
-} PyRouter;
-
-typedef struct {
-    PyObject_HEAD
-    PyRouter *inner;
-} PyRouterObject;
 
 static void PyRouter_dealloc(PyRouterObject *self)
 {
@@ -165,34 +201,9 @@ static void PyRouter_dealloc(PyRouterObject *self)
     Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
-static PyObject *PyBuilder_compile(PyBuilderObject *self, PyObject *args)
-{
-    (void)args;
-    PyRouterObject *obj = PyObject_New(PyRouterObject, &PyRouterType);
-    if (!obj) return NULL;
-
-    obj->inner = PyMem_Calloc(1, sizeof(PyRouter));
-    if (!obj->inner) return PyErr_NoMemory();
-
-    obj->inner->router = wrouter_compile(self->inner->builder);
-    if (!obj->inner->router) return PyErr_NoMemory();
-
-    return (PyObject *)obj;
-}
-
 /* ---------------------------
    Dispatcher
    --------------------------- */
-
-typedef struct {
-    wrouter_dispatcher_t *dispatcher;
-    pthread_t owner_tid;
-} PyDispatcher;
-
-typedef struct {
-    PyObject_HEAD
-    PyDispatcher *inner;
-} PyDispatcherObject;
 
 static void PyDispatcher_dealloc(PyDispatcherObject *self)
 {
@@ -255,7 +266,7 @@ static PyObject *PyDispatcher_resolve(PyDispatcherObject *self, PyObject *args)
         return NULL;
 
     if (!pthread_equal(self->inner->owner_tid, pthread_self())) {
-        PyErr_SetString(PyExc_RuntimeError, "dispatcher is thread-bound");
+        PyErr_SetString(PyExc_RuntimeError, "Dispatcher is thread-bound.");
         return NULL;
     }
 
