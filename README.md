@@ -76,7 +76,7 @@ gcc -o hello hello.c -lwrouter
 
 ## Concepts
 
-This project is designed as a router for use in an application Web server that
+This project is designed as a router for use in a Web application server that
 is assumed to be behind an HTTP proxy. As such, it makes not attempt to handle
 hostnames, subdomains, or aliases.
 
