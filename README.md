@@ -35,12 +35,8 @@ print(f"{endpoint} {params['account_id']}")
 #include <stdint.h>
 #include <wrouter.h>
 
-static void route_hello(void *dispatch_ctx, const void *route_ctx,
-                        const wrouter_params_t *params)
+static void route_hello(void *dispatch_ctx, const void *route_ctx, const wrouter_params_t *params)
 {
-    (void)dispatch_ctx;
-    (void)route_ctx;
-
     const char *addressee = params->base[0].value;
     uint16_t addressee_len = params->base[0].length;
 
