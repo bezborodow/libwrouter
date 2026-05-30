@@ -23,7 +23,6 @@ coverage:
 
 clean:
 	meson setup --wipe build
-	meson setup --wipe build-coverage
 
 install:
 	meson setup build
