@@ -104,6 +104,16 @@ int wrouter_add_handler_ctx(wrouter_builder_t *builder, const char *pattern, wro
     return wrouter_add_route(builder, pattern, route);
 }
 
+int wrouter_add_context(wrouter_builder_t *builder, const char *pattern, const void *ctx)
+{
+    struct route route = {
+        .handler = NULL,
+        .ctx = ctx,
+    };
+
+    return wrouter_add_route(builder, pattern, route);
+}
+
 /**
  * Add a route to the route tree.
  */

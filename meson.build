@@ -11,6 +11,7 @@ project(
 add_project_arguments(
     '-Wpedantic',
     '-Wjump-misses-init',
+    '-Wmissing-field-initializers',
     language : 'c'
 )
 
@@ -87,4 +88,11 @@ microhttpd_dep = dependency('libmicrohttpd', required: false)
 
 if microhttpd_dep.found()
   subdir('examples/libmicrohttpd')
+endif
+
+py = import('python')
+python = py.find_installation('python3', required: false)
+
+if python.found()
+  subdir('bindings/python')
 endif
