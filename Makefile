@@ -11,7 +11,7 @@ ctags:
 	ctags -R --kinds-C=+stu --extras=+q -f tags .
 
 format:
-	clang-format -i include/* src/* tests/*.c examples/libmicrohttpd/*.c bindings/python/*.c
+	clang-format -i include/* src/* tests/*.c examples/libmicrohttpd/*.c bindings/python/*.c bindings/python/*.h
 
 coverage:
 	meson setup build-coverage -Db_coverage=true -Db_sanitize=none
