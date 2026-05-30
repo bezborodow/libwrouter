@@ -9,7 +9,13 @@ py_install = python.get_install_dir()
 
 wrouter_py = shared_module(
   'wrouter',
-  'wroutermodule.c',
+  [
+    'wroutermodule.c',
+    'pytypes.c',
+    'builder.c',
+    'router.c',
+    'dispatcher.c',
+  ],
   name_prefix : '',
   include_directories : inc,
   dependencies : python_dep,
