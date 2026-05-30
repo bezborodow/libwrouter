@@ -1,4 +1,5 @@
-#include "pytypes.h"
+#include "wrouter.h"
+#include "router.h"
 #include "dispatcher.h"
 #include <Python.h>
 
