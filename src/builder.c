@@ -93,8 +93,8 @@ int wrouter_add_handler(wrouter_builder_t *builder, const char *pattern, wrouter
 /**
  * Add a route handler and context to the route tree.
  */
-int wrouter_add_handler_ctx(wrouter_builder_t *builder, const char *pattern, wrouter_handler_fn handler,
-        const void *ctx)
+int wrouter_add_handler_ctx(wrouter_builder_t *builder, const char *pattern,
+                            wrouter_handler_fn handler, const void *ctx)
 {
     struct route route = {
         .handler = handler,

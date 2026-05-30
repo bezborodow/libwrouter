@@ -3,13 +3,11 @@
 #include "wrouter.h"
 
 typedef struct {
-    PyObject_HEAD
-    wrouter_param_syntax_t value;
+    PyObject_HEAD wrouter_param_syntax_t value;
 } PyParamSyntaxObject;
 
 static PyTypeObject PyParamSyntaxType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "wrouter.ParamSyntax",
+    PyVarObject_HEAD_INIT(NULL, 0).tp_name = "wrouter.ParamSyntax",
     .tp_basicsize = sizeof(PyParamSyntaxObject),
     .tp_flags = Py_TPFLAGS_DEFAULT,
 };
@@ -27,8 +25,7 @@ typedef struct {
 } PyBuilder;
 
 typedef struct {
-    PyObject_HEAD
-    PyBuilder *inner;
+    PyObject_HEAD PyBuilder *inner;
 } PyBuilderObject;
 
 typedef struct {
@@ -36,8 +33,7 @@ typedef struct {
 } PyRouter;
 
 typedef struct {
-    PyObject_HEAD
-    PyRouter *inner;
+    PyObject_HEAD PyRouter *inner;
 } PyRouterObject;
 
 typedef struct {
@@ -46,29 +42,26 @@ typedef struct {
 } PyDispatcher;
 
 typedef struct {
-    PyObject_HEAD
-    PyDispatcher *inner;
+    PyObject_HEAD PyDispatcher *inner;
 } PyDispatcherObject;
 
 typedef struct {
-    PyObject *value;   /* str or arbitrary object */
+    PyObject *value; /* str or arbitrary object */
     int is_string;
 } PyRouteCtx;
 
-
-static PyObject *
-PyParamSyntax_New(wrouter_param_syntax_t v)
+static PyObject *PyParamSyntax_New(wrouter_param_syntax_t v)
 {
     PyParamSyntaxObject *obj = PyObject_New(PyParamSyntaxObject, &PyParamSyntaxType);
 
-    if (!obj) return NULL;
+    if (!obj)
+        return NULL;
 
     obj->value = v;
     return (PyObject *)obj;
 }
 
-static int
-parse_syntax(PyObject *obj, wrouter_param_syntax_t *out)
+static int parse_syntax(PyObject *obj, wrouter_param_syntax_t *out)
 {
     if (!PyObject_TypeCheck(obj, &PyParamSyntaxType)) {
         PyErr_SetString(PyExc_TypeError, "ParamSyntax required");
@@ -83,7 +76,6 @@ parse_syntax(PyObject *obj, wrouter_param_syntax_t *out)
    Builder
    --------------------------- */
 
-
 static void PyBuilder_dealloc(PyBuilderObject *self)
 {
     if (self->inner) {
@@ -95,14 +87,13 @@ static void PyBuilder_dealloc(PyBuilderObject *self)
     Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
-
 static PyObject *PyBuilder_new(PyTypeObject *type, PyObject *args, PyObject *kw)
 {
     PyObject *syntax_obj = NULL;
     PyBuilderObject *self = NULL;
-    wrouter_options_t opts = {0};
+    wrouter_options_t opts = { 0 };
 
-    static char *kwlist[] = {"param_syntax", NULL};
+    static char *kwlist[] = { "param_syntax", NULL };
 
     if (!PyArg_ParseTupleAndKeywords(args, kw, "|O", kwlist, &syntax_obj))
         return NULL;
@@ -150,7 +141,8 @@ static PyObject *PyBuilder_add(PyBuilderObject *self, PyObject *args)
     }
 
     PyRouteCtx *rc = PyMem_Malloc(sizeof(PyRouteCtx));
-    if (!rc) return PyErr_NoMemory();
+    if (!rc)
+        return PyErr_NoMemory();
 
     rc->is_string = PyUnicode_Check(ctx);
     rc->value = ctx;
@@ -169,7 +161,8 @@ static PyObject *PyBuilder_compile(PyBuilderObject *self, PyObject *args)
 {
     (void)args;
     PyRouterObject *obj = PyObject_New(PyRouterObject, &PyRouterType);
-    if (!obj) return NULL;
+    if (!obj)
+        return NULL;
 
     if (!pthread_equal(self->inner->owner_tid, pthread_self())) {
         PyErr_SetString(PyExc_RuntimeError, "Builder is thread-bound.");
@@ -177,14 +170,15 @@ static PyObject *PyBuilder_compile(PyBuilderObject *self, PyObject *args)
     }
 
     obj->inner = PyMem_Calloc(1, sizeof(PyRouter));
-    if (!obj->inner) return PyErr_NoMemory();
+    if (!obj->inner)
+        return PyErr_NoMemory();
 
     obj->inner->router = wrouter_compile(self->inner->builder);
-    if (!obj->inner->router) return PyErr_NoMemory();
+    if (!obj->inner->router)
+        return PyErr_NoMemory();
 
     return (PyObject *)obj;
 }
-
 
 /* ---------------------------
    Router
@@ -237,8 +231,7 @@ static PyObject *PyDispatcher_new(PyTypeObject *type, PyObject *args, PyObject *
 
     self->inner->owner_tid = pthread_self();
 
-    self->inner->dispatcher =
-        wrouter_dispatcher_create(r->inner->router);
+    self->inner->dispatcher = wrouter_dispatcher_create(r->inner->router);
 
     if (!self->inner->dispatcher)
         goto failure;
@@ -289,14 +282,13 @@ static PyObject *PyDispatcher_resolve(PyDispatcherObject *self, PyObject *args)
    --------------------------- */
 
 static PyMethodDef PyBuilder_methods[] = {
-    {"add", (PyCFunction)PyBuilder_add, METH_VARARGS, NULL},
-    {"compile", (PyCFunction)PyBuilder_compile, METH_NOARGS, NULL},
-    {NULL, NULL, 0, NULL}
+    { "add", (PyCFunction)PyBuilder_add, METH_VARARGS, NULL },
+    { "compile", (PyCFunction)PyBuilder_compile, METH_NOARGS, NULL },
+    { NULL, NULL, 0, NULL }
 };
 
 static PyTypeObject PyBuilderType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "wrouter.Builder",
+    PyVarObject_HEAD_INIT(NULL, 0).tp_name = "wrouter.Builder",
     .tp_basicsize = sizeof(PyBuilderObject),
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_new = PyBuilder_new,
@@ -305,13 +297,11 @@ static PyTypeObject PyBuilderType = {
 };
 
 static PyMethodDef PyDispatcher_methods[] = {
-    {"resolve", (PyCFunction)PyDispatcher_resolve, METH_VARARGS, NULL},
-    {NULL}
+    { "resolve", (PyCFunction)PyDispatcher_resolve, METH_VARARGS, NULL }, { NULL }
 };
 
 static PyTypeObject PyDispatcherType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "wrouter.Dispatcher",
+    PyVarObject_HEAD_INIT(NULL, 0).tp_name = "wrouter.Dispatcher",
     .tp_basicsize = sizeof(PyDispatcherObject),
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_new = PyDispatcher_new,
@@ -322,8 +312,7 @@ static PyTypeObject PyDispatcherType = {
 /* Router is opaque in Python (no methods needed) */
 
 static PyTypeObject PyRouterType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "wrouter.Router",
+    PyVarObject_HEAD_INIT(NULL, 0).tp_name = "wrouter.Router",
     .tp_basicsize = sizeof(PyRouterObject),
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_dealloc = (destructor)PyRouter_dealloc,
@@ -333,22 +322,11 @@ static PyTypeObject PyRouterType = {
    Module
    --------------------------- */
 
-static PyMethodDef module_methods[] = {
-    {NULL}
-};
+static PyMethodDef module_methods[] = { { NULL } };
 
 static struct PyModuleDef moduledef = {
-    PyModuleDef_HEAD_INIT,
-    "wrouter",
-    NULL,
-    -1,
-    module_methods,
-    NULL,
-    NULL,
-    NULL,
-    NULL
+    PyModuleDef_HEAD_INIT, "wrouter", NULL, -1, module_methods, NULL, NULL, NULL, NULL
 };
-
 
 PyMODINIT_FUNC PyInit_wrouter(void)
 {

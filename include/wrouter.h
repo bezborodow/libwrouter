@@ -45,8 +45,10 @@ typedef struct wrouter_options {
 wrouter_builder_t *wrouter_builder_create(const wrouter_options_t options);
 
 int wrouter_add_route(wrouter_builder_t *builder, const char *pattern, wrouter_route_t route);
-int wrouter_add_handler(wrouter_builder_t *builder, const char *pattern, wrouter_handler_fn handler);
-int wrouter_add_handler_ctx(wrouter_builder_t *builder, const char *pattern, wrouter_handler_fn handler, const void *ctx);
+int wrouter_add_handler(wrouter_builder_t *builder, const char *pattern,
+                        wrouter_handler_fn handler);
+int wrouter_add_handler_ctx(wrouter_builder_t *builder, const char *pattern,
+                            wrouter_handler_fn handler, const void *ctx);
 int wrouter_add_context(wrouter_builder_t *builder, const char *pattern, const void *ctx);
 
 wrouter_t *wrouter_compile(const wrouter_builder_t *builder);
