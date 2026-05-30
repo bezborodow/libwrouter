@@ -60,6 +60,10 @@ void wrouter_dispatch(wrouter_dispatcher_t *dispatcher, const char *path, void *
 void wrouter_ndispatch(wrouter_dispatcher_t *dispatcher, const char *path, size_t length,
                        void *dispatch_ctx);
 
+const void *wrouter_nresolve(wrouter_dispatcher_t *dispatcher, const char *path, size_t length);
+const void *wrouter_resolve(wrouter_dispatcher_t *dispatcher, const char *path);
+const wrouter_params_t *wrouter_params(const wrouter_dispatcher_t *dispatcher);
+
 size_t wrouter_route_count(const wrouter_t *router);
 
 void wrouter_free(wrouter_t *router);

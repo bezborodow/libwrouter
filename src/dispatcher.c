@@ -37,7 +37,43 @@ void wrouter_ndispatch(struct dispatcher *dispatcher, const char *path, size_t l
     if (route == NULL)
         route = &dispatcher->router->fallback;
 
-    route->handler(dispatch_ctx, route->ctx, &dispatcher->params);
+    if (route->handler != NULL)
+        route->handler(dispatch_ctx, route->ctx, &dispatcher->params);
+}
+
+/**
+ * Resolve to context.
+ *
+ * @param dispatcher Request dispatcher.
+ * @param path Null-terminated string containing the request path.
+ */
+const void *wrouter_resolve(struct dispatcher *dispatcher, const char *path)
+{
+    return wrouter_nresolve(dispatcher, path, strlen(path));
+}
+
+/**
+ * Resolve to context, n bytes.
+ *
+ * @param dispatcher Request dispatcher.
+ * @param path Request path.
+ * @param length Length of the request path.
+ */
+const void *wrouter_nresolve(struct dispatcher *dispatcher, const char *path, size_t length)
+{
+    lexer_load(&dispatcher->lx, path, length);
+
+    const struct route *route = route_match(dispatcher);
+
+    if (route == NULL)
+        return dispatcher->router->fallback.ctx;
+
+    return route->ctx;
+}
+
+const wrouter_params_t *wrouter_params(const struct dispatcher *dispatcher)
+{
+    return &dispatcher->params;
 }
 
 /**

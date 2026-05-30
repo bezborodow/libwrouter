@@ -34,9 +34,6 @@ struct builder *wrouter_builder_create(const wrouter_options_t options)
 {
     struct builder *builder;
 
-    if (options.fallback_handler == NULL)
-        return NULL;
-
     builder = calloc(1, sizeof(*builder));
     if (builder == NULL)
         return NULL;
@@ -112,9 +109,6 @@ int wrouter_add_handler_ctx(wrouter_builder_t *builder, const char *pattern, wro
  */
 int wrouter_add_route(struct builder *builder, const char *pattern, struct route route)
 {
-    if (route.handler == NULL)
-        return -1;
-
     token_t tok;
     prelexer_t lx = { 0 };
     prelexer_init(&lx, builder->param_syntax);
@@ -128,11 +122,12 @@ int wrouter_add_route(struct builder *builder, const char *pattern, struct route
         switch (tok.type) {
             case TOKEN_END:
                 // Check for duplicate routes.
-                if (cur->route.handler != NULL)
+                if (cur->terminal)
                     return -1;
 
                 // Terminate route.
                 cur->route = route;
+                cur->terminal = true;
                 return 0;
 
             case TOKEN_LITERAL: {
@@ -288,7 +283,7 @@ static node_t *graph_compile(struct router *router, const segment_t *segment, si
     node_t *node = graph_append_node(g, cursor);
 
     node->literals = segment->child_count;
-    if (segment->route.handler != NULL) {
+    if (segment->terminal) {
         node->flags |= NODE_FLAG_TERMINAL;
         router->terminals.refs[router->terminals.count] = graph_offset(g, node);
         router->terminals.base[router->terminals.count++] = segment->route;
@@ -408,7 +403,7 @@ void graph_stats(const segment_t *seg, graph_stats_t *stats)
     }
 
     // Terminal node.
-    if (seg->route.handler != NULL)
+    if (seg->terminal)
         stats->terminals++;
 }
 

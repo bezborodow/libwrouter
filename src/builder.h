@@ -2,6 +2,7 @@
 #include "token.h"
 #include "router.h"
 #include <stdint.h>
+#include <stdbool.h>
 
 #ifndef WROUTER_BUILDER_H
 #define WROUTER_BUILDER_H
@@ -31,6 +32,7 @@ struct segment {
     special_type_t spec_type;
     uint16_t child_count;
     uint16_t str_length;
+    bool terminal;
 };
 
 typedef struct {

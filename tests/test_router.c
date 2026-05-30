@@ -275,6 +275,27 @@ void test_router_basic(void)
         assert(cases[i].seen == true);
     }
 
+    // Resolve.
+    for (size_t i = 0; i < n; i++) {
+        const terminal_test_case_t *tc = wrouter_resolve(dispatcher, cases[i].request);
+        assert(tc == &cases[i]);
+        const wrouter_params_t *params = wrouter_params(dispatcher);
+
+        if (cases[i].params == NULL) {
+            assert(params->count == 0);
+            continue;
+        }
+
+        assert(cases[i].params->count == params->count);
+
+        for (uint32_t j = 0; j < params->count; j++) {
+            const wrouter_param_t *param_e = &cases[i].params->base[j];
+            assert(param_e->length == params->base[j].length);
+            assert(strcmp(param_e->name, params->base[j].name) == 0);
+            assert(memcmp(param_e->value, params->base[j].value, param_e->length) == 0);
+        }
+    }
+
     wrouter_dispatcher_free(dispatcher);
     wrouter_free(router);
 }
