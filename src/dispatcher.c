@@ -78,7 +78,7 @@ const wrouter_params_t *wrouter_params(const struct dispatcher *dispatcher)
 
 /**
  * Create a dispatcher. The dispatcher is not thread-safe.
- * 
+ *
  * The mutable dispatcher holds parameters and the lexer, which are mutable.  A
  * pointer is given for the immutable router, which is not owned by the
  * dispatcher and can therefore be shared between threads.
