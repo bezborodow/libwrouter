@@ -1,5 +1,5 @@
-#include "pytypes.h"
 #include "router.h"
+#include "wrouter.h"
 #include <Python.h>
 
 static void PyRouter_dealloc(PyRouterObject *self)
