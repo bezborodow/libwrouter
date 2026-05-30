@@ -1,7 +1,5 @@
+#pragma once
 #include <stdint.h>
-
-#ifndef WROUTER_TOKEN_H
-#define WROUTER_TOKEN_H
 
 #define TOKEN_ILLEGAL 0
 #define TOKEN_LITERAL 1
@@ -14,5 +12,3 @@ typedef struct {
     uint16_t length;
     uint8_t type;
 } token_t;
-
-#endif

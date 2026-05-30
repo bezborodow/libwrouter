@@ -1,8 +1,6 @@
+#pragma once
 #include <stdint.h>
 #include <stddef.h>
-
-#ifndef WROUTER_H
-#define WROUTER_H
 
 /**
  * Router.
@@ -70,5 +68,3 @@ const wrouter_params_t *wrouter_params(const wrouter_dispatcher_t *dispatcher);
 size_t wrouter_route_count(const wrouter_t *router);
 
 void wrouter_free(wrouter_t *router);
-
-#endif

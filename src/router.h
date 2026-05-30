@@ -1,11 +1,9 @@
+#pragma once
 #include "wrouter.h"
 #include "lexer.h"
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
-
-#ifndef WROUTER_ROUTER_H
-#define WROUTER_ROUTER_H
 
 #define NODE_FLAG_TERMINAL 1
 #define NODE_FLAG_HAS_PARAM 2
@@ -58,5 +56,3 @@ struct router_options {
 size_t graph_offset(const void *graph, const void *entry);
 
 const struct route *route_match(struct dispatcher *d);
-
-#endif
