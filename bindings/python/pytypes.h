@@ -33,6 +33,6 @@ typedef struct {
 } PyParamSyntaxObject;
 
 typedef struct {
-    PyObject *value; /* str or arbitrary object */
+    PyObject *value;
     int is_string;
 } PyRouteCtx;

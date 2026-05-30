@@ -11,7 +11,6 @@ wrouter_py = shared_module(
   'wrouter',
   [
     'wroutermodule.c',
-    'pytypes.c',
     'builder.c',
     'router.c',
     'dispatcher.c',
