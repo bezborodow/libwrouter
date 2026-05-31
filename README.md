@@ -76,12 +76,11 @@ This project is designed as a router for use in a Web application server that
 is assumed to be behind an HTTP proxy. As such, it makes no attempt to handle
 hostnames, subdomains, or aliases.
 
-The router is intended to be high-performance and deterministic. It is
+The router is intended to be fast, cache-efficient, and deterministic. It is
 therefore deliberately restrictive in what forms of routes can be accepted into
-the routing graph (see constraints below). A side-effect of this is that the
-graph becomes very simple to traverse, although simplicity is not an aim of
-this project except so far as it helps performance.  The strict routing graph
-prevents ambiguity in route resolution, avoiding the need for prioritisation or
+the routing graph (see constraints below). This results in a graph that is
+simple and easy to traverse efficiently. The strict routing graph prevents
+ambiguity in route resolution, avoiding the need for prioritisation or
 resolving the specificity of conflicting routes.
 
 The router has no concept of HTTP methods, and therefore requires that a router
