@@ -41,6 +41,10 @@ typedef struct params_snapshot {
 typedef void (*wrouter_handler_fn)(void *dispatch_ctx, const void *route_ctx,
                                    const wrouter_params_t *params);
 
+// TODO Is this needed for dispatch context also?
+typedef void (*wrouter_ctx_retain_fn)(const void *ctx);
+typedef void (*wrouter_ctx_release_fn)(const void *ctx);
+
 typedef struct route {
     wrouter_handler_fn handler;
     const void *ctx;
@@ -54,8 +58,10 @@ typedef enum {
 
 typedef struct wrouter_options {
     wrouter_handler_fn fallback_handler;
-    void *fallback_ctx;
+    const void *fallback_ctx; // TODO const is new change. Make sure it doesn't break anything.
     wrouter_param_syntax_t param_syntax;
+    wrouter_ctx_retain_fn retain_ctx;
+    wrouter_ctx_release_fn release_ctx;
 } wrouter_options_t;
 
 wrouter_builder_t *wrouter_builder_create(const wrouter_options_t options);
