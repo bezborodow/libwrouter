@@ -10,6 +10,7 @@ typedef struct {
 
 typedef struct {
     PyObject_HEAD PyDispatcher *inner;
+    PyObject *router_obj;
 } PyDispatcherObject;
 
 extern PyTypeObject PyDispatcherType;
