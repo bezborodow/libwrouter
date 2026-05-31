@@ -33,5 +33,7 @@ AlignConsecutiveDeclarations: false
 Cpp11BracedListStyle: false
 Standard: Latest
 
+# Copied from: https://github.com/pytorch/pytorch/blob/main/.clang-format
 StatementMacros:
   - PyObject_HEAD
+  - PyVarObject_HEAD_INIT
