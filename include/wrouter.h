@@ -15,7 +15,7 @@ typedef struct param {
     uint16_t length;
 } wrouter_param_t;
 
-/*
+/**
  * Null-terminated params.
  */
 typedef struct param_nt {

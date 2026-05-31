@@ -4,7 +4,8 @@
 #include <Python.h>
 
 typedef struct {
-    PyObject_HEAD wrouter_param_syntax_t value;
+    PyObject_HEAD
+    wrouter_param_syntax_t value;
 } PyParamSyntaxObject;
 
 typedef struct {
@@ -13,7 +14,8 @@ typedef struct {
 } PyBuilder;
 
 typedef struct {
-    PyObject_HEAD PyBuilder *inner;
+    PyObject_HEAD
+    PyBuilder *inner;
 } PyBuilderObject;
 
 extern PyTypeObject PyParamSyntaxType;

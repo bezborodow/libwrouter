@@ -7,7 +7,8 @@ typedef struct {
 } PyRouter;
 
 typedef struct {
-    PyObject_HEAD PyRouter *inner;
+    PyObject_HEAD
+    PyRouter *inner;
 } PyRouterObject;
 
 typedef struct {
