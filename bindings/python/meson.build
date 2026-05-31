@@ -10,10 +10,11 @@ py_install = python.get_install_dir()
 wrouter_py = shared_module(
   'wrouter',
   [
-    'wroutermodule.c',
     'builder.c',
-    'router.c',
     'dispatcher.c',
+    'params.c',
+    'router.c',
+    'wroutermodule.c',
   ],
   name_prefix : '',
   include_directories : inc,

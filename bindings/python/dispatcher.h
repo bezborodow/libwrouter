@@ -1,4 +1,5 @@
 #pragma once
+#include "wrouter.h"
 #include <Python.h>
 
 typedef struct {
@@ -9,11 +10,5 @@ typedef struct {
 typedef struct {
     PyObject_HEAD PyDispatcher *inner;
 } PyDispatcherObject;
-
-typedef struct {
-    PyObject_HEAD
-    wrouter_param_t *items;
-    uint32_t count;
-} PyParamsObject;
 
 extern PyTypeObject PyDispatcherType;

@@ -16,12 +16,12 @@ const wrouter_params_t *wrouter_params(const struct dispatcher *dispatcher)
 /**
  * Deep copy of parameters.
  *
- * Usually parameters are passed around with pointers referencing the symbol
- * table and the request path string. If either of these are freed before the
- * parameters then there will be hanging pointers and potential memory access
- * violations. This will perform a deep-copy of parameters with the strings
- * copied into the snapshot memory region, which will be valid until this
- * snapshot is freed.
+ * Usually, parameters are passed around with string pointers referencing the
+ * symbol table and the request path string. If either of these are freed
+ * before the parameters are, then there will be hanging pointers and potential
+ * memory access violations. This will perform a deep copy of parameters with
+ * the strings copied into the snapshot memory region, which will be valid
+ * until the snapshot is freed.
  */
 wrouter_params_snapshot_t *wrouter_params_copy(const wrouter_params_t *params)
 {
@@ -41,7 +41,7 @@ wrouter_params_snapshot_t *wrouter_params_copy(const wrouter_params_t *params)
         size += param->length + 1;
     }
 
-    // Allocate char region for storage of strings.
+    // Allocate character region for storage of strings.
     // Zeroing with calloc implies null-termination of copied strings.
     snapshot->region = calloc(size, 1);
     if (snapshot->region == NULL)
