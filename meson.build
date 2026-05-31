@@ -51,7 +51,7 @@ pkg.generate(
     libwrouter,
     name : 'libwrouter',
     filebase : 'libwrouter',
-    description : 'High-performance Uniform Resource Locator (URL) symbolic router library for the Web.',
+    description : 'Symbolic Uniform Resource Locator (URL) router library for the Web.',
     version : meson.project_version(),
 )
 
