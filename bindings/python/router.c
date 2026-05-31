@@ -16,6 +16,6 @@ static void PyRouter_dealloc(PyRouterObject *self)
 PyTypeObject PyRouterType = {
     PyVarObject_HEAD_INIT(NULL, 0).tp_name = "wrouter.Router",
     .tp_basicsize = sizeof(PyRouterObject),
-    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE,
     .tp_dealloc = (destructor)PyRouter_dealloc,
 };
