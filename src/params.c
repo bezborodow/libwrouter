@@ -16,12 +16,13 @@ const wrouter_params_t *wrouter_params(const struct dispatcher *dispatcher)
 /**
  * Deep copy of parameters.
  *
- * Usually, parameters are passed around with string pointers referencing the
- * symbol table and the request path string. If either of these are freed
- * before the parameters are, then there will be hanging pointers and potential
- * memory access violations. This will perform a deep copy of parameters with
- * the strings copied into the snapshot memory region, which will be valid
- * until the snapshot is freed.
+ * This will perform a deep copy of parameters with the strings copied into the
+ * snapshot memory region, which will be valid until the snapshot is freed.
+ *
+ * This function solves the problem where parameters are passed around with
+ * string pointers referencing the router's symbol table and the lexer's
+ * request path string. If either of these are freed before the parameters are,
+ * then there will be dangling pointers and potential memory access violations.
  */
 wrouter_params_snapshot_t *wrouter_params_copy(const wrouter_params_t *params)
 {
