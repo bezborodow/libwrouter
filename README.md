@@ -138,7 +138,8 @@ Flexibility is not a goal of this project.
 Where these constraints are severely limiting, the HTTP proxy should rewrite
 URLs for the application server to consume. For example, `/new` could be
 rewritten as `/repo/new`, while `/:user/:repo` could be rewritten as
-`/repos/:user/:repo` if nothing else matches.
+`/repos/:user/:repo` if nothing else matches. A small rewrite engine might be
+included in the future.
 
 ## Building
 
