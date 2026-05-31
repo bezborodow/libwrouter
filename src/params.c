@@ -13,6 +13,16 @@ const wrouter_params_t *wrouter_params(const struct dispatcher *dispatcher)
     return &dispatcher->params;
 }
 
+/**
+ * Deep copy of parameters.
+ *
+ * Usually parameters are passed around with pointers referencing the symbol
+ * table and the request path string. If either of these are freed before the
+ * parameters then there will be hanging pointers and potential memory access
+ * violations. This will perform a deep-copy of parameters with the strings
+ * copied into the snapshot memory region, which will be valid until this
+ * snapshot is freed.
+ */
 wrouter_params_snapshot_t *wrouter_params_copy(const wrouter_params_t *params)
 {
     uint32_t size = 0;
