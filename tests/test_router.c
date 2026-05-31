@@ -3,11 +3,10 @@
 #include "symbol.h"
 #include "builder.h"
 #include <assert.h>
-#include <string.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <assert.h>
-#include <stdbool.h>
+#include <string.h>
 
 typedef struct {
     const char *pattern;

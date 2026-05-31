@@ -15,10 +15,28 @@ typedef struct param {
     uint16_t length;
 } wrouter_param_t;
 
+/*
+ * Null-terminated params.
+ */
+typedef struct param_nt {
+    const char *name;
+    const char *value;
+} wrouter_param_nt_t;
+
 typedef struct params {
     wrouter_param_t *base;
     uint32_t count;
 } wrouter_params_t;
+
+typedef struct params_nt {
+    wrouter_param_nt_t *base;
+    uint32_t count;
+} wrouter_params_nt_t;
+
+typedef struct params_snapshot {
+    wrouter_params_nt_t params;
+    char *region;
+} wrouter_params_snapshot_t;
 
 typedef void (*wrouter_handler_fn)(void *dispatch_ctx, const void *route_ctx,
                                    const wrouter_params_t *params);
@@ -64,6 +82,9 @@ void wrouter_ndispatch(wrouter_dispatcher_t *dispatcher, const char *path, size_
 const void *wrouter_nresolve(wrouter_dispatcher_t *dispatcher, const char *path, size_t length);
 const void *wrouter_resolve(wrouter_dispatcher_t *dispatcher, const char *path);
 const wrouter_params_t *wrouter_params(const wrouter_dispatcher_t *dispatcher);
+
+wrouter_params_snapshot_t *wrouter_params_copy(const wrouter_params_t *params);
+void wrouter_snapshot_free(wrouter_params_snapshot_t *snapshot);
 
 size_t wrouter_route_count(const wrouter_t *router);
 
