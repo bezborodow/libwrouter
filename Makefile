@@ -1,4 +1,4 @@
-.PHONY: build test ctags format install clean
+.PHONY: build test ctags format install clean pytest
 
 build:
 	meson setup build
