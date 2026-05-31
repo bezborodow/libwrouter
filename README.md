@@ -96,12 +96,13 @@ threads.
 ## Constraints
 
 A URL is divided into segments by the `/` character. A segment maybe either be
-a literal string or a parameter. Parameters are denoted by a colon (default),
-angle, or brace; e.g., `:param`, `<param>`, or `{brace}` respectively.
+a literal string, parameter, or wildcard. Parameters are denoted by a colon
+(default), angle, or brace; e.g., `:param`, `<param>`, or `{param}`,
+respectively.
 
-Wildcards may only appear at the end of a route. Wildcards are evaluated as a
-fallback. The most specific wildcard will match.  A wildcard will consume all
-segments following it.
+Wildcards (`*`) may only appear at the end of a route. Wildcards are evaluated
+as a fallback. The most specific wildcard will match.  A wildcard will consume
+all segments following it.
 
  - `/accounts/user/*/view` (invalid!)
  - `/accounts/downloads/*`
@@ -109,7 +110,7 @@ segments following it.
 
 A segment may only be a parameter or a literal.
 
- - `/board/:board_id/ticket:ticket_id` (invalid)
+ - `/board/:board_id/ticket:ticket_id` (invalid!)
  - `/board/:board_id/ticket/:ticket_id`
 
 Routes must not conflict with parameters and literals at the same level.
