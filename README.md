@@ -146,7 +146,8 @@ The ulterior purpose behind the separation of URL rewriting and route
 resolution is to encourage the Web application designer to think carefully
 about URL layout and planning. Application-layer URLs should be utilitarian and
 verbosely descriptive, whilst the proxy rewrite engine provides a more
-accessible, concise, and convenient view that maps to the Web application.
+accessible, concise, and convenient view that maps to the Web application.  For
+Web APIs, rewriting is not necessary except for aliases at the directory-level.
 
 ## Building
 
