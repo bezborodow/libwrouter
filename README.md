@@ -85,9 +85,9 @@ simple and easy to traverse efficiently. The strict routing graph prevents
 ambiguity in route resolution, avoiding the need for prioritisation or
 resolving the specificity of conflicting routes.
 
-The router has no concept of HTTP methods. Therefore, a router must be
-instantiated for each method supported by the application, including a separate
-router for WebSockets, if desired.
+The router has no concept of HTTP methods such as GET and POST. Therefore, a
+router must be instantiated for each method supported by the application,
+including a separate router for WebSockets, if desired.
 
 The router is immutable, and is therefore thread-safe, and may be shared
 between threads. The dispatcher is mutable and must not be shared between
@@ -142,6 +142,12 @@ URLs for the application server to consume. For example, `/new` could be
 rewritten as `/repo/new`, while `/:user/:repo` could be rewritten as
 `/repos/:user/:repo` if nothing else matches. A small rewrite engine might be
 included in the future.
+
+The ulterior purpose behind the separation of URL rewriting and route
+resolution is to encourage the Web application designer to think carefully
+about URL layout and planning. Application-layer URLs should be utilitarian and
+verbosely descriptive, whilst the proxy rewrite engine provides a more
+accessible, concise, and convenient view that maps to the Web application.
 
 ## Building
 
