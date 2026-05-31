@@ -12,7 +12,10 @@ static void PyDispatcher_dealloc(PyDispatcherObject *self)
             wrouter_dispatcher_free(self->inner->dispatcher);
 
         PyMem_Free(self->inner);
+
     }
+
+    Py_XDECREF(self->router_obj);
 
     Py_TYPE(self)->tp_free((PyObject *)self);
 }
@@ -30,7 +33,10 @@ static PyObject *PyDispatcher_new(PyTypeObject *type, PyObject *args, PyObject *
 
     PyDispatcherObject *self = (PyDispatcherObject *)type->tp_alloc(type, 0);
     if (!self)
-        return NULL;
+        goto failure;
+
+    self->router_obj = router_obj;
+    Py_INCREF(router_obj);
 
     self->inner = PyMem_Calloc(1, sizeof(PyDispatcher));
     if (!self->inner)
@@ -55,6 +61,7 @@ failure:
         }
 
         Py_DECREF(self);
+        Py_XDECREF(self->router_obj);
     }
 
     return PyErr_NoMemory();

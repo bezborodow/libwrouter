@@ -31,7 +31,6 @@ def test_resolve_basic():
     assert endpoint == "account.view"
 
 
-@pytest.mark.skip(reason="Known segfault: dispatcher holds router pointer.")
 def test_dispatcher_after_router_delete():
 
     builder = wrouter.Builder()
@@ -41,9 +40,11 @@ def test_dispatcher_after_router_delete():
 
     dispatcher = wrouter.Dispatcher(router)
 
-    # TODO This will cause a segfault.
+    # This will cause a segfault if reference counting is incorrect!!  However,
+    # deleting the router here, will have no effect if correct.
     del router
 
+    # BOOM?
     dispatcher.resolve("/account")
 
 
