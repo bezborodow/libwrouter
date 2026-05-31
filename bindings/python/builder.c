@@ -1,6 +1,7 @@
 #include "wrouter.h"
 #include "builder.h"
 #include "router.h"
+#include <pthread.h>
 #include <Python.h>
 
 static int parse_syntax(PyObject *obj, wrouter_param_syntax_t *out)

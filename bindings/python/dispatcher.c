@@ -3,15 +3,17 @@
 #include "dispatcher.h"
 #include "params.h"
 #include <Python.h>
+#include <pthread.h>
 
 static void PyDispatcher_dealloc(PyDispatcherObject *self)
 {
     if (self->inner) {
-        if (self->inner->dispatcher) {
+        if (self->inner->dispatcher)
             wrouter_dispatcher_free(self->inner->dispatcher);
-        }
+
         PyMem_Free(self->inner);
     }
+
     Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
@@ -48,10 +50,13 @@ failure:
         if (self->inner) {
             if (self->inner->dispatcher)
                 wrouter_dispatcher_free(self->inner->dispatcher);
+
             PyMem_Free(self->inner);
         }
+
         Py_DECREF(self);
     }
+
     return PyErr_NoMemory();
 }
 
