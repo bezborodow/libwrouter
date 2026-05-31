@@ -1,6 +1,7 @@
 #include "wrouter.h"
 #include "router.h"
 #include "dispatcher.h"
+#include "params.h"
 #include <Python.h>
 
 static void PyDispatcher_dealloc(PyDispatcherObject *self)
