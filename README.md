@@ -106,25 +106,25 @@ fallback.  A wildcard will consume all segments following it.
 
 A segment may only be a parameter or a literal.
 
- - `/board/<board_id>/ticket<ticket_id>` (invalid)
- - `/board/<board_id>/ticket/<ticket_id>`
+ - `/board/:board_id/ticket:ticket_id` (invalid)
+ - `/board/:board_id/ticket/:ticket_id`
 
 Routes must not conflict with parameters and literals at the same level.
 These two routes are valid but incompatible:
 
  - `/project/list`
- - `/project/<project_id>`
+ - `/project/:project_id`
 
 Wildcards are acceptable within at the same level at the end if they are
 opposing a literal, not a parameter.
 
  - `/project/list` and `/project/*`
- - `/project/<project_id>` and `/project/*` (incompatible!)
+ - `/project/:project_id` and `/project/*` (incompatible!)
 
 Parameters at the same level must share the same name.
 
  - `/repos/:user/:repo` and `/repos/:user/:repo/tree/:branch/*`
- - `/project/<id>` and `/project/<project_id>/accounts/<account_id>` (incompatible!)
+ - `/project/:id` and `/project/:project_id/accounts/:account_id` (incompatible!)
 
 Routes with trailing slashes are (currently) treated the same. This will change
 in the future, as this library is a work-in-progress. The following are
