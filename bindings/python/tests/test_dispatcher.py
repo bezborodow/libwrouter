@@ -17,6 +17,8 @@ def test_resolve_basic():
         builder.add(pattern, endpoint)
 
     router = builder.compile()
+    del builder
+
     dispatcher = wrouter.Dispatcher(router)
 
     endpoint = dispatcher.resolve("/account")
@@ -35,6 +37,8 @@ def test_dispatcher_after_router_delete():
     builder = wrouter.Builder()
 
     router = builder.compile()
+    del builder
+
     dispatcher = wrouter.Dispatcher(router)
 
     # TODO This will cause a segfault.
@@ -77,6 +81,8 @@ def test_resolve_cases():
         builder.add(pattern, pattern)  # ctx = pattern string
 
     router = builder.compile()
+    del builder
+
     dispatcher = wrouter.Dispatcher(router)
     #dispatcher = router.dispatcher()
 
