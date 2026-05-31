@@ -3,6 +3,4 @@ TODO
 Bounds checking.
 Error codes for add route.
 Support trailing '/'.
-Test with Python ctypes.
 Improve linear to binary search.
-Linker.
