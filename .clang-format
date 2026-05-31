@@ -32,3 +32,6 @@ AlignConsecutiveDeclarations: false
 
 Cpp11BracedListStyle: false
 Standard: Latest
+
+StatementMacros:
+  - PyObject_HEAD
