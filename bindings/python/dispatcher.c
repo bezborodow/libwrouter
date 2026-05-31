@@ -12,7 +12,6 @@ static void PyDispatcher_dealloc(PyDispatcherObject *self)
             wrouter_dispatcher_free(self->inner->dispatcher);
 
         PyMem_Free(self->inner);
-
     }
 
     Py_XDECREF(self->router_obj);
