@@ -55,6 +55,7 @@ const struct route *route_match(struct dispatcher *d)
 
     d->params.count = 0;
 
+    // Check for an empty graph, which is valid, but will never match anything.
     if (g == NULL)
         goto not_found;
 

@@ -9,6 +9,7 @@
 ```python
 import wrouter
 
+
 routes = [
     ("/account", "account.list"),
     ("/account/create", "account.create"),
