@@ -41,6 +41,8 @@ struct builder *wrouter_builder_create(const wrouter_options_t options)
     builder->param_syntax = options.param_syntax;
     builder->fallback.handler = options.fallback_handler;
     builder->fallback.ctx = options.fallback_ctx;
+    builder->retain_ctx = options.retain_ctx;
+    builder->release_ctx = options.release_ctx;
 
     builder->root = calloc(1, sizeof(segment_t));
     if (builder->root == NULL)
@@ -297,6 +299,12 @@ static node_t *graph_compile(struct router *router, const segment_t *segment, si
         node->flags |= NODE_FLAG_TERMINAL;
         router->terminals.refs[router->terminals.count] = graph_offset(g, node);
         router->terminals.base[router->terminals.count++] = segment->route;
+
+        // Retain context.
+        // Callback to retain context reference count for garbage colllection if
+        // required (for example, the Python library needs this.)
+        if (router->retain_ctx != NULL)
+            router->retain_ctx(segment->route.ctx);
     }
 
     edge_t *p_edge = NULL, *w_edge = NULL;
@@ -358,6 +366,10 @@ static node_t *graph_compile(struct router *router, const segment_t *segment, si
         w_edge->next = graph_offset(g, w_node);
         router->terminals.refs[router->terminals.count] = w_edge->next;
         router->terminals.base[router->terminals.count++] = segment->special.wildcard->route;
+
+        // Retain context.
+        if (router->retain_ctx != NULL)
+            router->retain_ctx(segment->special.wildcard->route.ctx);
     }
 
     return node;
@@ -475,8 +487,10 @@ struct router *wrouter_compile(const struct builder *builder)
     if (router == NULL)
         return NULL;
 
-    // Fallback route.
+    // Copy options from the builder onto the router.
     router->fallback = builder->fallback;
+    router->retain_ctx = builder->retain_ctx;
+    router->release_ctx = builder->release_ctx;
 
     // Obtain graph statistics.
     graph_stats(builder->root, &stats);
