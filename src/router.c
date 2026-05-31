@@ -53,11 +53,12 @@ const struct route *route_match(struct dispatcher *d)
     const node_t *cur = g;
     const edge_t *l_edge = NULL, *s_edge = NULL, *w_edge = NULL, *l_edge_base = NULL;
 
-    d->params.count = 0;
-
     // Check for an empty graph, which is valid, but will never match anything.
     if (g == NULL)
         goto not_found;
+
+    // Reset parameter count.
+    d->params.count = 0;
 
 lexer_next:
 
