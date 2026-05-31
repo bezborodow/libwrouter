@@ -1,3 +1,4 @@
+import pytest
 import wrouter
 
 
@@ -26,6 +27,20 @@ def test_resolve_basic():
 
     endpoint = dispatcher.resolve("/account/a/1234")
     assert endpoint == "account.view"
+
+
+@pytest.mark.skip(reason="Known segfault: dispatcher holds router pointer.")
+def test_dispatcher_after_router_delete():
+
+    builder = wrouter.Builder()
+
+    router = builder.compile()
+    dispatcher = wrouter.Dispatcher(router)
+
+    # TODO This will cause a segfault.
+    del router
+
+    dispatcher.resolve("/account")
 
 
 def test_resolve_cases():
