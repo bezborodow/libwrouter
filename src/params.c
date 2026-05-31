@@ -29,6 +29,7 @@ wrouter_params_snapshot_t *wrouter_params_copy(const wrouter_params_t *params)
     size_t cursor = 0;
     char *dest = NULL;
 
+    // Allocate snapshot.
     wrouter_params_snapshot_t *snapshot = calloc(1, sizeof(wrouter_params_snapshot_t));
     if (snapshot == NULL)
         goto failure;
@@ -40,11 +41,13 @@ wrouter_params_snapshot_t *wrouter_params_copy(const wrouter_params_t *params)
         size += param->length + 1;
     }
 
-    // Allocate region.
+    // Allocate char region for storage of strings.
+    // Zeroing with calloc implies null-termination of copied strings.
     snapshot->region = calloc(size, 1);
     if (snapshot->region == NULL)
         goto failure;
 
+    // Allocate parameters.
     params_nt_alloc(&snapshot->params, params->count);
     if (snapshot->params.base == NULL)
         goto failure;
@@ -54,11 +57,13 @@ wrouter_params_snapshot_t *wrouter_params_copy(const wrouter_params_t *params)
         wrouter_param_t *src_param = &params->base[i];
         wrouter_param_nt_t *dest_param = &snapshot->params.base[i];
 
+        // Parameter names are null-terminated in the parameter symbol table.
         dest = snapshot->region + cursor;
         strcpy(dest, src_param->name);
         dest_param->name = dest;
         cursor += strlen(src_param->name) + 1;
 
+        // Parameter values are not null-terminated, but they will be after copy.
         dest = snapshot->region + cursor;
         memcpy(dest, src_param->value, src_param->length);
         dest_param->value = dest;
