@@ -3,6 +3,7 @@
 #include "router.h"
 #include "lexer.h"
 #include "symbol.h"
+#include "params.h"
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
@@ -71,11 +72,6 @@ const void *wrouter_nresolve(struct dispatcher *dispatcher, const char *path, si
     return route->ctx;
 }
 
-const wrouter_params_t *wrouter_params(const struct dispatcher *dispatcher)
-{
-    return &dispatcher->params;
-}
-
 /**
  * Create a dispatcher. The dispatcher is not thread-safe.
  *
@@ -90,8 +86,7 @@ wrouter_dispatcher_t *wrouter_dispatcher_create(const wrouter_t *router)
         return NULL;
 
     if (router->max_params) {
-        dispatcher->params.base = calloc(router->max_params, sizeof(wrouter_param_t));
-        if (dispatcher->params.base == NULL)
+        if (params_alloc(&dispatcher->params, router->max_params))
             goto failure;
     }
 
@@ -116,6 +111,6 @@ void wrouter_dispatcher_free(wrouter_dispatcher_t *dispatcher)
     if (dispatcher == NULL)
         return;
 
-    free(dispatcher->params.base);
+    params_free(&dispatcher->params);
     free(dispatcher);
 }
