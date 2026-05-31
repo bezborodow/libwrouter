@@ -1,5 +1,6 @@
 #pragma once
 #include "wrouter.h"
+#include <pthread.h>
 #include <Python.h>
 
 typedef struct {
