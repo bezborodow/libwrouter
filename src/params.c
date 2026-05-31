@@ -83,6 +83,9 @@ int params_alloc(wrouter_params_t *params, size_t n)
 
 void params_free(wrouter_params_t *params)
 {
+    if (params == NULL)
+        return;
+
     free(params->base);
 }
 
@@ -95,5 +98,8 @@ int params_nt_alloc(wrouter_params_nt_t *params, size_t n)
 
 void params_nt_free(wrouter_params_nt_t *params)
 {
+    if (params == NULL)
+        return;
+
     free(params->base);
 }
