@@ -88,19 +88,21 @@ static PyObject *PyDispatcher_resolve(PyDispatcherObject *self, PyObject *args)
     if (!params_obj)
         return NULL;
 #else
+
+    // Construct parameter dictionary.
     PyObject *params_obj = PyDict_New();
     if (!params_obj) {
         return NULL;
     }
 
-    const wrouter_params_t *router_params = wrouter_params(self->inner->dispatcher);
+    const wrouter_params_t *params = wrouter_params(self->inner->dispatcher);
 
-    for (uint16_t i = 0; i < router_params->count; i++) {
+    for (uint16_t i = 0; i < params->count; i++) {
 
-        const wrouter_param_t *r_param = &router_params->base[i];
+        const wrouter_param_t *param = &params->base[i];
 
-        PyObject *k = PyUnicode_FromString(r_param->name);
-        PyObject *v = PyUnicode_FromStringAndSize(r_param->value, r_param->length);
+        PyObject *k = PyUnicode_FromString(param->name);
+        PyObject *v = PyUnicode_FromStringAndSize(param->value, param->length);
 
         if (!k || !v) {
             Py_XDECREF(k);
