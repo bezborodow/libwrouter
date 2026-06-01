@@ -257,6 +257,8 @@ void test_router_basic(void)
         assert(!cases[i].retained);
         assert(!cases[i].released);
     }
+    assert(!fallback_tc.retained);
+    assert(!fallback_tc.released);
 
     // Compile.
     wrouter_t *router = wrouter_compile(builder);
@@ -268,6 +270,8 @@ void test_router_basic(void)
         assert(cases[i].retained);
         assert(!cases[i].released);
     }
+    assert(fallback_tc.retained);
+    assert(!fallback_tc.released);
 
     // Dispatch.
     wrouter_dispatcher_t *dispatcher = wrouter_dispatcher_create(router);
@@ -309,6 +313,8 @@ void test_router_basic(void)
         assert(cases[i].retained);
         assert(cases[i].released);
     }
+    assert(fallback_tc.retained);
+    assert(fallback_tc.released);
 }
 
 void test_router_not_found(void)
