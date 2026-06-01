@@ -593,7 +593,8 @@ static void segment_release(wrouter_builder_t *builder, const segment_t *seg)
             break;
     }
 
-    builder->release(seg->route.ctx);
+    if (seg->terminal)
+        builder->release(seg->route.ctx);
 }
 
 static void builder_release(wrouter_builder_t *builder)
