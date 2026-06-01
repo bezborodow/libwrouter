@@ -531,6 +531,11 @@ void graph_stats(const segment_t *seg, graph_stats_t *stats)
         stats->terminals++;
 }
 
+/**
+ * Compiles an alphabetically sorted symbol list from a symbol table.
+ *
+ * References its own memory region of character strings.
+ */
 symbols_t symbol_compile(const symbol_table_t *tbl)
 {
     symbols_t sym = { 0 };
@@ -571,7 +576,7 @@ symbols_t symbol_compile(const symbol_table_t *tbl)
     return sym;
 
 failure:
-    // Return empty symbol on memory failure.
+    // Return empty symbol list on memory failure.
     free(sym.base);
     return (symbols_t){ 0 };
 }
