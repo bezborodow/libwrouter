@@ -1,7 +1,6 @@
 #include "wrouter.h"
 #include "router.h"
 #include "dispatcher.h"
-#include "params.h"
 #include <Python.h>
 #include <pthread.h>
 
@@ -83,12 +82,6 @@ static PyObject *PyDispatcher_resolve(PyDispatcherObject *self, PyObject *args)
     if (!ctx_obj)
         ctx_obj = Py_None;
 
-#if PYPARAMS
-    PyObject *params_obj = PyParams_FromDispatcher(self->inner->dispatcher);
-    if (!params_obj)
-        return NULL;
-#else
-
     // Construct parameter dictionary.
     PyObject *params_obj = PyDict_New();
     if (!params_obj) {
@@ -115,7 +108,6 @@ static PyObject *PyDispatcher_resolve(PyDispatcherObject *self, PyObject *args)
         Py_DECREF(k);
         Py_DECREF(v);
     }
-#endif
 
     return PyTuple_Pack(2, ctx_obj, params_obj);
 }
