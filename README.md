@@ -111,7 +111,7 @@ all segments following it.
 
 A segment may only be a parameter or a literal.
 
- - `/board/:board_id/ticket:ticket_id` (invalid!)
+ - `/board/:board_id/ticket:ticket_id` (valid, but `ticket:ticket_id` will be parsed as a literal!)
  - `/board/:board_id/ticket/:ticket_id`
 
 Routes must not conflict with parameters and literals at the same level.
