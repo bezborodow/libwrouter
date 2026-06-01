@@ -4,7 +4,6 @@ Bounds checking.
 Improve linear to binary search.
 Better documentation.
 
-
 PARAM ACCESSOR
 
 addressee = wrouter_param("addressee");
@@ -16,19 +15,3 @@ addressee = wrouter_iparam(0)
     =>
         addressee.str
         addressee.len
-
-
-ERROR DIAGNOSTICS
-
-Need to know where in the tree it is and then work backards after resolving the
-segment it conflicted with, so I would need to add that and then also have a
-way to save extra diagnostics on the builder struct and have an accessor method
-for it.
-
-Each segment needs a parent id.
-
-
-OTHER
-
-URL Rewrite Engine?
-Link builder?

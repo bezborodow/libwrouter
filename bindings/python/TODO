@@ -2,8 +2,6 @@ TODO
 
 PyPI package.
 
-Error messages and exceptions.
-
 Support handler and context functions.
 
 Support fallback routes.
