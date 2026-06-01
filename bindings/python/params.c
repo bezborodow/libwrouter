@@ -74,6 +74,8 @@ static void PyParams_dealloc(PyParamsObject *self)
 }
 #endif
 
+#if PYPARAMS
+
 static Py_ssize_t PyParams_len(PyObject *self)
 {
     (void)self;
@@ -150,4 +152,6 @@ PyTypeObject PyParamsType = {
     .tp_new = PyParams_new,
     .tp_iter = PyParams_iter,
 };
+
+#endif
 // clang-format on

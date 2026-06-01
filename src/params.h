@@ -1,6 +1,5 @@
 #pragma once
 #include "wrouter.h"
-#define PYPARAMS 0
 
 int params_alloc(wrouter_params_t *params, size_t max_params);
 void params_free(wrouter_params_t *params);
