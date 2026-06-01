@@ -4,7 +4,7 @@
 
 typedef struct {
     PyObject_HEAD
-    //wrouter_params_snapshot_t *snapshot;
+    // wrouter_params_snapshot_t *snapshot;
 } PyParamsObject;
 
 extern PyTypeObject PyParamsType;
