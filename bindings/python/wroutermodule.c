@@ -50,11 +50,7 @@ PyMODINIT_FUNC PyInit_wrouter(void)
     if (PyType_Ready(&PyParamSyntaxType) < 0)
         goto failure;
 
-    WrouterRouteError = PyErr_NewException(
-        "wrouter.RouteError",
-        PyExc_Exception,
-        NULL
-    );
+    WrouterRouteError = PyErr_NewException("wrouter.RouteError", PyExc_Exception, NULL);
 
     PyParamSyntax_COLON = PyParamSyntax_New(WROUTER_SYNTAX_COLON);
     PyParamSyntax_BRACE = PyParamSyntax_New(WROUTER_SYNTAX_BRACE);

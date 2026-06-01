@@ -80,6 +80,11 @@ static void cb_test(void *dispatch_ctx, const void *route_ctx, const wrouter_par
             assert(param_e->length == param->length);
             assert(memcmp(param->value, param_e->value, param_e->length) == 0);
             assert(strcmp(param->name, param_e->name) == 0);
+
+            // Test the wrouter_param and wrouter_iparam functions.
+            assert(memcmp(wrouter_param(params, param->name)->value, param_e->value,
+                          param_e->length) == 0);
+            assert(memcmp(wrouter_iparam(params, i)->value, param_e->value, param_e->length) == 0);
         }
     }
 
