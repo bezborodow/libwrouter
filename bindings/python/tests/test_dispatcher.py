@@ -1,3 +1,4 @@
+from _pytest.reports import _report_unserialization_failure
 import pytest
 import wrouter
 
@@ -99,12 +100,26 @@ def test_incompatible_routes(route1, route2):
     ("/account/*/edit/"),
     ("/account/:_/edit"),
     ("/account/*/edit/"),
+    ("/accounts/user/*/view"),
 ])
 def test_invalid_routes(route):
     builder = wrouter.Builder()
 
     with pytest.raises(RuntimeError):
         builder.add(route, "foo")
+
+
+def test_unexpected_parameter_usage():
+    builder = wrouter.Builder()
+    builder.add("/board/:board_id/ticket:ticket_id", "board.ticket"),
+    router = builder.compile()
+    dispatcher = wrouter.Dispatcher(router)
+    context, params = dispatcher.resolve("/board/1234/ticket:1234")
+    assert context == None
+    assert params == {}
+    context, params = dispatcher.resolve("/board/1234/ticket:ticket_id")
+    assert context == "board.ticket"
+    assert params['board_id'] == "1234"
 
 
 def test_wildcards():
