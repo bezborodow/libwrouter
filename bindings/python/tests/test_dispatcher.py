@@ -23,7 +23,6 @@ def test_resolve_basic():
 
     endpoint, params = dispatcher.resolve("/account")
     assert endpoint == "account.list"
-    print(params)
     assert params == {}
 
     endpoint, params = dispatcher.resolve("/account/create")
@@ -32,7 +31,7 @@ def test_resolve_basic():
 
     endpoint, params = dispatcher.resolve("/account/a/1234")
     assert endpoint == "account.view"
-    assert params == {} # TODO
+    assert(params['account_id'] == "1234")
 
 def test_dispatcher_after_router_delete():
 
@@ -53,12 +52,12 @@ def test_dispatcher_after_router_delete():
 
 def test_resolve_cases():
     cases = [
-        ("/downloads/*", "/downloads/documents/schematic.pdf", None),
-        ("/downloads/", "/downloads/", None),
-        ("/", "/", None),
-        ("/*", "/hello", None),
-        ("/accounts", "/accounts", None),
-        ("/accounts/create", "/accounts/create", None),
+        ("/downloads/*", "/downloads/documents/schematic.pdf", {}),
+        ("/downloads/", "/downloads/", {}),
+        ("/", "/", {}),
+        ("/*", "/hello", {}),
+        ("/accounts", "/accounts", {}),
+        ("/accounts/create", "/accounts/create", {}),
         ("/account/<account_id>", "/account/100", {"account_id": "100"}),
         ("/account/<account_id>/edit", "/account/100/edit", {"account_id": "100"}),
         ("/account/<account_id>/projects", "/account/100/projects", {"account_id": "100"}),
@@ -73,8 +72,8 @@ def test_resolve_cases():
             "/account/200/contact/300/credentials/letter_of_endorsement.pdf",
             {"account_id": "200", "account_contact_id": "300"}
         ),
-        ("/projects", "/projects", None),
-        ("/projects/create", "/projects/create", None),
+        ("/projects", "/projects", {}),
+        ("/projects/create", "/projects/create", {}),
         ("/project/<project_id>", "/project/400", {"project_id": "400"}),
         ("/project/<project_id>/edit", "/project/400/edit", {"project_id": "400"}),
     ]
@@ -94,4 +93,4 @@ def test_resolve_cases():
         ctx, params = dispatcher.resolve(request)
 
         assert ctx == pattern
-        assert params == {} # TODO
+        assert params == expected_params

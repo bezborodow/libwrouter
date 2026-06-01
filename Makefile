@@ -8,7 +8,7 @@ test: build
 	meson test -C build --print-errorlogs -v
 
 pytest: test
-	PYTHONPATH=build/bindings/python pytest -n 2 bindings/python/tests/
+	PYTHONPATH=build/bindings/python pytest -s -n 2 bindings/python/tests/
 
 ctags:
 	ctags -R --kinds-C=+stu --extras=+q -f tags .
