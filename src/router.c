@@ -53,7 +53,8 @@ const struct route *route_match(struct dispatcher *d)
     const struct router *router = d->router;
     const void *g = router->graph;
     const node_t *cur = g;
-    const edge_t *l_edge_base = NULL, *l_edge = NULL, *s_edge = NULL, *w_edge = NULL, *t_edge = NULL;
+    const edge_t *l_edge_base = NULL, *l_edge = NULL, *s_edge = NULL, *w_edge = NULL,
+                 *t_edge = NULL;
 
     // Check for an empty graph, which is valid, but will never match anything.
     if (g == NULL)
