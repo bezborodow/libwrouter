@@ -58,15 +58,6 @@ def test_resolve_basic():
     assert params == {}
 
 
-def test_illegal_format():
-    builder = wrouter.Builder()
-    with pytest.raises(RuntimeError):
-        builder.add("", "foo")
-
-    with pytest.raises(RuntimeError):
-        builder.add("//", "foo")
-
-
 @pytest.mark.parametrize("route1, route2", [
     ("/", "/"),
     ("/api", "/api"),
@@ -85,13 +76,22 @@ def test_incompatible_routes(route1, route2):
 
 
 @pytest.mark.parametrize("route", [
+    (""),
+    ("*"),
+    ("//"),
     ("/*/"),
+    ("/:_"),
+    ("/::"),
+    ("/:1"),
+    ("account"),
     ("/account/*/"),
     ("/*/something"),
     ("/account/*/edit"),
     ("/account/*/edit/"),
+    ("/account/:_/edit"),
+    ("/account/*/edit/"),
 ])
-def test_invalid_wildcards(route):
+def test_invalid_routes(route):
     builder = wrouter.Builder()
 
     with pytest.raises(RuntimeError):
