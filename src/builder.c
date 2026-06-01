@@ -188,6 +188,10 @@ int wrouter_add_route(struct builder *builder, const char *pattern, struct route
                 if (cur->spec_type == SPEC_WILDCARD)
                     return -1;
 
+                // Parameters are incompatible with literals.
+                if (cur->child_count)
+                    return -1;
+
                 if (cur->spec_type == SPEC_PARAM) {
 
                     // If a parameter is already assigned, it should have the same name.

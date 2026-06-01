@@ -66,6 +66,8 @@ def test_resolve_basic():
     ("/dup/:param", "/dup/:key"),
     ("/dup/:param", "/dup/:key"),
     ("/dup/:param", "/dup/*"),
+    ("/project/:id", "/project/:project_id/accounts/:account_id"),
+    ("/project/list", "/project/:project_id"),
 ])
 def test_incompatible_routes(route1, route2):
     builder = wrouter.Builder()
@@ -73,6 +75,13 @@ def test_incompatible_routes(route1, route2):
     builder.add(route1, "foo")
     with pytest.raises(RuntimeError):
         builder.add(route2, "foo")
+
+    # Try again in opposite order!!:
+    builder = wrouter.Builder()
+
+    builder.add(route2, "foo")
+    with pytest.raises(RuntimeError):
+        builder.add(route1, "foo")
 
 
 @pytest.mark.parametrize("route", [
@@ -105,6 +114,8 @@ def test_wildcards():
         ("/account/create", "account.create"),
         ("/account/a/:account_id", "account.view"),
         ("/account/a/:account_id/documents/*", "account.documents"),
+        ("/project/list", "project.list"),
+        ("/project/*", "project.wildcard"),
         ("/repos/:user/:repo", "repo"),
         ("/repos/:user/:repo/tree/:branch", "repo.tree"),
         ("/repos/:user/:repo/tree/:branch/*", "repo.tree.path"),
@@ -145,6 +156,14 @@ def test_wildcards():
 
     context, params = dispatcher.resolve("/account/a/1234/documents/")
     assert context == None
+    assert params == {}
+
+    context, params = dispatcher.resolve("/project/list")
+    assert context == "project.list"
+    assert params == {}
+
+    context, params = dispatcher.resolve("/project/random")
+    assert context == "project.wildcard"
     assert params == {}
 
     context, params = dispatcher.resolve("/repos/bezborodow/libwrouter")
