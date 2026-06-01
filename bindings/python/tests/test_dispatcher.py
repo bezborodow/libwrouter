@@ -5,8 +5,9 @@ import wrouter
 def test_resolve_basic():
     routes = [
         ("/account", "account.list"),
+        ("/account/", "account.list.trailing"),
         ("/account/create", "account.create"),
-        ("/account/a/:account_id", "account.view")
+        ("/account/a/:account_id", "account.view"),
     ]
 
     builder = wrouter.Builder()
@@ -27,9 +28,122 @@ def test_resolve_basic():
     assert endpoint == "account.create"
     assert params == {}
 
+    # Test parameters.
     endpoint, params = dispatcher.resolve("/account/a/1234")
     assert endpoint == "account.view"
     assert params['account_id'] == "1234"
+
+    # Test not found.
+    endpoint, params = dispatcher.resolve("/not/found")
+    assert endpoint == None
+    assert params == {}
+
+    # Trailing-slashes are not equivalent.
+    endpoint, params = dispatcher.resolve("/account/create/")
+    assert endpoint == None
+    assert params == {}
+
+    # Test root '/' is not found if it is not explicitly defined without a fallback.
+    endpoint, params = dispatcher.resolve("/")
+    assert endpoint == None
+    assert params == {}
+
+    # Test illegal format.
+    endpoint, params = dispatcher.resolve("")
+    assert endpoint == None
+    assert params == {}
+
+    endpoint, params = dispatcher.resolve("//")
+    assert endpoint == None
+    assert params == {}
+
+
+def test_illegal_format():
+    builder = wrouter.Builder()
+    with pytest.raises(RuntimeError):
+        builder.add("", "foo")
+
+    with pytest.raises(RuntimeError):
+        builder.add("//", "foo")
+
+
+@pytest.mark.parametrize("route1, route2", [
+    ("/", "/"),
+    ("/api", "/api"),
+    ("/dup", "/dup"),
+    ("/dup/:param", "/dup/:param"),
+    ("/dup/:param", "/dup/:key"),
+    ("/dup/:param", "/dup/:key"),
+    ("/dup/:param", "/dup/*"),
+])
+def test_incompatible_routes(route1, route2):
+    builder = wrouter.Builder()
+
+    builder.add(route1, "foo")
+    with pytest.raises(RuntimeError):
+        builder.add(route2, "foo")
+
+
+@pytest.mark.parametrize("route", [
+    ("/*/"),
+    ("/account/*/"),
+    ("/*/something"),
+    ("/account/*/edit"),
+    ("/account/*/edit/"),
+])
+def test_invalid_wildcards(route):
+    builder = wrouter.Builder()
+
+    with pytest.raises(RuntimeError):
+        builder.add(route, "foo")
+
+
+def test_wildcards():
+    routes = [
+        ("/", "root"),
+        ("/*", "root.wildcard"),
+        ("/account/create", "account.create"),
+        ("/account/a/:account_id", "account.view"),
+        ("/account/a/:account_id/documents/*", "account.documents"),
+    ]
+    builder = wrouter.Builder()
+
+    for pattern, context in routes:
+        builder.add(pattern, context)
+
+    router = builder.compile()
+    del builder
+
+    dispatcher = wrouter.Dispatcher(router)
+
+    context, params = dispatcher.resolve("/")
+    assert context == "root"
+    assert params == {}
+
+    context, params = dispatcher.resolve("/random")
+    assert context == "root.wildcard"
+    assert params == {}
+
+    context, params = dispatcher.resolve("/random/thing")
+    assert context == "root.wildcard"
+    assert params == {}
+
+    context, params = dispatcher.resolve("/account/create")
+    assert context == "account.create"
+    assert params == {}
+
+    context, params = dispatcher.resolve("/account/a/1234")
+    assert context == "account.view"
+    assert params['account_id'] == "1234"
+
+    context, params = dispatcher.resolve("/account/a/1234/documents/document.pdf")
+    assert context == "account.documents"
+    assert params['account_id'] == "1234"
+
+    context, params = dispatcher.resolve("/account/a/1234/documents/")
+    assert context == None
+    assert params == {}
+
 
 def test_dispatcher_after_router_delete():
 
@@ -107,3 +221,15 @@ def test_dispatcher_context_function():
     resolved_handler, _ = dispatcher.resolve("/function")
     assert callable(resolved_handler)
     assert resolved_handler is handler
+
+
+def test_none_is_a_valid_context():
+    builder = wrouter.Builder()
+    builder.add("/function", None)
+
+    router = builder.compile()
+
+    dispatcher = wrouter.Dispatcher(router)
+
+    context, _ = dispatcher.resolve("/function")
+    assert context is None
