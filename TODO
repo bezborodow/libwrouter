@@ -3,6 +3,7 @@ TODO
 Bounds checking.
 Improve linear to binary search.
 Better documentation.
+Ignore anything after '?'
 
 
 PARAM ACCESSOR
