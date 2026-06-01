@@ -35,7 +35,7 @@ token_t lexer_next(lexer_t *lx)
     }
 
     // Check for double-slash.
-    if (++c < end && *c == '/') 
+    if (++c < end && *c == '/')
         return tok; // TOKEN_ILLEGAL.
 
     // Consume until next '/'.
