@@ -3,8 +3,13 @@
 #include "params.h"
 #include <Python.h>
 
+#if 0
 static PyObject *PyParams_subscript(PyObject *self, PyObject *key)
 {
+    PyErr_SetObject(PyExc_KeyError, key);
+
+    return NULL;
+
     PyParamsObject *p = (PyParamsObject *)self;
 
     if (p->snapshot == NULL)
@@ -67,11 +72,71 @@ static void PyParams_dealloc(PyParamsObject *self)
 
     Py_TYPE(self)->tp_free((PyObject *)self);
 }
+#endif
+
+static Py_ssize_t PyParams_len(PyObject *self)
+{
+    (void)self;
+    return 0;
+}
+
+static PyObject *PyParams_subscript(PyObject *self, PyObject *key)
+{
+    (void)self;
+    PyErr_SetObject(PyExc_KeyError, key);
+    return NULL;
+}
+
+PyObject *PyParams_FromDispatcher(const wrouter_dispatcher_t *dispatcher)
+{
+    (void)dispatcher;
+
+    PyParamsObject *obj = PyObject_New(PyParamsObject, &PyParamsType);
+    if (!obj)
+        return NULL;
+
+    return (PyObject *)obj;
+}
+
+static void PyParams_dealloc(PyParamsObject *self)
+{
+    Py_TYPE(self)->tp_free((PyObject *)self);
+}
 
 static PyMappingMethods PyParams_mapping = {
     .mp_length = PyParams_len,
     .mp_subscript = PyParams_subscript,
 };
+
+static PyObject *PyParams_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+    PyParamsObject *self = (PyParamsObject *)type->tp_alloc(type, 0);
+    if (!self)
+        return NULL;
+    return (PyObject *)self;
+}
+
+static PyObject *PyParams_iter(PyObject *self)
+{
+    PyObject *empty = PyTuple_New(0);
+    if (!empty)
+        return NULL;
+
+    PyObject *it = PyObject_GetIter(empty);
+    Py_DECREF(empty);
+    return it;
+}
+
+static PyObject *PyParams_richcompare(PyObject *a, PyObject *b, int op)
+{
+    if (op != Py_EQ)
+        Py_RETURN_NOTIMPLEMENTED;
+
+    if (PyDict_Check(b))
+        return PyBool_FromLong(PyDict_Size(b) == 0);
+
+    Py_RETURN_NOTIMPLEMENTED;
+}
 
 // clang-format off
 PyTypeObject PyParamsType = {
@@ -80,6 +145,9 @@ PyTypeObject PyParamsType = {
     .tp_basicsize = sizeof(PyParamsObject),
     .tp_dealloc = (destructor)PyParams_dealloc,
     .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_richcompare = PyParams_richcompare,
     .tp_as_mapping = &PyParams_mapping,
+    .tp_new = PyParams_new,
+    .tp_iter = PyParams_iter,
 };
 // clang-format on

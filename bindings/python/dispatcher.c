@@ -83,12 +83,39 @@ static PyObject *PyDispatcher_resolve(PyDispatcherObject *self, PyObject *args)
     if (!ctx_obj)
         ctx_obj = Py_None;
 
-    PyObject *params = PyDict_New();
-    if (!params) {
+#if PYPARAMS
+    PyObject *params_obj = PyParams_FromDispatcher(self->inner->dispatcher);
+    if (!params_obj)
+        return NULL;
+#else
+    PyObject *params_obj = PyDict_New();
+    if (!params_obj) {
         return NULL;
     }
 
-    return PyTuple_Pack(2, ctx_obj, params);
+    const wrouter_params_t *router_params = wrouter_params(self->inner->dispatcher);
+
+    for (uint16_t i = 0; i < router_params->count; i++) {
+
+        const wrouter_param_t *r_param = &router_params->base[i];
+
+        PyObject *k = PyUnicode_FromString(r_param->name);
+        PyObject *v = PyUnicode_FromStringAndSize(r_param->value, r_param->length);
+
+        if (!k || !v) {
+            Py_XDECREF(k);
+            Py_XDECREF(v);
+            Py_DECREF(params_obj);
+            return NULL;
+        }
+
+        PyDict_SetItem(params_obj, k, v);
+        Py_DECREF(k);
+        Py_DECREF(v);
+    }
+#endif
+
+    return PyTuple_Pack(2, ctx_obj, params_obj);
 }
 
 static PyMethodDef PyDispatcher_methods[] = {
