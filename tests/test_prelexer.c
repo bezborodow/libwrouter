@@ -18,7 +18,35 @@ static void test_root(void)
     prelexer_load(&lx, "/");
 
     tok = prelexer_next(&lx);
-    ASSERT_TOKEN_TYPE(tok, TOKEN_TRAILING);
+    ASSERT_TOKEN_TYPE(tok, TOKEN_END);
+    assert(tok.length == 0);
+}
+
+static void test_empty(void)
+{
+    token_t tok;
+
+    prelexer_t lx = { 0 };
+    prelexer_init(&lx, WROUTER_SYNTAX_COLON);
+
+    prelexer_load(&lx, "");
+
+    tok = prelexer_next(&lx);
+    ASSERT_TOKEN_TYPE(tok, TOKEN_ILLEGAL);
+    assert(tok.length == 0);
+}
+
+static void test_missing_leading_slash(void)
+{
+    token_t tok;
+
+    prelexer_t lx = { 0 };
+    prelexer_init(&lx, WROUTER_SYNTAX_COLON);
+
+    prelexer_load(&lx, "we/like/consistency");
+
+    tok = prelexer_next(&lx);
+    ASSERT_TOKEN_TYPE(tok, TOKEN_ILLEGAL);
     assert(tok.length == 0);
 }
 
@@ -213,6 +241,8 @@ static void test_wildcard(void)
 int main(void)
 {
     test_root();
+    test_empty();
+    test_missing_leading_slash();
     test_simple_path();
     test_param_path();
     test_trailing();

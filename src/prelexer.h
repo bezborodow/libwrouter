@@ -4,12 +4,13 @@
 #include <stddef.h>
 
 typedef struct {
+    const char *str;
     const char *cursor;
     wrouter_param_syntax_t param_syntax;
 } prelexer_t;
 
 void prelexer_init(prelexer_t *lx, wrouter_param_syntax_t syntax);
 
-void prelexer_load(prelexer_t *lx, const char *input);
+void prelexer_load(prelexer_t *lx, const char *pattern);
 
 token_t prelexer_next(prelexer_t *lx);
