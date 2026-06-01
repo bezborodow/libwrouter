@@ -34,28 +34,23 @@ typedef struct symbols {
  * are referenced by the terminating node's offset.
  */
 typedef struct terminals {
-    struct route *base; // Routes.
+    wrouter_route_t *base; // Routes.
     uint16_t *refs;     // List of node offsets, being the key to the route.
     uint16_t count;     // Number of terminals.
 } terminals_t;
 
-struct router {
+struct wrouter_router {
     void *graph;
     symbols_t literals;
     symbols_t params;
     terminals_t terminals;
-    struct route fallback;
+    wrouter_route_t fallback;
     size_t max_params;
     size_t num_routes;
     wrouter_reference_fn retain;
     wrouter_reference_fn release;
 };
 
-struct router_options {
-    struct route fallback;
-    wrouter_param_syntax_t param_syntax;
-};
-
 size_t graph_offset(const void *graph, const void *entry);
 
-const struct route *route_match(struct dispatcher *d);
+const wrouter_route_t *route_match(wrouter_dispatcher_t *d);

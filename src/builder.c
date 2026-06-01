@@ -31,9 +31,9 @@ static void size_up(size_t *total_size, size_t align, size_t size)
  *
  * The builder is not thread-safe.
  */
-struct builder *wrouter_builder_create(const wrouter_options_t options)
+wrouter_builder_t *wrouter_builder_create(const wrouter_options_t options)
 {
-    struct builder *builder;
+    wrouter_builder_t *builder;
 
     builder = calloc(1, sizeof(*builder));
     if (builder == NULL)
@@ -87,7 +87,7 @@ static segment_t *find_child(segment_t *segment, token_t tok)
  */
 int wrouter_add_handler(wrouter_builder_t *builder, const char *pattern, wrouter_handler_fn handler)
 {
-    struct route route = {
+    wrouter_route_t route = {
         .handler = handler,
         .ctx = NULL,
     };
@@ -101,7 +101,7 @@ int wrouter_add_handler(wrouter_builder_t *builder, const char *pattern, wrouter
 int wrouter_add_handler_ctx(wrouter_builder_t *builder, const char *pattern,
                             wrouter_handler_fn handler, const void *ctx)
 {
-    struct route route = {
+    wrouter_route_t route = {
         .handler = handler,
         .ctx = ctx,
     };
@@ -111,7 +111,7 @@ int wrouter_add_handler_ctx(wrouter_builder_t *builder, const char *pattern,
 
 int wrouter_add_context(wrouter_builder_t *builder, const char *pattern, const void *ctx)
 {
-    struct route route = {
+    wrouter_route_t route = {
         .handler = NULL,
         .ctx = ctx,
     };
@@ -122,7 +122,7 @@ int wrouter_add_context(wrouter_builder_t *builder, const char *pattern, const v
 /**
  * Add a route to the route tree.
  */
-int wrouter_add_route(struct builder *builder, const char *pattern, struct route route)
+int wrouter_add_route(wrouter_builder_t *builder, const char *pattern, wrouter_route_t route)
 {
     token_t tok;
     prelexer_t lx = { 0 };
@@ -321,7 +321,7 @@ static edge_t *graph_append_edges(void *g, size_t *cursor, size_t nmemb)
     return graph_append(g, cursor, nmemb * sizeof(edge_t), _Alignof(edge_t));
 }
 
-static node_t *graph_compile(struct router *router, const segment_t *segment, size_t *cursor)
+static node_t *graph_compile(wrouter_t *router, const segment_t *segment, size_t *cursor)
 {
     void *g = router->graph;
     node_t *node = NULL;
@@ -560,13 +560,13 @@ symbols_t symbol_compile(const symbol_table_t *tbl)
  * This will compile an immutable router from a route tree, which is therefore
  * thread-safe. The router consists of a graph, symbols, and terminals.
  */
-struct router *wrouter_compile(const struct builder *builder)
+wrouter_t *wrouter_compile(const wrouter_builder_t *builder)
 {
     graph_stats_t stats = { 0 };
     size_t cursor = 0;
 
     // New router.
-    wrouter_t *router = calloc(1, sizeof(struct router));
+    wrouter_t *router = calloc(1, sizeof(wrouter_t));
     if (router == NULL)
         return NULL;
 
@@ -602,7 +602,7 @@ struct router *wrouter_compile(const struct builder *builder)
         goto failure;
 
     // Allocate terminals.
-    router->terminals.base = calloc(stats.terminals, sizeof(struct route));
+    router->terminals.base = calloc(stats.terminals, sizeof(wrouter_route_t));
     if (router->terminals.base == NULL)
         goto failure;
 
@@ -698,7 +698,7 @@ static void builder_release(wrouter_builder_t *builder)
  * After compiling the router, there is no need for the builder, and it should
  * therefore be freed to save memory.
  */
-void wrouter_builder_free(struct builder *builder)
+void wrouter_builder_free(wrouter_builder_t *builder)
 {
     if (builder == NULL)
         return;

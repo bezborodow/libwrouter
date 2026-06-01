@@ -69,7 +69,7 @@ static void rcb_not_found(void *dispatch_ctx, const void *route_ctx, const wrout
 
 static _Thread_local wrouter_dispatcher_t *tls_disp;
 
-static struct dispatcher *get_thread_dispatcher(struct router *router)
+static wrouter_dispatcher_t *get_thread_dispatcher(wrouter_t *router)
 {
     if (!tls_disp)
         tls_disp = wrouter_dispatcher_create(router);
@@ -88,7 +88,7 @@ static enum MHD_Result ahc_echo(void *cls, struct MHD_Connection *connection, co
 
     struct app *app = cls;
 
-    struct dispatcher *dispatcher = get_thread_dispatcher(app->router);
+    wrouter_dispatcher_t *dispatcher = get_thread_dispatcher(app->router);
 
     enum MHD_Result ret;
 

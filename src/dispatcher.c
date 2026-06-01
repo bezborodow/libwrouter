@@ -15,7 +15,7 @@
  * @param path Null-terminated string containing the request path.
  * @param dispatch_ctx Request dispatcher context.
  */
-void wrouter_dispatch(struct dispatcher *dispatcher, const char *path, void *dispatch_ctx)
+void wrouter_dispatch(wrouter_dispatcher_t *dispatcher, const char *path, void *dispatch_ctx)
 {
     wrouter_ndispatch(dispatcher, path, strlen(path), dispatch_ctx);
 }
@@ -28,12 +28,12 @@ void wrouter_dispatch(struct dispatcher *dispatcher, const char *path, void *dis
  * @param length Length of the request path.
  * @param dispatch_ctx Request dispatcher context.
  */
-void wrouter_ndispatch(struct dispatcher *dispatcher, const char *path, size_t length,
+void wrouter_ndispatch(wrouter_dispatcher_t *dispatcher, const char *path, size_t length,
                        void *dispatch_ctx)
 {
     lexer_load(&dispatcher->lx, path, length);
 
-    const struct route *route = route_match(dispatcher);
+    const wrouter_route_t *route = route_match(dispatcher);
 
     if (route == NULL)
         route = &dispatcher->router->fallback;
@@ -48,7 +48,7 @@ void wrouter_ndispatch(struct dispatcher *dispatcher, const char *path, size_t l
  * @param dispatcher Request dispatcher.
  * @param path Null-terminated string containing the request path.
  */
-const void *wrouter_resolve(struct dispatcher *dispatcher, const char *path)
+const void *wrouter_resolve(wrouter_dispatcher_t *dispatcher, const char *path)
 {
     return wrouter_nresolve(dispatcher, path, strlen(path));
 }
@@ -60,11 +60,11 @@ const void *wrouter_resolve(struct dispatcher *dispatcher, const char *path)
  * @param path Request path.
  * @param length Length of the request path.
  */
-const void *wrouter_nresolve(struct dispatcher *dispatcher, const char *path, size_t length)
+const void *wrouter_nresolve(wrouter_dispatcher_t *dispatcher, const char *path, size_t length)
 {
     lexer_load(&dispatcher->lx, path, length);
 
-    const struct route *route = route_match(dispatcher);
+    const wrouter_route_t *route = route_match(dispatcher);
 
     if (route == NULL)
         return dispatcher->router->fallback.ctx;
@@ -81,7 +81,7 @@ const void *wrouter_nresolve(struct dispatcher *dispatcher, const char *path, si
  */
 wrouter_dispatcher_t *wrouter_dispatcher_create(const wrouter_t *router)
 {
-    struct dispatcher *dispatcher = calloc(1, sizeof(struct dispatcher));
+    wrouter_dispatcher_t *dispatcher = calloc(1, sizeof(wrouter_dispatcher_t));
     if (dispatcher == NULL)
         return NULL;
 

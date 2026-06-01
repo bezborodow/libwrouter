@@ -27,7 +27,7 @@ static inline const node_t *next_node(const uint8_t *graph, const edge_t *edge)
     return (const node_t *)(graph + edge->next);
 }
 
-static struct route *terminal_lookup(const struct router *router, uint16_t ref)
+static wrouter_route_t *terminal_lookup(const wrouter_t *router, uint16_t ref)
 {
     // TODO custom binary search.
     const terminals_t *t = &router->terminals;
@@ -44,13 +44,13 @@ static struct route *terminal_lookup(const struct router *router, uint16_t ref)
  *
  * @param dispatcher Request dispatcher.
  */
-const struct route *route_match(struct dispatcher *d)
+const wrouter_route_t *route_match(wrouter_dispatcher_t *d)
 {
     token_t tok = { 0 };
     size_t symbol = 0;
     const char *w_param = NULL;
 
-    const struct router *router = d->router;
+    const wrouter_t *router = d->router;
     const void *g = router->graph;
     const node_t *cur = g;
     const edge_t *l_edge_base = NULL, *l_edge = NULL, *s_edge = NULL, *w_edge = NULL,
@@ -186,7 +186,7 @@ terminal:
 /**
  * Free the router.
  */
-void wrouter_free(struct router *router)
+void wrouter_free(wrouter_t *router)
 {
     if (router == NULL)
         return;

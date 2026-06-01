@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-const wrouter_params_t *wrouter_params(const struct dispatcher *dispatcher)
+const wrouter_params_t *wrouter_params(const wrouter_dispatcher_t *dispatcher)
 {
     return &dispatcher->params;
 }
