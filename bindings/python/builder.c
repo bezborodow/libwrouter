@@ -4,6 +4,20 @@
 #include <pthread.h>
 #include <Python.h>
 
+static void py_retain(const void *ctx)
+{
+    PyGILState_STATE g = PyGILState_Ensure();
+    Py_XINCREF((PyObject *)ctx);
+    PyGILState_Release(g);
+}
+
+static void py_release(const void *ctx)
+{
+    PyGILState_STATE g = PyGILState_Ensure();
+    Py_XDECREF((PyObject *)ctx);
+    PyGILState_Release(g);
+}
+
 static int parse_syntax(PyObject *obj, wrouter_param_syntax_t *out)
 {
     if (!PyObject_TypeCheck(obj, &PyParamSyntaxType)) {
@@ -41,9 +55,9 @@ static PyObject *PyBuilder_compile(PyBuilderObject *self, PyObject *args)
 void PyBuilder_dealloc(PyBuilderObject *self)
 {
     if (self->inner) {
-        if (self->inner->builder) {
+        if (self->inner->builder)
             wrouter_builder_free(self->inner->builder);
-        }
+
         PyMem_Free(self->inner);
     }
     Py_TYPE(self)->tp_free((PyObject *)self);
@@ -54,6 +68,8 @@ PyObject *PyBuilder_new(PyTypeObject *type, PyObject *args, PyObject *kw)
     PyObject *syntax_obj = NULL;
     PyBuilderObject *self = NULL;
     wrouter_options_t opts = { 0 };
+    opts.retain = py_retain;
+    opts.release = py_release;
 
     static char *kwlist[] = { "param_syntax", NULL };
 
@@ -88,7 +104,6 @@ failure:
     return PyErr_NoMemory();
 }
 
-/* add route with ctx only */
 static PyObject *PyBuilder_add(PyBuilderObject *self, PyObject *args)
 {
     const char *pattern;
@@ -102,18 +117,9 @@ static PyObject *PyBuilder_add(PyBuilderObject *self, PyObject *args)
         return NULL;
     }
 
-    PyRouteCtx *rc = PyMem_Malloc(sizeof(PyRouteCtx));
-    if (!rc)
-        return PyErr_NoMemory();
-
-    rc->is_string = PyUnicode_Check(ctx);
-    rc->value = ctx;
-    Py_INCREF(ctx);
-
-    if (wrouter_add_context(self->inner->builder, pattern, rc) != 0) {
-        Py_DECREF(ctx);
-        PyMem_Free(rc);
-        Py_RETURN_NONE;
+    if (wrouter_add_context(self->inner->builder, pattern, ctx) != 0) {
+        PyErr_SetString(PyExc_RuntimeError, "Unable to add route.");
+        return NULL;
     }
 
     Py_RETURN_NONE;

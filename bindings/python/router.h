@@ -11,9 +11,4 @@ typedef struct {
     PyRouter *inner;
 } PyRouterObject;
 
-typedef struct {
-    PyObject *value;
-    int is_string;
-} PyRouteCtx;
-
 extern PyTypeObject PyRouterType;
