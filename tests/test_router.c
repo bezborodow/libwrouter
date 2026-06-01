@@ -1,5 +1,6 @@
 #include "wrouter.h"
 #include "router.h"
+#include "params.h"
 #include "symbol.h"
 #include "builder.h"
 #include <assert.h>
@@ -41,10 +42,22 @@ static void cb_ignore(void *dispatch_ctx, const void *route_ctx, const wrouter_p
     assert(0);
 }
 
+/**
+ * Check that a route is called.
+ *
+ * Set the dispatch context boolean to true.
+ *
+ * If the route context is provided, then treat that as the number of parameters.
+ * Otherwise, there should never be any parameters.
+ */
 static void cb_watch(void *dispatch_ctx, const void *route_ctx, const wrouter_params_t *params)
 {
-    (void)route_ctx;
-    assert(params->count == 0);
+    uint32_t expected_parameter_count = 0;
+
+    if (route_ctx != NULL)
+        expected_parameter_count = *((uint32_t *)route_ctx);
+
+    assert(params->count == expected_parameter_count);
 
     bool *seen = dispatch_ctx;
     *seen = true;
@@ -62,6 +75,8 @@ static void cb_test(void *dispatch_ctx, const void *route_ctx, const wrouter_par
         for (size_t i = 0; i < params->count; i++) {
             const wrouter_param_t *param_e = &dtc->params->base[i], *param = &params->base[i];
 
+            if (param_e->length != param->length)
+                fprintf(stderr, "%u %u\n", param_e->length, param->length);
             assert(param_e->length == param->length);
             assert(memcmp(param->value, param_e->value, param_e->length) == 0);
             assert(strcmp(param->name, param_e->name) == 0);
@@ -127,6 +142,27 @@ void builder_print_tree(const struct builder *builder)
 void test_router_basic(void)
 {
     // clang-format off
+    wrouter_params_t document_params = {
+        .base = (wrouter_param_t[]) {
+            { WILDCARD_PARAM, "documents/schematic.pdf", 23 },
+        },
+        .count = 1
+    };
+    wrouter_params_t hello_params = {
+        .base = (wrouter_param_t[]) {
+            { WILDCARD_PARAM, "hello", 5 },
+        },
+        .count = 1
+    };
+    wrouter_params_t account_contact_credentials_params = {
+        .base = (wrouter_param_t[]) {
+            { "account_id", "200", 3 },
+            { "account_contact_id", "300", 3 },
+            { WILDCARD_PARAM, "letter_of_endorsement.pdf", 25 },
+        },
+        .count = 3
+    };
+
     wrouter_params_t account_params = {
         .base = (wrouter_param_t[]) {
             { "account_id", "100", 3 },
@@ -150,10 +186,13 @@ void test_router_basic(void)
     };
 
     terminal_test_case_t cases[] = {
+#if 1
         {
             .pattern = "/downloads/*",
             .request = "/downloads/documents/schematic.pdf",
+            .params = &document_params,
         },
+#endif
         {
             .pattern = "/downloads/",
             .request = "/downloads/",
@@ -169,6 +208,7 @@ void test_router_basic(void)
         {
             .pattern = "/*",
             .request = "/hello",
+            .params = &hello_params,
         },
         {
             .pattern = "/accounts",
@@ -206,7 +246,7 @@ void test_router_basic(void)
         {
             .pattern = "/account/<account_id>/contact/<account_contact_id>/credentials/*",
             .request = "/account/200/contact/300/credentials/letter_of_endorsement.pdf",
-            .params = &account_contact_params,
+            .params = &account_contact_credentials_params,
         },
         {
             .pattern = "/projects",
@@ -388,7 +428,8 @@ void test_router_end_wildcard(void)
     bool wildcard_seen = false;
 
     // Add routes.
-    assert(wrouter_add_handler(builder, "/*", cb_watch) == 0);
+    const uint32_t expected_parameter_count = 1;
+    assert(wrouter_add_handler_ctx(builder, "/*", cb_watch, &expected_parameter_count) == 0);
     assert(wrouter_add_handler(builder, "/literal", cb_ignore) == 0);
 
     // builder_print_tree(builder);
@@ -399,6 +440,7 @@ void test_router_end_wildcard(void)
     assert(router != NULL);
 
     // Dispatch.
+    // Check that '/literal/go_to_wildcard' matches with '/*'.
     wrouter_dispatcher_t *dispatcher = wrouter_dispatcher_create(router);
     assert(dispatcher != NULL);
     wrouter_dispatch(dispatcher, "/literal/go_to_wildcard", &wildcard_seen);

@@ -1,3 +1,4 @@
+#include "params.h"
 #include "wrouter.h"
 #include "router.h"
 #include "lexer.h"
@@ -47,6 +48,7 @@ const struct route *route_match(struct dispatcher *d)
 {
     token_t tok = { 0 };
     size_t symbol = 0;
+    const char *w_param = NULL;
 
     const struct router *router = d->router;
     const void *g = router->graph;
@@ -81,8 +83,10 @@ lexer_next:
         t_edge = l_edge_base++;
 
     // Remember the most specific wildcard edge, if present.
-    if (cur->flags & NODE_FLAG_HAS_WILDCARD)
+    if (cur->flags & NODE_FLAG_HAS_WILDCARD) {
         w_edge = s_edge;
+        w_param = tok.ptr;
+    }
 
     // Process the segment token against the current node.
     switch (tok.type) {
@@ -165,6 +169,13 @@ trailing:
 wildcard:
     // Follow the wildcard edge and terminate.
     cur = next_node(g, w_edge);
+    {
+        wrouter_param_t *param = &d->params.base[d->params.count++];
+        param->name = WILDCARD_PARAM;
+        param->value = w_param;
+        param->length = d->lx.str + d->lx.length - w_param;
+    }
+
     goto terminal;
 
 terminal:
