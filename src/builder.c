@@ -519,12 +519,12 @@ symbols_t symbol_compile(const symbol_table_t *tbl)
     sym.count = tbl->count;
 
     if (!tbl->count || tbl->base == NULL)
-        return sym;
+        goto failure;
 
     // Allocate space for the string pointers.
     sym.base = malloc(sizeof(char *) * tbl->count);
     if (sym.base == NULL)
-        return sym;
+        goto failure;
 
     // Copy and sort string pointers by string contents.
     memcpy(sym.base, tbl->base, sizeof(char *) * tbl->count);
@@ -533,13 +533,11 @@ symbols_t symbol_compile(const symbol_table_t *tbl)
     // Allocate space for the strings in a contiguous memory region.
     sym.region = malloc(arena_used(&tbl->arena));
     if (sym.region == NULL) {
-        free(sym.base);
-        return (symbols_t){ 0 };
+        goto failure;
     }
 
     // Copy strings from the arena and update the string pointers.
-    size_t cursor = 0;
-    for (size_t i = 0; i < sym.count; i++) {
+    for (size_t cursor = 0, i = 0; i < sym.count; i++) {
         size_t n = strlen(sym.base[i]) + 1;
 
         // Copy string.
@@ -552,6 +550,11 @@ symbols_t symbol_compile(const symbol_table_t *tbl)
     }
 
     return sym;
+
+failure:
+    // Return empty symbol on memory failure.
+    free(sym.base);
+    return (symbols_t){ 0 };
 }
 
 /**
