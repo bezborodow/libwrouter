@@ -1,3 +1,3 @@
-Fix shared memory / copy instead.
-Fix del router before del dispatcher / don't free too early.
+TODO
+
 Support handler and context functions.
