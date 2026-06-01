@@ -115,3 +115,5 @@ void wrouter_snapshot_free(wrouter_params_snapshot_t *snapshot);
 size_t wrouter_route_count(const wrouter_t *router);
 
 void wrouter_free(wrouter_t *router);
+
+const char *wrouter_strerror(wrouter_error_t err);
