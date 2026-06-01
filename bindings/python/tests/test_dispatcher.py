@@ -105,6 +105,9 @@ def test_wildcards():
         ("/account/create", "account.create"),
         ("/account/a/:account_id", "account.view"),
         ("/account/a/:account_id/documents/*", "account.documents"),
+        ("/repos/:user/:repo", "repo"),
+        ("/repos/:user/:repo/tree/:branch", "repo.tree"),
+        ("/repos/:user/:repo/tree/:branch/*", "repo.tree.path"),
     ]
     builder = wrouter.Builder()
 
@@ -143,6 +146,24 @@ def test_wildcards():
     context, params = dispatcher.resolve("/account/a/1234/documents/")
     assert context == None
     assert params == {}
+
+    context, params = dispatcher.resolve("/repos/bezborodow/libwrouter")
+    assert context == "repo"
+    assert params['user'] == "bezborodow"
+    assert params['repo'] == "libwrouter"
+
+    context, params = dispatcher.resolve("/repos/bezborodow/libwrouter/tree/master")
+    assert context == "repo.tree"
+    assert params['user'] == "bezborodow"
+    assert params['repo'] == "libwrouter"
+    assert params['branch'] == "master"
+
+    context, params = dispatcher.resolve("/repos/bezborodow/libwrouter/tree/master/bindings/python")
+    assert context == "repo.tree.path"
+    assert params['user'] == "bezborodow"
+    assert params['repo'] == "libwrouter"
+    assert params['branch'] == "master"
+    #assert params['_'] == "bindings/python"
 
 
 def test_dispatcher_after_router_delete():
