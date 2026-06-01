@@ -74,14 +74,14 @@ def test_incompatible_routes(route1, route2):
     builder = wrouter.Builder()
 
     builder.add(route1, "foo")
-    with pytest.raises(RuntimeError):
+    with pytest.raises(wrouter.RouteError):
         builder.add(route2, "foo")
 
     # Try again in opposite order!!:
     builder = wrouter.Builder()
 
     builder.add(route2, "foo")
-    with pytest.raises(RuntimeError):
+    with pytest.raises(wrouter.RouteError):
         builder.add(route1, "foo")
 
 
@@ -105,7 +105,7 @@ def test_incompatible_routes(route1, route2):
 def test_invalid_routes(route):
     builder = wrouter.Builder()
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(wrouter.RouteError):
         builder.add(route, "foo")
 
 

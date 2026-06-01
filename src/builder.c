@@ -269,7 +269,7 @@ int wrouter_add_route(struct builder *builder, const char *pattern, struct route
 
             case TOKEN_ILLEGAL:
             default:
-                return WROUTER_ERR_ILLEGAL_TOKEN;
+                return WROUTER_ERR_ILLEGAL_PATTERN;
         }
     }
 
