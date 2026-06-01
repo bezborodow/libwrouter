@@ -4,6 +4,19 @@
 #include "helpers/token_helpers.h"
 #include "token.h"
 
+static void test_lexer_root(void)
+{
+    token_t tok;
+    char path[] = "/";
+
+    lexer_t lx = { 0 };
+    lexer_load(&lx, path, strlen(path));
+
+    tok = lexer_next(&lx);
+    ASSERT_TOKEN_TYPE(tok, TOKEN_END);
+    assert(tok.length == 0);
+}
+
 static void test_lexer_illegal(void)
 {
     token_t tok;
@@ -12,10 +25,12 @@ static void test_lexer_illegal(void)
     lexer_t lx = { 0 };
     lexer_load(&lx, path, strlen(path));
 
-    tok = lexer_next(&lx);
-    ASSERT_TOKEN_TYPE(tok, TOKEN_ILLEGAL);
-    tok = lexer_next(&lx);
-    ASSERT_TOKEN_TYPE(tok, TOKEN_ILLEGAL);
+    // Should never advance beyond ILLEGAL, even if called repeatedly.
+    for (int i = 0; i < 5; i++) {
+        tok = lexer_next(&lx);
+        ASSERT_TOKEN_TYPE(tok, TOKEN_ILLEGAL);
+        assert(tok.length == 0);
+    }
 }
 
 static void test_lexer_easy(void)
@@ -67,16 +82,13 @@ static void test_lexer_trailing(void)
     tok = lexer_next(&lx);
     ASSERT_TOKEN_TYPE(tok, TOKEN_TRAILING);
     assert(tok.length == 0);
-
-    tok = lexer_next(&lx);
-    ASSERT_TOKEN_TYPE(tok, TOKEN_END);
-    assert(tok.length == 0);
 }
 
 int main(void)
 {
-    test_lexer_easy();
+    test_lexer_root();
     test_lexer_illegal();
+    test_lexer_easy();
     test_lexer_trailing();
 
     return 0;
