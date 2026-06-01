@@ -131,6 +131,7 @@ lexer_next:
 
         // End token.
         case TOKEN_END:
+        case TOKEN_TRAILING:
 
             // Check for terminal.
             if (cur->flags & NODE_FLAG_TERMINAL)

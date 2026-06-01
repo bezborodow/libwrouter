@@ -45,7 +45,7 @@ token_t prelexer_next(prelexer_t *lx)
     }
 
     if (*p == '\0') {
-        tok.type = TOKEN_END;
+        tok.type = TOKEN_TRAILING;
         goto finish;
     }
 

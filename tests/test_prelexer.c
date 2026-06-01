@@ -1,4 +1,6 @@
 #include "prelexer.h"
+#include "token.h"
+#include "helpers/token_helpers.h"
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -16,7 +18,7 @@ static void test_root(void)
     prelexer_load(&lx, "/");
 
     tok = prelexer_next(&lx);
-    assert(tok.type == TOKEN_END);
+    ASSERT_TOKEN_TYPE(tok, TOKEN_TRAILING);
     assert(tok.length == 0);
 }
 
@@ -32,19 +34,19 @@ static void test_simple_path(void)
     prelexer_load(&lx, "/users/profile");
 
     tok = prelexer_next(&lx);
-    assert(tok.type == TOKEN_LITERAL);
+    ASSERT_TOKEN_TYPE(tok, TOKEN_LITERAL);
     assert(tok.length == 5);
     assert(tok.ptr != NULL);
     assert(memcmp(tok.ptr, "users", tok.length) == 0);
 
     tok = prelexer_next(&lx);
-    assert(tok.type == TOKEN_LITERAL);
+    ASSERT_TOKEN_TYPE(tok, TOKEN_LITERAL);
     assert(tok.length == 7);
     assert(tok.ptr != NULL);
     assert(memcmp(tok.ptr, "profile", tok.length) == 0);
 
     tok = prelexer_next(&lx);
-    assert(tok.type == TOKEN_END);
+    ASSERT_TOKEN_TYPE(tok, TOKEN_END);
     assert(tok.length == 0);
 }
 
@@ -60,31 +62,31 @@ static void test_param_path(void)
     prelexer_load(&lx, "/users/profile/:user_id/edit");
 
     tok = prelexer_next(&lx);
-    assert(tok.type == TOKEN_LITERAL);
+    ASSERT_TOKEN_TYPE(tok, TOKEN_LITERAL);
     assert(tok.length == 5);
     assert(tok.ptr != NULL);
     assert(memcmp(tok.ptr, "users", tok.length) == 0);
 
     tok = prelexer_next(&lx);
-    assert(tok.type == TOKEN_LITERAL);
+    ASSERT_TOKEN_TYPE(tok, TOKEN_LITERAL);
     assert(tok.length == 7);
     assert(tok.ptr != NULL);
     assert(memcmp(tok.ptr, "profile", tok.length) == 0);
 
     tok = prelexer_next(&lx);
     assert(tok.length == 7);
-    assert(tok.type == TOKEN_PARAM);
+    ASSERT_TOKEN_TYPE(tok, TOKEN_PARAM);
     assert(tok.ptr != NULL);
     assert(memcmp(tok.ptr, "user_id", tok.length) == 0);
 
     tok = prelexer_next(&lx);
-    assert(tok.type == TOKEN_LITERAL);
+    ASSERT_TOKEN_TYPE(tok, TOKEN_LITERAL);
     assert(tok.length == 4);
     assert(tok.ptr != NULL);
     assert(memcmp(tok.ptr, "edit", tok.length) == 0);
 
     tok = prelexer_next(&lx);
-    assert(tok.type == TOKEN_END);
+    ASSERT_TOKEN_TYPE(tok, TOKEN_END);
     assert(tok.length == 0);
 }
 
@@ -100,13 +102,13 @@ static void test_trailing(void)
     prelexer_load(&lx, "/users/");
 
     tok = prelexer_next(&lx);
-    assert(tok.type == TOKEN_LITERAL);
+    ASSERT_TOKEN_TYPE(tok, TOKEN_LITERAL);
     assert(tok.length == 5);
     assert(tok.ptr != NULL);
     assert(memcmp(tok.ptr, "users", tok.length) == 0);
 
     tok = prelexer_next(&lx);
-    assert(tok.type == TOKEN_END);
+    ASSERT_TOKEN_TYPE(tok, TOKEN_TRAILING);
     assert(tok.length == 0);
 }
 
@@ -122,7 +124,7 @@ static void test_double_slash(void)
     prelexer_load(&lx, "//");
 
     tok = prelexer_next(&lx);
-    assert(tok.type == TOKEN_ILLEGAL);
+    ASSERT_TOKEN_TYPE(tok, TOKEN_ILLEGAL);
     assert(tok.length == 0);
 }
 
@@ -138,19 +140,19 @@ static void test_param_brace(void)
     prelexer_load(&lx, "/accounts/{account_id}");
 
     tok = prelexer_next(&lx);
-    assert(tok.type == TOKEN_LITERAL);
+    ASSERT_TOKEN_TYPE(tok, TOKEN_LITERAL);
     assert(tok.length == 8);
     assert(tok.ptr != NULL);
     assert(memcmp(tok.ptr, "accounts", tok.length) == 0);
 
     tok = prelexer_next(&lx);
-    assert(tok.type == TOKEN_PARAM);
+    ASSERT_TOKEN_TYPE(tok, TOKEN_PARAM);
     assert(tok.length == 10);
     assert(tok.ptr != NULL);
     assert(memcmp(tok.ptr, "account_id", tok.length) == 0);
 
     tok = prelexer_next(&lx);
-    assert(tok.type == TOKEN_END);
+    ASSERT_TOKEN_TYPE(tok, TOKEN_END);
     assert(tok.length == 0);
 }
 
@@ -166,19 +168,19 @@ static void test_param_angle(void)
     prelexer_load(&lx, "/accounts/<account_id>");
 
     tok = prelexer_next(&lx);
-    assert(tok.type == TOKEN_LITERAL);
+    ASSERT_TOKEN_TYPE(tok, TOKEN_LITERAL);
     assert(tok.length == 8);
     assert(tok.ptr != NULL);
     assert(memcmp(tok.ptr, "accounts", tok.length) == 0);
 
     tok = prelexer_next(&lx);
-    assert(tok.type == TOKEN_PARAM);
+    ASSERT_TOKEN_TYPE(tok, TOKEN_PARAM);
     assert(tok.length == 10);
     assert(tok.ptr != NULL);
     assert(memcmp(tok.ptr, "account_id", tok.length) == 0);
 
     tok = prelexer_next(&lx);
-    assert(tok.type == TOKEN_END);
+    ASSERT_TOKEN_TYPE(tok, TOKEN_END);
     assert(tok.length == 0);
 }
 
@@ -194,17 +196,17 @@ static void test_wildcard(void)
     prelexer_load(&lx, "/downloads/*");
 
     tok = prelexer_next(&lx);
-    assert(tok.type == TOKEN_LITERAL);
+    ASSERT_TOKEN_TYPE(tok, TOKEN_LITERAL);
     assert(tok.length == 9);
     assert(tok.ptr != NULL);
     assert(memcmp(tok.ptr, "downloads", tok.length) == 0);
 
     tok = prelexer_next(&lx);
-    assert(tok.type == TOKEN_WILDCARD);
+    ASSERT_TOKEN_TYPE(tok, TOKEN_WILDCARD);
     assert(tok.length == 0);
 
     tok = prelexer_next(&lx);
-    assert(tok.type == TOKEN_END);
+    ASSERT_TOKEN_TYPE(tok, TOKEN_END);
     assert(tok.length == 0);
 }
 

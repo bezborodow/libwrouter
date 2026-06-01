@@ -21,7 +21,7 @@ token_t lexer_next(lexer_t *lx)
 
     // Check for root '/' or trailing-slash.
     if (*c == '/' && c == end - 1) {
-        tok.type = c == lx->str ? TOKEN_END : TOKEN_TRAILING;
+        tok.type = TOKEN_TRAILING;
         return tok;
     }
 
