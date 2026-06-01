@@ -3,8 +3,6 @@ import wrouter
 
 
 def test_resolve_basic():
-    import wrouter
-
     routes = [
         ("/account", "account.list"),
         ("/account/create", "account.create"),
