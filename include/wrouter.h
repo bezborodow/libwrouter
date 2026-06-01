@@ -37,6 +37,11 @@ typedef struct param {
     uint16_t length;
 } wrouter_param_t;
 
+typedef struct { // TODO use this.
+    const char *str;
+    uint16_t length;
+} wrouter_value_t;
+
 /**
  * Null-terminated params.
  */
