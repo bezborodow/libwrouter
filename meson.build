@@ -65,6 +65,12 @@ san_args = [
     '-g',
 ]
 
+test_helpers = static_library(
+    'test_helpers',
+    'tests/helpers/token_helpers.c',
+    include_directories : include_directories('include', 'src', 'tests'),
+)
+
 foreach t : [
     'arena',
     'builder',
@@ -78,7 +84,8 @@ foreach t : [
         'test_@0@'.format(t),
         'tests/test_@0@.c'.format(t),
         src,
-        include_directories : include_directories('include', 'src'),
+        link_with : test_helpers,
+        include_directories : include_directories('include', 'src', 'tests'),
         c_args : san_args,
         link_args : san_args,
     )
