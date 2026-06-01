@@ -151,11 +151,11 @@ def test_wildcards():
 
     context, params = dispatcher.resolve("/random")
     assert context == "root.wildcard"
-    assert params == {}
+    assert params == {"_": "random"}
 
     context, params = dispatcher.resolve("/random/thing")
     assert context == "root.wildcard"
-    assert params == {}
+    assert params == {"_": "random/thing"}
 
     context, params = dispatcher.resolve("/account/create")
     assert context == "account.create"
@@ -164,10 +164,13 @@ def test_wildcards():
     context, params = dispatcher.resolve("/account/a/1234")
     assert context == "account.view"
     assert params['account_id'] == "1234"
+    assert len(params) == 1
 
     context, params = dispatcher.resolve("/account/a/1234/documents/document.pdf")
     assert context == "account.documents"
     assert params['account_id'] == "1234"
+    assert params['_'] == "document.pdf"
+    assert len(params) == 2
 
     context, params = dispatcher.resolve("/account/a/1234/documents/")
     assert context == None
@@ -179,25 +182,28 @@ def test_wildcards():
 
     context, params = dispatcher.resolve("/project/random")
     assert context == "project.wildcard"
-    assert params == {}
+    assert params == {"_": "random"}
 
     context, params = dispatcher.resolve("/repos/bezborodow/libwrouter")
     assert context == "repo"
     assert params['user'] == "bezborodow"
     assert params['repo'] == "libwrouter"
+    assert len(params) == 2
 
     context, params = dispatcher.resolve("/repos/bezborodow/libwrouter/tree/master")
     assert context == "repo.tree"
     assert params['user'] == "bezborodow"
     assert params['repo'] == "libwrouter"
     assert params['branch'] == "master"
+    assert len(params) == 3
 
     context, params = dispatcher.resolve("/repos/bezborodow/libwrouter/tree/master/bindings/python")
     assert context == "repo.tree.path"
     assert params['user'] == "bezborodow"
     assert params['repo'] == "libwrouter"
     assert params['branch'] == "master"
-    #assert params['_'] == "bindings/python"
+    assert params['_'] == "bindings/python"
+    assert len(params) == 4
 
 
 def test_dispatcher_after_router_delete():
@@ -219,10 +225,10 @@ def test_dispatcher_after_router_delete():
 
 def test_resolve_cases():
     cases = [
-        ("/downloads/*", "/downloads/documents/schematic.pdf", {}),
+        ("/downloads/*", "/downloads/documents/schematic.pdf", {"_": "documents/schematic.pdf"}),
         ("/downloads/", "/downloads/", {}),
         ("/", "/", {}),
-        ("/*", "/hello", {}),
+        ("/*", "/hello", {"_": "hello"}),
         ("/accounts", "/accounts", {}),
         ("/accounts/create", "/accounts/create", {}),
         ("/account/<account_id>", "/account/100", {"account_id": "100"}),
@@ -237,7 +243,7 @@ def test_resolve_cases():
         (
             "/account/<account_id>/contact/<account_contact_id>/credentials/*",
             "/account/200/contact/300/credentials/letter_of_endorsement.pdf",
-            {"account_id": "200", "account_contact_id": "300"}
+            {"account_id": "200", "account_contact_id": "300", "_": "letter_of_endorsement.pdf"}
         ),
         ("/projects", "/projects", {}),
         ("/projects/create", "/projects/create", {}),
