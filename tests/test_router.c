@@ -13,7 +13,25 @@ typedef struct {
     const char *request;
     const wrouter_params_t *params;
     bool seen;
+    bool retained;
+    bool released;
 } terminal_test_case_t;
+
+static void cb_retain(const void *ctx)
+{
+    if (ctx == NULL)
+        return;
+
+    ((terminal_test_case_t *)ctx)->retained = true;
+}
+
+static void cb_release(const void *ctx)
+{
+    if (ctx == NULL)
+        return;
+
+    ((terminal_test_case_t *)ctx)->released = true;
+}
 
 static void cb_ignore(void *dispatch_ctx, const void *route_ctx, const wrouter_params_t *params)
 {
@@ -135,107 +153,87 @@ void test_router_basic(void)
         {
             .pattern = "/downloads/*",
             .request = "/downloads/documents/schematic.pdf",
-            .params = NULL,
-            .seen = false,
         },
         {
             .pattern = "/downloads/",
             .request = "/downloads/",
-            .params = NULL,
-            .seen = false,
         },
         {
             .pattern = "/",
             .request = "/",
-            .params = NULL,
-            .seen = false,
         },
         {
             .pattern = "/*",
             .request = "/hello",
-            .params = NULL,
-            .seen = false,
         },
         {
             .pattern = "/accounts",
             .request = "/accounts",
-            .params = NULL,
-            .seen = false,
         },
         {
             .pattern = "/accounts/create",
             .request = "/accounts/create",
-            .params = NULL,
-            .seen = false,
         },
         {
             .pattern = "/account/<account_id>",
             .request = "/account/100",
             .params = &account_params,
-            .seen = false,
         },
         {
             .pattern = "/account/<account_id>/edit",
             .request = "/account/100/edit",
             .params = &account_params,
-            .seen = false,
         },
         {
             .pattern = "/account/<account_id>/projects",
             .request = "/account/100/projects",
             .params = &account_params,
-            .seen = false,
         },
         {
             .pattern = "/account/<account_id>/contacts",
             .request = "/account/100/contacts",
             .params = &account_params,
-            .seen = false,
         },
         {
             .pattern = "/account/<account_id>/contact/<account_contact_id>",
             .request = "/account/200/contact/300",
             .params = &account_contact_params,
-            .seen = false,
         },
         {
             .pattern = "/account/<account_id>/contact/<account_contact_id>/credentials/*",
             .request = "/account/200/contact/300/credentials/letter_of_endorsement.pdf",
             .params = &account_contact_params,
-            .seen = false,
         },
         {
             .pattern = "/projects",
             .request = "/projects",
-            .params = NULL,
-            .seen = false,
         },
         {
             .pattern = "/projects/create",
             .request = "/projects/create",
-            .params = NULL,
-            .seen = false,
         },
         {
             .pattern = "/project/<project_id>",
             .request = "/project/400",
             .params = &project_params,
-            .seen = false,
         },
         {
             .pattern = "/project/<project_id>/edit",
             .request = "/project/400/edit",
             .params = &project_params,
-            .seen = false,
         },
     };
     // clang-format on
+
+    terminal_test_case_t fallback_tc = { 0 };
 
     // Create builder.
     wrouter_options_t options = {
         .param_syntax = WROUTER_SYNTAX_ANGLE,
         .fallback_handler = cb_ignore,
-        .fallback_ctx = NULL,
+        .fallback_ctx = &fallback_tc,
+        .retain = cb_retain,
+        .release = cb_release,
     };
     wrouter_builder_t *builder = wrouter_builder_create(options);
 
@@ -255,6 +253,10 @@ void test_router_basic(void)
     graph_stats_t stats = { 0 };
     graph_stats(builder->root, &stats);
     assert(stats.terminals == n);
+    for (size_t i = 0; i < n; i++) {
+        assert(!cases[i].retained);
+        assert(!cases[i].released);
+    }
 
     // Compile.
     wrouter_t *router = wrouter_compile(builder);
@@ -262,6 +264,10 @@ void test_router_basic(void)
     assert(router != NULL);
 
     assert(wrouter_route_count(router) == n);
+    for (size_t i = 0; i < n; i++) {
+        assert(cases[i].retained);
+        assert(!cases[i].released);
+    }
 
     // Dispatch.
     wrouter_dispatcher_t *dispatcher = wrouter_dispatcher_create(router);
@@ -296,7 +302,13 @@ void test_router_basic(void)
     }
 
     wrouter_dispatcher_free(dispatcher);
+
     wrouter_free(router);
+
+    for (size_t i = 0; i < n; i++) {
+        assert(cases[i].retained);
+        assert(cases[i].released);
+    }
 }
 
 void test_router_not_found(void)

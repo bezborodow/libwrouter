@@ -58,8 +58,8 @@ typedef struct wrouter_options {
     wrouter_handler_fn fallback_handler;
     const void *fallback_ctx; // TODO const is new change. Make sure it doesn't break anything.
     wrouter_param_syntax_t param_syntax;
-    wrouter_reference_fn retain_ctx;
-    wrouter_reference_fn release_ctx;
+    wrouter_reference_fn retain;
+    wrouter_reference_fn release;
 } wrouter_options_t;
 
 wrouter_builder_t *wrouter_builder_create(const wrouter_options_t options);
