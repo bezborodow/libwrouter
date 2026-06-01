@@ -29,7 +29,7 @@ def test_resolve_basic():
 
     endpoint, params = dispatcher.resolve("/account/a/1234")
     assert endpoint == "account.view"
-    assert(params['account_id'] == "1234")
+    assert params['account_id'] == "1234"
 
 def test_dispatcher_after_router_delete():
 
@@ -92,3 +92,18 @@ def test_resolve_cases():
 
         assert ctx == pattern
         assert params == expected_params
+
+
+def test_dispatcher_context_function():
+    handler = lambda: None
+
+    builder = wrouter.Builder()
+    builder.add("/function", handler)
+
+    router = builder.compile()
+
+    dispatcher = wrouter.Dispatcher(router)
+
+    resolved_handler, _ = dispatcher.resolve("/function")
+    assert callable(resolved_handler)
+    assert resolved_handler is handler
