@@ -22,7 +22,7 @@ static void py_release(const void *ctx)
 static int parse_syntax(PyObject *obj, wrouter_param_syntax_t *out)
 {
     if (!PyObject_TypeCheck(obj, &PyParamSyntaxType)) {
-        PyErr_SetString(PyExc_TypeError, "ParamSyntax is required.");
+        PyErr_SetString(PyExc_TypeError, "ParamSyntax is an invalid type.");
         return -1;
     }
 
@@ -98,11 +98,15 @@ PyObject *PyBuilder_new(PyTypeObject *type, PyObject *args, PyObject *kw)
     return (PyObject *)self;
 
 failure:
-    Py_XDECREF(self);
-    if (self && self->inner)
-        PyMem_Free(self->inner);
+    if (self) {
+        if (self->inner) {
+            PyMem_Free(self->inner);
+            self->inner = NULL;
+        }
+        Py_DECREF(self);
+    }
 
-    return PyErr_NoMemory();
+    return NULL;
 }
 
 static PyObject *PyBuilder_add(PyBuilderObject *self, PyObject *args)
