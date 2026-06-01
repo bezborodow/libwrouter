@@ -15,35 +15,32 @@ void lexer_load(lexer_t *lx, const char *request, size_t length)
 
 token_t lexer_next(lexer_t *lx)
 {
-    const char *p = lx->cursor;
+    const char *c = lx->cursor;
     const char *end = lx->str + lx->length;
-
-    if (p >= end)
-        return make_token(TOKEN_END);
-
-    // Skip separators.
-    if (*p == '/')
-        p++;
-
-    if (p >= end)
-        return make_token(TOKEN_END);
-
-    if (*p == '/')
-        return make_token(TOKEN_ILLEGAL);
-
     token_t tok = { 0 };
-    tok.ptr = p;
 
-    for (; p < end && *p != '/'; p++)
+    // Check for root '/' or trailing-slash.
+    if (*c == '/' && c == end - 1) {
+        tok.type = c == lx->str ? TOKEN_END : TOKEN_TRAILING;
+        return tok;
+    }
+
+    // Check for double-slash.
+    if (++c < end && *c == '/') 
+        return tok; // TOKEN_ILLEGAL.
+
+    // Consume until next '/'.
+    for (tok.ptr = c; c < end && *c != '/'; c++)
         ;
 
-    tok.length = (uint16_t)(p - tok.ptr);
-    lx->cursor = p;
-
-    if (tok.length) {
+    // If the token has a length, it is a literal.
+    if ((tok.length = (uint16_t)(c - tok.ptr))) {
+        lx->cursor = c;
         tok.type = TOKEN_LITERAL;
         return tok;
     }
 
-    return make_token(TOKEN_END);
+    // Otherwise, end.
+    tok.type = TOKEN_END;
+    return tok;
 }
