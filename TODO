@@ -5,6 +5,18 @@ Improve linear to binary search.
 Better documentation.
 
 
+PARAM ACCESSOR
+
+addressee = wrouter_param("addressee");
+    =>
+        addressee.str
+        addressee.len
+
+addressee = wrouter_iparam(0)
+    =>
+        addressee.str
+        addressee.len
+
 
 ERROR DIAGNOSTICS
 
