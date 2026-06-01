@@ -491,6 +491,8 @@ struct router *wrouter_compile(const struct builder *builder)
     router->fallback = builder->fallback;
     router->retain = builder->retain;
     router->release = builder->release;
+    if (router->retain != NULL)
+        router->retain(router->fallback.ctx);
 
     // Obtain graph statistics.
     graph_stats(builder->root, &stats);
