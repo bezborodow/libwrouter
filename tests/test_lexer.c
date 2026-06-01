@@ -13,14 +13,46 @@ static void test_lexer_root(void)
     lexer_load(&lx, path, strlen(path));
 
     tok = lexer_next(&lx);
-    ASSERT_TOKEN_TYPE(tok, TOKEN_TRAILING);
+    ASSERT_TOKEN_TYPE(tok, TOKEN_END);
     assert(tok.length == 0);
 }
 
-static void test_lexer_illegal(void)
+static void test_lexer_illegal_double_slash(void)
 {
     token_t tok;
     char path[] = "//";
+
+    lexer_t lx = { 0 };
+    lexer_load(&lx, path, strlen(path));
+
+    // Should never advance beyond ILLEGAL, even if called repeatedly.
+    for (int i = 0; i < 5; i++) {
+        tok = lexer_next(&lx);
+        ASSERT_TOKEN_TYPE(tok, TOKEN_ILLEGAL);
+        assert(tok.length == 0);
+    }
+}
+
+static void test_lexer_illegal_empty(void)
+{
+    token_t tok;
+    char path[] = "";
+
+    lexer_t lx = { 0 };
+    lexer_load(&lx, path, strlen(path));
+
+    // Should never advance beyond ILLEGAL, even if called repeatedly.
+    for (int i = 0; i < 5; i++) {
+        tok = lexer_next(&lx);
+        ASSERT_TOKEN_TYPE(tok, TOKEN_ILLEGAL);
+        assert(tok.length == 0);
+    }
+}
+
+static void test_lexer_illegal_missing_leading_slash(void)
+{
+    token_t tok;
+    char path[] = "missing/leading/slash";
 
     lexer_t lx = { 0 };
     lexer_load(&lx, path, strlen(path));
@@ -87,7 +119,9 @@ static void test_lexer_trailing(void)
 int main(void)
 {
     test_lexer_root();
-    test_lexer_illegal();
+    test_lexer_illegal_double_slash();
+    test_lexer_illegal_empty();
+    test_lexer_illegal_missing_leading_slash();
     test_lexer_easy();
     test_lexer_trailing();
 

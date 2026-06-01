@@ -8,6 +8,12 @@
 
 void lexer_load(lexer_t *lx, const char *request, size_t length)
 {
+    // Enforce all requests begin with '/'.
+    if (*request != '/') {
+        memset(lx, 0, sizeof(*lx));
+        return;
+    }
+
     lx->str = request;
     lx->cursor = request;
     lx->length = length;
@@ -19,9 +25,12 @@ token_t lexer_next(lexer_t *lx)
     const char *end = lx->str + lx->length;
     token_t tok = { 0 };
 
+    if (c == NULL)
+        return tok;
+
     // Check for root '/' or trailing-slash.
     if (*c == '/' && c == end - 1) {
-        tok.type = TOKEN_TRAILING;
+        tok.type = c == lx->str ? TOKEN_END : TOKEN_TRAILING;
         return tok;
     }
 
