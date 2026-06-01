@@ -242,7 +242,9 @@ def test_resolve_cases():
         ("/projects", "/projects", {}),
         ("/projects/create", "/projects/create", {}),
         ("/project/<project_id>", "/project/400", {"project_id": "400"}),
+        ("/project/<project_id>/", "/project/400/", {"project_id": "400"}),
         ("/project/<project_id>/edit", "/project/400/edit", {"project_id": "400"}),
+        ("/project/<project_id>/edit/", "/project/9900/edit/", {"project_id": "9900"}),
     ]
 
     builder = wrouter.Builder(param_syntax = wrouter.ANGLE)
