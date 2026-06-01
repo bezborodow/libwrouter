@@ -21,7 +21,7 @@ static void py_release(const void *ctx)
 static int parse_syntax(PyObject *obj, wrouter_param_syntax_t *out)
 {
     if (!PyObject_TypeCheck(obj, &PyParamSyntaxType)) {
-        PyErr_SetString(PyExc_TypeError, "ParamSyntax required");
+        PyErr_SetString(PyExc_TypeError, "ParamSyntax is required.");
         return -1;
     }
 

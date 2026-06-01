@@ -4,3 +4,14 @@ Bounds checking.
 Error codes for add route.
 Improve linear to binary search.
 Better documentation.
+
+
+
+ERROR DIAGNOSTICS
+
+Need to know where in the tree it is and then work backards after resolving the
+segment it conflicted with, so I would need to add that and then also have a
+way to save extra diagnostics on the builder struct and have an accessor method
+for it.
+
+Each segment needs a parent id.
