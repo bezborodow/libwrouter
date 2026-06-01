@@ -21,15 +21,18 @@ def test_resolve_basic():
 
     dispatcher = wrouter.Dispatcher(router)
 
-    endpoint = dispatcher.resolve("/account")
+    endpoint, params = dispatcher.resolve("/account")
     assert endpoint == "account.list"
+    print(params)
+    assert params == {}
 
-    endpoint = dispatcher.resolve("/account/create")
+    endpoint, params = dispatcher.resolve("/account/create")
     assert endpoint == "account.create"
+    assert params == {}
 
-    endpoint = dispatcher.resolve("/account/a/1234")
+    endpoint, params = dispatcher.resolve("/account/a/1234")
     assert endpoint == "account.view"
-
+    assert params == {} # TODO
 
 def test_dispatcher_after_router_delete():
 
@@ -85,9 +88,10 @@ def test_resolve_cases():
     del builder
 
     dispatcher = wrouter.Dispatcher(router)
-    #dispatcher = router.dispatcher()
+    #dispatcher = router.dispatcher() TODO
 
     for pattern, request, expected_params in cases:
-        ctx = dispatcher.resolve(request)
+        ctx, params = dispatcher.resolve(request)
 
         assert ctx == pattern
+        assert params == {} # TODO

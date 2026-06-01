@@ -4,11 +4,11 @@ build:
 	meson setup build
 	meson compile -C build
 
-test:
+test: build
 	meson test -C build --print-errorlogs -v
 
-pytest:
-	PYTHONPATH=build/bindings/python pytest -n auto bindings/python/tests/
+pytest: test
+	PYTHONPATH=build/bindings/python pytest -n 2 bindings/python/tests/
 
 ctags:
 	ctags -R --kinds-C=+stu --extras=+q -f tags .

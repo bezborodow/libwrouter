@@ -78,18 +78,17 @@ static PyObject *PyDispatcher_resolve(PyDispatcherObject *self, PyObject *args)
         return NULL;
     }
 
-    const void *ctx = wrouter_resolve(self->inner->dispatcher, path);
+    PyObject *ctx_obj = (PyObject *)wrouter_resolve(self->inner->dispatcher, path);
 
-    if (!ctx)
-        Py_RETURN_NONE;
+    if (!ctx_obj)
+        ctx_obj = Py_None;
 
-    const PyRouteCtx *rc = (const PyRouteCtx *)ctx;
+    PyObject *params = PyDict_New();
+    if (!params) {
+        return NULL;
+    }
 
-    if (rc->is_string)
-        return PyUnicode_FromString(PyUnicode_AsUTF8(rc->value));
-
-    Py_INCREF(rc->value);
-    return rc->value;
+    return PyTuple_Pack(2, ctx_obj, params);
 }
 
 static PyMethodDef PyDispatcher_methods[] = {
