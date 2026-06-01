@@ -13,8 +13,8 @@ typedef struct {
     const char *request;
     const wrouter_params_t *params;
     bool seen;
-    bool retained;
-    bool released;
+    int retained;
+    int released;
 } terminal_test_case_t;
 
 static void cb_retain(const void *ctx)
@@ -22,7 +22,7 @@ static void cb_retain(const void *ctx)
     if (ctx == NULL)
         return;
 
-    ((terminal_test_case_t *)ctx)->retained = true;
+    ((terminal_test_case_t *)ctx)->retained++;
 }
 
 static void cb_release(const void *ctx)
@@ -30,7 +30,7 @@ static void cb_release(const void *ctx)
     if (ctx == NULL)
         return;
 
-    ((terminal_test_case_t *)ctx)->released = true;
+    ((terminal_test_case_t *)ctx)->released++;
 }
 
 static void cb_ignore(void *dispatch_ctx, const void *route_ctx, const wrouter_params_t *params)
@@ -247,31 +247,40 @@ void test_router_basic(void)
         assert(wrouter_add_route(builder, cases[i].pattern, route) == 0);
     }
 
-    // builder_print_tree(builder);
+    builder_print_tree(builder);
 
     // Check stats.
     graph_stats_t stats = { 0 };
     graph_stats(builder->root, &stats);
     assert(stats.terminals == n);
     for (size_t i = 0; i < n; i++) {
-        assert(!cases[i].retained);
-        assert(!cases[i].released);
+        assert(cases[i].retained == 1);
+        assert(cases[i].released == 0);
     }
-    assert(!fallback_tc.retained);
-    assert(!fallback_tc.released);
+    assert(fallback_tc.retained == 1);
+    assert(fallback_tc.released == 0);
 
     // Compile.
     wrouter_t *router = wrouter_compile(builder);
-    wrouter_builder_free(builder);
-    assert(router != NULL);
 
     assert(wrouter_route_count(router) == n);
     for (size_t i = 0; i < n; i++) {
-        assert(cases[i].retained);
-        assert(!cases[i].released);
+        assert(cases[i].retained == 2);
+        assert(cases[i].released == 0);
     }
-    assert(fallback_tc.retained);
-    assert(!fallback_tc.released);
+    assert(fallback_tc.retained == 2);
+    assert(fallback_tc.released == 0);
+
+    // Free the builder.
+    wrouter_builder_free(builder);
+
+    assert(router != NULL);
+    for (size_t i = 0; i < n; i++) {
+        assert(cases[i].retained == 2);
+        assert(cases[i].released == 1);
+    }
+    assert(fallback_tc.retained == 2);
+    assert(fallback_tc.released == 1);
 
     // Dispatch.
     wrouter_dispatcher_t *dispatcher = wrouter_dispatcher_create(router);
@@ -310,11 +319,11 @@ void test_router_basic(void)
     wrouter_free(router);
 
     for (size_t i = 0; i < n; i++) {
-        assert(cases[i].retained);
-        assert(cases[i].released);
+        assert(cases[i].retained == 2);
+        assert(cases[i].released == 2);
     }
-    assert(fallback_tc.retained);
-    assert(fallback_tc.released);
+    assert(fallback_tc.retained == 2);
+    assert(fallback_tc.released == 2);
 }
 
 void test_router_not_found(void)
