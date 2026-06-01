@@ -2,8 +2,8 @@
 #include "router.h"
 #include "lexer.h"
 
-struct dispatcher {
-    const struct router *router;
+struct wrouter_dispatcher {
+    const wrouter_t *router;
     lexer_t lx;
-    struct params params;
+    wrouter_params_t params;
 };

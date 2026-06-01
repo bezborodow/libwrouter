@@ -27,11 +27,11 @@ typedef enum {
 /**
  * Router.
  */
-typedef struct router wrouter_t;
-typedef struct builder wrouter_builder_t;
-typedef struct dispatcher wrouter_dispatcher_t;
+typedef struct wrouter_router wrouter_t;
+typedef struct wrouter_builder wrouter_builder_t;
+typedef struct wrouter_dispatcher wrouter_dispatcher_t;
 
-typedef struct param {
+typedef struct {
     const char *name;
     const char *value;
     uint16_t length;
@@ -45,22 +45,22 @@ typedef struct { // TODO use this.
 /**
  * Null-terminated params.
  */
-typedef struct param_nt {
+typedef struct {
     const char *name;
     const char *value;
 } wrouter_param_nt_t;
 
-typedef struct params {
+typedef struct {
     wrouter_param_t *base;
     uint32_t count;
 } wrouter_params_t;
 
-typedef struct params_nt {
+typedef struct {
     wrouter_param_nt_t *base;
     uint32_t count;
 } wrouter_params_nt_t;
 
-typedef struct params_snapshot {
+typedef struct {
     wrouter_params_nt_t params;
     char *region;
 } wrouter_params_snapshot_t;
@@ -70,7 +70,7 @@ typedef void (*wrouter_handler_fn)(void *dispatch_ctx, const void *route_ctx,
 
 typedef void (*wrouter_reference_fn)(const void *ctx);
 
-typedef struct route {
+typedef struct {
     wrouter_handler_fn handler;
     const void *ctx;
 } wrouter_route_t;
@@ -81,7 +81,7 @@ typedef enum {
     WROUTER_SYNTAX_ANGLE, // <id>
 } wrouter_param_syntax_t;
 
-typedef struct wrouter_options {
+typedef struct {
     wrouter_handler_fn fallback_handler;
     const void *fallback_ctx; // TODO const is new change. Make sure it doesn't break anything.
     wrouter_param_syntax_t param_syntax;

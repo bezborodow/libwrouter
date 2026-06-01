@@ -129,7 +129,7 @@ static void print_route_node(const segment_t *seg, int depth, int is_param)
     }
 }
 
-void builder_print_tree(const struct builder *builder)
+void builder_print_tree(const wrouter_builder_t *builder)
 {
     if (builder == NULL || builder->root == NULL) {
         printf("(empty)\n");
@@ -282,7 +282,7 @@ void test_router_basic(void)
     wrouter_builder_t *builder = wrouter_builder_create(options);
 
     // Route handler.
-    struct route route = { cb_test, NULL };
+    wrouter_route_t route = { cb_test, NULL };
 
     // Add routes.
     size_t n = sizeof(cases) / sizeof(cases[0]);
@@ -382,7 +382,7 @@ void test_router_not_found(void)
     wrouter_builder_t *builder = wrouter_builder_create(options);
 
     // Route handler.
-    struct route route = { cb_ignore, NULL };
+    wrouter_route_t route = { cb_ignore, NULL };
 
     // Add routes.
     assert(wrouter_add_route(builder, "/hello/world", route) == 0);
@@ -462,7 +462,7 @@ void test_router_top_wildcard_is_not_root(void)
     wrouter_builder_t *builder = wrouter_builder_create(options);
 
     // Route handler.
-    struct route route = { cb_ignore, NULL };
+    wrouter_route_t route = { cb_ignore, NULL };
 
     // Add routes.
     assert(wrouter_add_route(builder, "/*", route) == 0);

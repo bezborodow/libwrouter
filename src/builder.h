@@ -14,11 +14,11 @@ typedef enum {
 } special_type_t;
 
 typedef struct wildcard {
-    struct route route;
+    wrouter_route_t route;
 } wildcard_t;
 
 typedef struct trailing {
-    struct route route;
+    wrouter_route_t route;
 } trailing_t;
 
 typedef union {
@@ -28,7 +28,7 @@ typedef union {
 
 struct segment {
     const char *str;
-    struct route route;
+    wrouter_route_t route;
     segment_t **children;
     trailing_t *trailing;
     special_u special;
@@ -49,13 +49,13 @@ typedef struct {
     size_t capacity;
 } preroute_table_t;
 
-struct builder {
+struct wrouter_builder {
     segment_t *root;
     preroute_table_t routes;
     arena_t arena;
     symbol_table_t literals;
     symbol_table_t params;
-    struct route fallback;
+    wrouter_route_t fallback;
     wrouter_reference_fn retain;
     wrouter_reference_fn release;
     wrouter_param_syntax_t param_syntax;

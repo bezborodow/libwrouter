@@ -10,7 +10,7 @@ void test_params_copy(void)
 
     // Create params in its own scope.
     {
-        struct params params = { 0 };
+        wrouter_params_t params = { 0 };
         symbol_table_t table = { 0 };
         wrouter_param_t *param = NULL;
 
