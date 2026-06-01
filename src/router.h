@@ -46,8 +46,8 @@ struct router {
     struct route fallback;
     size_t max_params;
     size_t num_routes;
-    wrouter_ctx_retain_fn retain_ctx;
-    wrouter_ctx_release_fn release_ctx;
+    wrouter_reference_fn retain;
+    wrouter_reference_fn release;
 };
 
 struct router_options {

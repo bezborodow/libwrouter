@@ -51,8 +51,8 @@ struct builder {
     symbol_table_t literals;
     symbol_table_t params;
     struct route fallback;
-    wrouter_ctx_retain_fn retain_ctx;
-    wrouter_ctx_release_fn release_ctx;
+    wrouter_reference_fn retain;
+    wrouter_reference_fn release;
     wrouter_param_syntax_t param_syntax;
 };
 

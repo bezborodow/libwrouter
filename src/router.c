@@ -160,9 +160,9 @@ void wrouter_free(struct router *router)
     if (router == NULL)
         return;
 
-    if (router->release_ctx != NULL)
+    if (router->release != NULL)
         for (uint16_t i = 0; i < router->terminals.count; i++)
-            router->release_ctx(router->terminals.base[i].ctx);
+            router->release(router->terminals.base[i].ctx);
 
     free(router->literals.region);
     free(router->literals.base);

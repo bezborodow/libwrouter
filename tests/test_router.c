@@ -249,7 +249,7 @@ void test_router_basic(void)
         assert(wrouter_add_route(builder, cases[i].pattern, route) == 0);
     }
 
-    builder_print_tree(builder);
+    // builder_print_tree(builder);
 
     // Check stats.
     graph_stats_t stats = { 0 };
@@ -316,7 +316,7 @@ void test_router_not_found(void)
     // Add routes.
     assert(wrouter_add_route(builder, "/hello/world", route) == 0);
 
-    builder_print_tree(builder);
+    // builder_print_tree(builder);
 
     // Compile.
     wrouter_t *router = wrouter_compile(builder);
@@ -360,7 +360,7 @@ void test_router_end_wildcard(void)
     assert(wrouter_add_handler(builder, "/*", cb_watch) == 0);
     assert(wrouter_add_handler(builder, "/literal", cb_ignore) == 0);
 
-    builder_print_tree(builder);
+    // builder_print_tree(builder);
 
     // Compile.
     wrouter_t *router = wrouter_compile(builder);
