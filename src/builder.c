@@ -135,6 +135,7 @@ int wrouter_add_route(struct builder *builder, const char *pattern, struct route
 
         switch (tok.type) {
             case TOKEN_END:
+            case TOKEN_TRAILING:
                 // Check for duplicate routes.
                 if (cur->terminal)
                     return -1;

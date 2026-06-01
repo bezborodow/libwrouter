@@ -13,7 +13,7 @@ static void test_lexer_root(void)
     lexer_load(&lx, path, strlen(path));
 
     tok = lexer_next(&lx);
-    ASSERT_TOKEN_TYPE(tok, TOKEN_END);
+    ASSERT_TOKEN_TYPE(tok, TOKEN_TRAILING);
     assert(tok.length == 0);
 }
 
