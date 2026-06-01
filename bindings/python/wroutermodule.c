@@ -11,6 +11,8 @@ static struct PyModuleDef moduledef = {
     PyModuleDef_HEAD_INIT, "wrouter", NULL, -1, module_methods, NULL, NULL, NULL, NULL
 };
 
+PyObject *WrouterRouteError = NULL;
+
 static PyObject *PyParamSyntax_COLON;
 static PyObject *PyParamSyntax_BRACE;
 static PyObject *PyParamSyntax_ANGLE;
@@ -48,6 +50,12 @@ PyMODINIT_FUNC PyInit_wrouter(void)
     if (PyType_Ready(&PyParamSyntaxType) < 0)
         goto failure;
 
+    WrouterRouteError = PyErr_NewException(
+        "wrouter.RouteError",
+        PyExc_Exception,
+        NULL
+    );
+
     PyParamSyntax_COLON = PyParamSyntax_New(WROUTER_SYNTAX_COLON);
     PyParamSyntax_BRACE = PyParamSyntax_New(WROUTER_SYNTAX_BRACE);
     PyParamSyntax_ANGLE = PyParamSyntax_New(WROUTER_SYNTAX_ANGLE);
@@ -58,6 +66,8 @@ PyMODINIT_FUNC PyInit_wrouter(void)
     Py_INCREF(PyParamSyntax_COLON);
     Py_INCREF(PyParamSyntax_BRACE);
     Py_INCREF(PyParamSyntax_ANGLE);
+
+    PyModule_AddObject(m, "RouteError", WrouterRouteError);
 
     PyModule_AddObject(m, "COLON", PyParamSyntax_COLON);
     PyModule_AddObject(m, "BRACE", PyParamSyntax_BRACE);

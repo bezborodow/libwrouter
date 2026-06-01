@@ -1,4 +1,5 @@
 #include "wrouter.h"
+#include "wroutermodule.h"
 #include "builder.h"
 #include "router.h"
 #include <pthread.h>
@@ -117,8 +118,13 @@ static PyObject *PyBuilder_add(PyBuilderObject *self, PyObject *args)
         return NULL;
     }
 
-    if (wrouter_add_context(self->inner->builder, pattern, ctx) != 0) {
-        PyErr_SetString(PyExc_RuntimeError, "Unable to add route.");
+    wrouter_error_t err = wrouter_add_context(self->inner->builder, pattern, ctx);
+
+    if (err == WROUTER_ERR_NO_MEMORY)
+        return PyErr_NoMemory();
+
+    if (err != WROUTER_OK) {
+        PyErr_SetString(WrouterRouteError, wrouter_strerror(err));
         return NULL;
     }
 

@@ -9,11 +9,11 @@ const char *wrouter_strerror(wrouter_error_t err)
         case WROUTER_ERR_NO_MEMORY:
             return "The operation failed due to insufficient memory.";
 
-        case WROUTER_ERR_ILLEGAL_TOKEN:
-            return "The route pattern contains an illegal token.";
+        case WROUTER_ERR_ILLEGAL_PATTERN:
+            return "The route pattern is illegal.";
 
         case WROUTER_ERR_DUPLICATE_ROUTE:
-            return "The route is a duplicate of an existing route.";
+            return "The route is a duplicate.";
 
         case WROUTER_ERR_LITERAL_CONFLICTS_WITH_PARAM:
             return "A literal segment conflicts with an existing parameter segment.";
