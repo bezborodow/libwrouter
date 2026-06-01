@@ -20,7 +20,7 @@ typedef struct {
 static void cb_retain(const void *ctx)
 {
     if (ctx == NULL)
-        return;
+        assert(0);
 
     ((terminal_test_case_t *)ctx)->retained++;
 }
@@ -28,7 +28,7 @@ static void cb_retain(const void *ctx)
 static void cb_release(const void *ctx)
 {
     if (ctx == NULL)
-        return;
+        assert(0);
 
     ((terminal_test_case_t *)ctx)->released++;
 }
