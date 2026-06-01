@@ -3,6 +3,28 @@
 #include <stddef.h>
 
 /**
+ * Router/builder error codes.
+ */
+typedef enum {
+    WROUTER_OK = 0,
+
+    WROUTER_ERR_NO_MEMORY,
+
+    WROUTER_ERR_ILLEGAL_TOKEN,
+
+    WROUTER_ERR_DUPLICATE_ROUTE,
+
+    WROUTER_ERR_LITERAL_CONFLICTS_WITH_PARAM,
+
+    WROUTER_ERR_PARAM_CONFLICTS_WITH_WILDCARD,
+    WROUTER_ERR_PARAM_CONFLICTS_WITH_LITERAL,
+    WROUTER_ERR_PARAM_NAME_MISMATCH,
+
+    WROUTER_ERR_WILDCARD_CONFLICTS_WITH_PARAM,
+    WROUTER_ERR_WILDCARD_NOT_FINAL,
+} wrouter_error_t;
+
+/**
  * Router.
  */
 typedef struct router wrouter_t;

@@ -1,3 +1,4 @@
+#include "token.h"
 #include "wrouter.h"
 #include "router.h"
 #include "builder.h"
@@ -137,7 +138,7 @@ int wrouter_add_route(struct builder *builder, const char *pattern, struct route
             case TOKEN_END:
                 // Check for duplicate routes.
                 if (cur->terminal)
-                    return -1;
+                    return WROUTER_ERR_DUPLICATE_ROUTE;
 
                 // TERMINATE!
                 // Append node terminal route.
@@ -151,7 +152,7 @@ int wrouter_add_route(struct builder *builder, const char *pattern, struct route
             case TOKEN_LITERAL: {
                 // Literals are incompatible with parameters.
                 if (cur->spec_type == SPEC_PARAM)
-                    return -1;
+                    return WROUTER_ERR_LITERAL_CONFLICTS_WITH_PARAM;
 
                 // Check for an existing child.
                 segment_t *child = find_child(cur, tok);
@@ -161,18 +162,18 @@ int wrouter_add_route(struct builder *builder, const char *pattern, struct route
 
                     const char *strptr = symbol_append(&builder->literals, tok.ptr, tok.length);
                     if (strptr == NULL)
-                        return -1;
+                        return WROUTER_ERR_NO_MEMORY;
 
                     // Append child.
                     segment_t **new_children =
                         realloc(cur->children, sizeof(segment_t *) * (cur->child_count + 1));
                     if (new_children == NULL)
-                        return -1;
+                        return WROUTER_ERR_NO_MEMORY;
                     cur->children = new_children;
 
                     child = calloc(1, sizeof(segment_t));
                     if (child == NULL)
-                        return -1;
+                        return WROUTER_ERR_NO_MEMORY;
 
                     child->str = strptr;
                     child->str_length = tok.length;
@@ -186,28 +187,28 @@ int wrouter_add_route(struct builder *builder, const char *pattern, struct route
             case TOKEN_PARAM: {
                 // Parameters are incompatible with wildcards.
                 if (cur->spec_type == SPEC_WILDCARD)
-                    return -1;
+                    return WROUTER_ERR_PARAM_CONFLICTS_WITH_WILDCARD;
 
                 // Parameters are incompatible with literals.
                 if (cur->child_count)
-                    return -1;
+                    return WROUTER_ERR_PARAM_CONFLICTS_WITH_LITERAL;
 
                 if (cur->spec_type == SPEC_PARAM) {
 
                     // If a parameter is already assigned, it should have the same name.
                     if (!token_matches(tok, cur->special.param))
-                        return -1;
+                        return WROUTER_ERR_PARAM_NAME_MISMATCH;
 
                 } else {
 
                     // Append parameter.
                     const char *strptr = symbol_append(&builder->params, tok.ptr, tok.length);
                     if (strptr == NULL)
-                        return -1;
+                        return WROUTER_ERR_NO_MEMORY;
 
                     segment_t *param = calloc(1, sizeof(segment_t));
                     if (param == NULL)
-                        return -1;
+                        return WROUTER_ERR_NO_MEMORY;
 
                     param->str = strptr;
                     param->str_length = tok.length;
@@ -223,22 +224,22 @@ int wrouter_add_route(struct builder *builder, const char *pattern, struct route
             case TOKEN_WILDCARD: {
                 // Check that a wildcard is not already assigned.
                 if (cur->spec_type == SPEC_WILDCARD)
-                    return -1;
+                    return WROUTER_ERR_DUPLICATE_ROUTE;
 
                 // Wildcards are incompatible with parameters.
                 if (cur->spec_type == SPEC_PARAM)
-                    return -1;
+                    return WROUTER_ERR_WILDCARD_CONFLICTS_WITH_PARAM;
 
-                // Wildcards must be terminal.
+                // Wildcards must be at the end of the pattern string.
                 tok = prelexer_next(&lx);
                 if (tok.type != TOKEN_END)
-                    return -1;
+                    return WROUTER_ERR_WILDCARD_NOT_FINAL;
 
                 // TERMINATE!
                 // Append wildcard terminal route.
                 cur->special.wildcard = calloc(1, sizeof(wildcard_t));
                 if (cur->special.wildcard == NULL)
-                    return -1;
+                    return WROUTER_ERR_NO_MEMORY;
                 cur->spec_type = SPEC_WILDCARD;
                 cur->special.wildcard->route = route;
 
@@ -251,13 +252,13 @@ int wrouter_add_route(struct builder *builder, const char *pattern, struct route
             case TOKEN_TRAILING: {
                 // Check that a trailing-slash is not already assigned.
                 if (cur->trailing)
-                    return -1;
+                    return WROUTER_ERR_DUPLICATE_ROUTE;
 
                 // TERMINATE!
                 // Append trailing-slash terminal route.
                 cur->trailing = calloc(1, sizeof(trailing_t));
                 if (cur->trailing == NULL)
-                    return -1;
+                    return WROUTER_ERR_NO_MEMORY;
                 cur->trailing->route = route;
 
                 if (builder->retain != NULL)
@@ -268,7 +269,7 @@ int wrouter_add_route(struct builder *builder, const char *pattern, struct route
 
             case TOKEN_ILLEGAL:
             default:
-                return -1;
+                return WROUTER_ERR_ILLEGAL_TOKEN;
         }
     }
 
