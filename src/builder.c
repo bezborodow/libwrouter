@@ -9,11 +9,18 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+/**
+ * Align the cursor to the next memory location for a given alignment.
+ */
 static inline uintptr_t align_up(size_t cursor, size_t align)
 {
     return (cursor + align - 1) & ~(align - 1);
 }
 
+/**
+ * Add to the summation of the total size of memory required by graph edges and
+ * nodes with consideration for alignment.
+ */
 static void size_up(size_t *total_size, size_t align, size_t size)
 {
     if (!size)
@@ -61,13 +68,19 @@ failure:
     return NULL;
 }
 
+/**
+ * Check if a token matches against a given segment.
+ */
 static bool token_matches(token_t tok, const segment_t *seg)
 {
     return seg->str && tok.ptr && tok.length == seg->str_length &&
            strncmp(tok.ptr, seg->str, tok.length) == 0;
 }
 
-static segment_t *find_child(segment_t *segment, token_t tok)
+/**
+ * Find a child of a segment by token.
+ */
+static segment_t *find_child_by_token(segment_t *segment, token_t tok)
 {
     if (tok.ptr == NULL)
         return NULL;
@@ -155,7 +168,7 @@ int wrouter_add_route(wrouter_builder_t *builder, const char *pattern, wrouter_r
                     return WROUTER_ERR_LITERAL_CONFLICTS_WITH_PARAM;
 
                 // Check for an existing child.
-                segment_t *child = find_child(cur, tok);
+                segment_t *child = find_child_by_token(cur, tok);
 
                 // If not, create one.
                 if (child == NULL) {
@@ -347,7 +360,7 @@ static node_t *graph_compile(wrouter_t *router, const segment_t *segment, size_t
         router->terminals.base[router->terminals.count++] = segment->route;
 
         // Retain context.
-        // Callback to retain context reference count for garbage colllection if
+        // Callback to retain context reference count for garbage collection if
         // required (for example, the Python library needs this.)
         if (router->retain != NULL)
             router->retain(segment->route.ctx);
@@ -441,6 +454,12 @@ static node_t *graph_compile(wrouter_t *router, const segment_t *segment, size_t
     return node;
 }
 
+/**
+ * Calculate graph statistics by traversing the route tree.
+ *
+ * Amongst other things, this will allow the builder to allocate the exact
+ * amount of memory required for building the route graph.
+ */
 void graph_stats(const segment_t *seg, graph_stats_t *stats)
 {
     stats->nodes++;
@@ -487,7 +506,7 @@ void graph_stats(const segment_t *seg, graph_stats_t *stats)
             stats->nodes++;
             stats->terminals++;
 
-            // TODO reserve space for future wildcard param '_' implementation.
+            // Reserve space for wildcard parameter.
             if (stats->param_depth >= stats->max_params)
                 stats->max_params++;
 
