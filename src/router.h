@@ -35,8 +35,8 @@ typedef struct symbols {
  */
 typedef struct terminals {
     wrouter_route_t *base; // Routes.
-    uint16_t *refs;     // List of node offsets, being the key to the route.
-    uint16_t count;     // Number of terminals.
+    uint16_t *refs;        // List of node offsets, being the key to the route.
+    uint16_t count;        // Number of terminals.
 } terminals_t;
 
 struct wrouter_router {

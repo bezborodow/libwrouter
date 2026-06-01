@@ -119,3 +119,20 @@ void params_nt_free(wrouter_params_nt_t *params)
 
     free(params->base);
 }
+
+const wrouter_param_t *wrouter_param(const wrouter_params_t *params, const char *name)
+{
+    for (uint32_t i = 0; i < params->count; i++)
+        if (strcmp(params->base[i].name, name) == 0)
+            return &params->base[i];
+
+    return NULL;
+}
+
+const wrouter_param_t *wrouter_iparam(const wrouter_params_t *params, uint32_t index)
+{
+    if (index > params->count)
+        return NULL;
+
+    return &params->base[index];
+}

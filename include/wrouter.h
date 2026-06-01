@@ -37,11 +37,6 @@ typedef struct {
     uint16_t length;
 } wrouter_param_t;
 
-typedef struct { // TODO use this.
-    const char *str;
-    uint16_t length;
-} wrouter_value_t;
-
 /**
  * Null-terminated params.
  */
@@ -83,7 +78,7 @@ typedef enum {
 
 typedef struct {
     wrouter_handler_fn fallback_handler;
-    const void *fallback_ctx; // TODO const is new change. Make sure it doesn't break anything.
+    const void *fallback_ctx;
     wrouter_param_syntax_t param_syntax;
     wrouter_reference_fn retain;
     wrouter_reference_fn release;
@@ -113,6 +108,8 @@ void wrouter_ndispatch(wrouter_dispatcher_t *dispatcher, const char *path, size_
 const void *wrouter_nresolve(wrouter_dispatcher_t *dispatcher, const char *path, size_t length);
 const void *wrouter_resolve(wrouter_dispatcher_t *dispatcher, const char *path);
 const wrouter_params_t *wrouter_params(const wrouter_dispatcher_t *dispatcher);
+const wrouter_param_t *wrouter_iparam(const wrouter_params_t *params, uint32_t index);
+const wrouter_param_t *wrouter_param(const wrouter_params_t *params, const char *name);
 
 wrouter_params_snapshot_t *wrouter_params_copy(const wrouter_params_t *params);
 void wrouter_snapshot_free(wrouter_params_snapshot_t *snapshot);
