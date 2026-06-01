@@ -159,6 +159,10 @@ void test_router_basic(void)
             .request = "/downloads/",
         },
         {
+            .pattern = "/downloads",
+            .request = "/downloads",
+        },
+        {
             .pattern = "/",
             .request = "/",
         },

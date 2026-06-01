@@ -8,6 +8,7 @@
 #define NODE_FLAG_TERMINAL 1
 #define NODE_FLAG_HAS_PARAM 2
 #define NODE_FLAG_HAS_WILDCARD 4
+#define NODE_FLAG_HAS_TRAILING 8
 
 typedef struct node {
     uint8_t literals; // Number of literal edges.

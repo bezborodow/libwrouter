@@ -51,7 +51,7 @@ const struct route *route_match(struct dispatcher *d)
     const struct router *router = d->router;
     const void *g = router->graph;
     const node_t *cur = g;
-    const edge_t *l_edge = NULL, *s_edge = NULL, *w_edge = NULL, *l_edge_base = NULL;
+    const edge_t *l_edge_base = NULL, *l_edge = NULL, *s_edge = NULL, *w_edge = NULL, *t_edge = NULL;
 
     // Check for an empty graph, which is valid, but will never match anything.
     if (g == NULL)
@@ -74,6 +74,11 @@ lexer_next:
     // there is only ever one or zero special edges.
     if (cur->flags & (NODE_FLAG_HAS_PARAM | NODE_FLAG_HAS_WILDCARD))
         l_edge_base++;
+
+    // The trailing-slash edge is stored after the special edge if it exists,
+    // otherwise immediately after the node.
+    if (cur->flags & NODE_FLAG_HAS_TRAILING)
+        t_edge = l_edge_base++;
 
     // Remember the most specific wildcard edge, if present.
     if (cur->flags & NODE_FLAG_HAS_WILDCARD)
@@ -129,9 +134,15 @@ lexer_next:
             // Not found.
             goto not_found;
 
+        // Trailing-slash token.
+        case TOKEN_TRAILING:
+            if (cur->flags & NODE_FLAG_HAS_TRAILING)
+                goto trailing;
+
+            goto not_found;
+
         // End token.
         case TOKEN_END:
-        case TOKEN_TRAILING:
 
             // Check for terminal.
             if (cur->flags & NODE_FLAG_TERMINAL)
@@ -142,12 +153,19 @@ lexer_next:
     }
 
 not_found:
+    // Not found; no parameters.
     d->params.count = 0;
     return NULL;
+
+trailing:
+    // Follow the trailing-slash edge, and terminate.
+    cur = next_node(g, t_edge);
+    goto terminal;
 
 wildcard:
     // Follow the wildcard edge and terminate.
     cur = next_node(g, w_edge);
+    goto terminal;
 
 terminal:
     return terminal_lookup(router, graph_offset(g, cur));

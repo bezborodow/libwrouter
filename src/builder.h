@@ -17,6 +17,10 @@ typedef struct wildcard {
     struct route route;
 } wildcard_t;
 
+typedef struct trailing {
+    struct route route;
+} trailing_t;
+
 typedef union {
     segment_t *param;
     wildcard_t *wildcard;
@@ -26,6 +30,7 @@ struct segment {
     const char *str;
     struct route route;
     segment_t **children;
+    trailing_t *trailing;
     special_u special;
     special_type_t spec_type;
     uint16_t child_count;
