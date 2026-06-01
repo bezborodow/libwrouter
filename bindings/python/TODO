@@ -6,6 +6,8 @@ Error messages and exceptions.
 
 Support handler and context functions.
 
+Support fallback routes.
+
 Better interface:
 
     from wrouter import build_router, Dispatcher
