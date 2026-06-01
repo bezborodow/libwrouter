@@ -152,6 +152,11 @@ verbosely descriptive, whilst the proxy rewrite engine provides a more
 accessible, concise, and convenient view that maps to the Web application.  For
 Web APIs, rewriting is not necessary except for aliases at the directory-level.
 
+## Limitations
+
+This is not an HTTP parser; as such, request paths containing query parameters
+such as `/foo/bar?query=hi` will fail to match.
+
 ## Building
 
 Compile:
