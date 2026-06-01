@@ -43,6 +43,8 @@ struct builder *wrouter_builder_create(const wrouter_options_t options)
     builder->fallback.ctx = options.fallback_ctx;
     builder->retain = options.retain;
     builder->release = options.release;
+    if (builder->retain)
+        builder->retain(builder->fallback.ctx);
 
     builder->root = calloc(1, sizeof(segment_t));
     if (builder->root == NULL)
@@ -137,9 +139,13 @@ int wrouter_add_route(struct builder *builder, const char *pattern, struct route
                 if (cur->terminal)
                     return -1;
 
-                // Terminate route.
+                // TERMINATE!
+                // Append node terminal route.
                 cur->route = route;
                 cur->terminal = true;
+                if (builder->retain != NULL)
+                    builder->retain(route.ctx);
+
                 return 0;
 
             case TOKEN_LITERAL: {
@@ -224,12 +230,17 @@ int wrouter_add_route(struct builder *builder, const char *pattern, struct route
                 if (tok.type != TOKEN_END)
                     return -1;
 
-                // Append wildcard.
+                // TERMINATE!
+                // Append wildcard terminal route.
                 cur->special.wildcard = calloc(1, sizeof(wildcard_t));
                 if (cur->special.wildcard == NULL)
                     return -1;
                 cur->spec_type = SPEC_WILDCARD;
                 cur->special.wildcard->route = route;
+
+                if (builder->retain != NULL)
+                    builder->retain(route.ctx);
+
                 return 0;
             }
 
@@ -563,6 +574,38 @@ static void segment_free(segment_t *segment)
     free(segment);
 }
 
+static void segment_release(wrouter_builder_t *builder, const segment_t *seg)
+{
+    for (uint16_t i = 0; i < seg->child_count; i++) {
+        segment_release(builder, seg->children[i]);
+    }
+
+    switch (seg->spec_type) {
+        case SPEC_PARAM:
+            segment_release(builder, seg->special.param);
+            break;
+
+        case SPEC_WILDCARD:
+            builder->release(seg->special.wildcard->route.ctx);
+            break;
+
+        case SPEC_NONE:
+            break;
+    }
+
+    builder->release(seg->route.ctx);
+}
+
+static void builder_release(wrouter_builder_t *builder)
+{
+    if (builder->release == NULL)
+        return;
+
+    segment_release(builder, builder->root);
+
+    builder->release(builder->fallback.ctx);
+}
+
 /**
  * Free the route tree builder.
  *
@@ -574,9 +617,16 @@ void wrouter_builder_free(struct builder *builder)
     if (builder == NULL)
         return;
 
+    // Release all route contexts.
+    builder_release(builder);
+
+    // Free literal and parameter symbol tables.
     symbol_table_free(&builder->literals);
     symbol_table_free(&builder->params);
 
+    // Free all segments.
     segment_free(builder->root);
+
+    // Free the builder.
     free(builder);
 }
