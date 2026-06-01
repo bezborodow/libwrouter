@@ -1,4 +1,3 @@
-from _pytest.reports import _report_unserialization_failure
 import pytest
 import wrouter
 
@@ -110,6 +109,7 @@ def test_invalid_routes(route):
 
 
 def test_unexpected_parameter_usage():
+    # Expect that segment "ticket:ticket_id" will resolve to a literal string.
     builder = wrouter.Builder()
     builder.add("/board/:board_id/ticket:ticket_id", "board.ticket"),
     router = builder.compile()
