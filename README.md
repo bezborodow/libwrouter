@@ -129,12 +129,14 @@ Parameters at the same level must share the same name.
  - `/repos/:user/:repo` and `/repos/:user/:repo/tree/:branch/*`
  - `/project/:id` and `/project/:project_id/accounts/:account_id` (incompatible!)
 
-Routes with trailing slashes are (currently) treated the same. This will change
-in the future, as this library is a work-in-progress. The following are
-equivalent:
+Routes with trailing slashes are distinct. The following are not equivalent:
 
- - `/test/`
  - `/test`
+ - `/test/`
+
+If it is desired to redirect from `/test` to `/test/`, this must be performed
+explicitly by adding both routes, of which the former will redirect to the
+latter.
 
 Flexibility is not a goal of this project.
 

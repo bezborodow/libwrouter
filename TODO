@@ -2,5 +2,4 @@ TODO
 
 Bounds checking.
 Error codes for add route.
-Support trailing '/'.
 Improve linear to binary search.

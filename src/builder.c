@@ -135,7 +135,6 @@ int wrouter_add_route(struct builder *builder, const char *pattern, struct route
 
         switch (tok.type) {
             case TOKEN_END:
-            case TOKEN_TRAILING:
                 // Check for duplicate routes.
                 if (cur->terminal)
                     return -1;
@@ -245,6 +244,24 @@ int wrouter_add_route(struct builder *builder, const char *pattern, struct route
                 return 0;
             }
 
+            case TOKEN_TRAILING: {
+                // Check that a trailing-slash is not already assigned.
+                if (cur->trailing)
+                    return -1;
+
+                // TERMINATE!
+                // Append trailing-slash terminal route.
+                cur->trailing = calloc(1, sizeof(trailing_t));
+                if (cur->trailing == NULL)
+                    return -1;
+                cur->trailing->route = route;
+
+                if (builder->retain != NULL)
+                    builder->retain(route.ctx);
+
+                return 0;
+            }
+
             case TOKEN_ILLEGAL:
             default:
                 return -1;
@@ -302,13 +319,25 @@ static edge_t *graph_append_edges(void *g, size_t *cursor, size_t nmemb)
 static node_t *graph_compile(struct router *router, const segment_t *segment, size_t *cursor)
 {
     void *g = router->graph;
+    node_t *node = NULL;
+    edge_t *p_edge = NULL, *w_edge = NULL, *t_edge = NULL;
 
     // Append node.
-    node_t *node = graph_append_node(g, cursor);
+    node = graph_append_node(g, cursor);
 
+    // Store number of literals.
     node->literals = segment->child_count;
+
+    // Terminate node.
     if (segment->terminal) {
+
+        // Store termination flag.
         node->flags |= NODE_FLAG_TERMINAL;
+
+        // Store route in the terminal parallel arrays.
+        // refs is the terminating node's graph offset. Searching for the
+        // offset yields an index that is used to lookup the terminal in the
+        // base array.
         router->terminals.refs[router->terminals.count] = graph_offset(g, node);
         router->terminals.base[router->terminals.count++] = segment->route;
 
@@ -319,9 +348,9 @@ static node_t *graph_compile(struct router *router, const segment_t *segment, si
             router->retain(segment->route.ctx);
     }
 
-    edge_t *p_edge = NULL, *w_edge = NULL;
-
+    // Special edges.
     switch (segment->spec_type) {
+        // Parameter edge.
         case SPEC_PARAM:
             node->flags |= NODE_FLAG_HAS_PARAM;
             p_edge = graph_append_edge(g, cursor);
@@ -329,6 +358,7 @@ static node_t *graph_compile(struct router *router, const segment_t *segment, si
                                             router->params.count);
             break;
 
+        // Wildcard edge.
         case SPEC_WILDCARD:
             node->flags |= NODE_FLAG_HAS_WILDCARD;
             w_edge = graph_append_edge(g, cursor);
@@ -336,6 +366,12 @@ static node_t *graph_compile(struct router *router, const segment_t *segment, si
 
         case SPEC_NONE:
             break;
+    }
+
+    // Trailing-slash edge is stored after the special edge if one exists.
+    if (segment->trailing != NULL) {
+        node->flags |= NODE_FLAG_HAS_TRAILING;
+        t_edge = graph_append_edge(g, cursor);
     }
 
     // Descend into literals.
@@ -384,6 +420,19 @@ static node_t *graph_compile(struct router *router, const segment_t *segment, si
             router->retain(segment->special.wildcard->route.ctx);
     }
 
+    // Append trailing node.
+    if (t_edge != NULL) {
+        node_t *t_node = graph_append_node(g, cursor);
+        t_node->flags |= NODE_FLAG_TERMINAL;
+        t_edge->next = graph_offset(g, t_node);
+        router->terminals.refs[router->terminals.count] = t_edge->next;
+        router->terminals.base[router->terminals.count++] = segment->trailing->route;
+
+        // Retain context.
+        if (router->retain != NULL)
+            router->retain(segment->trailing->route.ctx);
+    }
+
     return node;
 }
 
@@ -391,6 +440,10 @@ void graph_stats(const segment_t *seg, graph_stats_t *stats)
 {
     stats->nodes++;
     size_up(&stats->size, _Alignof(node_t), sizeof(node_t));
+
+    // Trailing-slash edge.
+    if (seg->trailing != NULL)
+        size_up(&stats->size, _Alignof(edge_t), sizeof(edge_t));
 
     // Special edges.
     switch (seg->spec_type) {
@@ -422,18 +475,31 @@ void graph_stats(const segment_t *seg, graph_stats_t *stats)
             stats->param_depth--;
             break;
 
+        // Wildcard node.
+        // A wildcard requires an edge, a node, and always terminates.
         case SPEC_WILDCARD:
             stats->edges++;
             stats->nodes++;
             stats->terminals++;
+
             // TODO reserve space for future wildcard param '_' implementation.
             if (stats->param_depth >= stats->max_params)
                 stats->max_params++;
+
             size_up(&stats->size, _Alignof(node_t), sizeof(node_t));
             break;
 
         case SPEC_NONE:
             break;
+    }
+
+    // Trailing-slash node.
+    // A trailing-slash requires an edge, a node, and always terminates.
+    if (seg->trailing != NULL) {
+        stats->edges++;
+        stats->nodes++;
+        stats->terminals++;
+        size_up(&stats->size, _Alignof(node_t), sizeof(node_t));
     }
 
     // Terminal node.
@@ -568,6 +634,9 @@ static void segment_free(segment_t *segment)
             break;
     }
 
+    if (segment->trailing)
+        free(segment->trailing);
+
     for (uint16_t i = 0; i < segment->child_count; i++)
         segment_free(segment->children[i]);
 
@@ -577,16 +646,19 @@ static void segment_free(segment_t *segment)
 
 static void segment_release(wrouter_builder_t *builder, const segment_t *seg)
 {
+    // Descend into literals.
     for (uint16_t i = 0; i < seg->child_count; i++) {
         segment_release(builder, seg->children[i]);
     }
 
     switch (seg->spec_type) {
         case SPEC_PARAM:
+            // Descend into parameters.
             segment_release(builder, seg->special.param);
             break;
 
         case SPEC_WILDCARD:
+            // Release wildcard route context.
             builder->release(seg->special.wildcard->route.ctx);
             break;
 
@@ -594,6 +666,11 @@ static void segment_release(wrouter_builder_t *builder, const segment_t *seg)
             break;
     }
 
+    // Release trailing-slash route context.
+    if (seg->trailing)
+        builder->release(seg->trailing->route.ctx);
+
+    // Release segment terminal route context.
     if (seg->terminal)
         builder->release(seg->route.ctx);
 }
@@ -603,8 +680,10 @@ static void builder_release(wrouter_builder_t *builder)
     if (builder->release == NULL)
         return;
 
+    // Release all route contexts in the tree.
     segment_release(builder, builder->root);
 
+    // Release fallback route context.
     builder->release(builder->fallback.ctx);
 }
 
