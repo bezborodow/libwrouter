@@ -131,7 +131,7 @@ const wrouter_param_t *wrouter_param(const wrouter_params_t *params, const char 
 
 const wrouter_param_t *wrouter_iparam(const wrouter_params_t *params, uint32_t index)
 {
-    if (index > params->count)
+    if (index >= params->count)
         return NULL;
 
     return &params->base[index];
