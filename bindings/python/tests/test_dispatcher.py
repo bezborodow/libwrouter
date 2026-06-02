@@ -1,5 +1,6 @@
 import pytest
 import wrouter
+import time
 
 
 def test_resolve_basic():
