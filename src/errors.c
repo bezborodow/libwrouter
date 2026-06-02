@@ -7,13 +7,16 @@ const char *wrouter_strerror(wrouter_error_t err)
             return "Success.";
 
         case WROUTER_ERR_NO_MEMORY:
-            return "The operation failed due to insufficient memory.";
+            return "Insufficient memory.";
+
+        case WROUTER_ERR_OUT_OF_RANGE:
+            return "Value or index out of range.";
 
         case WROUTER_ERR_ILLEGAL_PATTERN:
-            return "The route pattern is illegal.";
+            return "Malformed route pattern.";
 
         case WROUTER_ERR_DUPLICATE_ROUTE:
-            return "The route is a duplicate.";
+            return "Duplicate route.";
 
         case WROUTER_ERR_LITERAL_CONFLICTS_WITH_PARAM:
             return "A literal segment conflicts with an existing parameter segment.";
