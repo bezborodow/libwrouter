@@ -13,7 +13,7 @@ typedef struct {
     arena_t arena;
 } symbol_table_t;
 
-typedef struct symbols {
+typedef struct {
     const char **base;
     char *region;
     uint32_t count;

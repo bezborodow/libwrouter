@@ -8,12 +8,22 @@
 #define NODE_FLAG_HAS_WILDCARD 4
 #define NODE_FLAG_HAS_TRAILING 8
 
-typedef struct node {
+typedef struct {
+    size_t nodes;
+    size_t edges;
+    size_t symbolic_edges;
+    size_t terminals;
+    size_t size;
+    size_t param_depth;
+    size_t max_params;
+} graph_stats_t;
+
+typedef struct {
     uint8_t literals; // Number of literal edges.
     uint8_t flags;
 } node_t;
 
-typedef struct edge {
+typedef struct {
     uint16_t symbol;
     uint16_t next;
 } edge_t;
@@ -27,6 +37,6 @@ const node_t *next_node(const uint8_t *graph, const edge_t *edge);
 
 size_t graph_offset(const void *graph, const void *entry);
 
-void graph_stats(const segment_t *seg, graph_stats_t *stats);
+void graph_stats(const segment_t *segment, graph_stats_t *stats);
 
 node_t *graph_compile(wrouter_t *router, const segment_t *segment, size_t *cursor);

@@ -8,7 +8,7 @@ struct app {
     wrouter_t *router;
 };
 
-typedef struct app_dispatch_ctx {
+typedef struct {
     struct app *app;
     unsigned int code;
     struct MHD_Response *response;

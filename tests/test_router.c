@@ -3,6 +3,7 @@
 #include "params.h"
 #include "symbol.h"
 #include "builder.h"
+#include "graph.h"
 #include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
