@@ -155,6 +155,14 @@ terminal:
 }
 
 /**
+ * Number of terminal routes in the router.
+ */
+size_t wrouter_route_count(const wrouter_t *router)
+{
+    return router->num_routes;
+}
+
+/**
  * Free the router.
  */
 void wrouter_free(wrouter_t *router)
@@ -174,12 +182,4 @@ void wrouter_free(wrouter_t *router)
     terminals_free(&router->terminals);
     free(router->graph);
     free(router);
-}
-
-/**
- * Number of terminal routes in the router.
- */
-size_t wrouter_route_count(const wrouter_t *router)
-{
-    return router->num_routes;
 }
