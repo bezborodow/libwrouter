@@ -138,8 +138,12 @@ int main(int argc, char **argv)
     wrouter_add_handler(builder, "/", rcb_root);
     wrouter_add_handler_ctx(builder, "/hello/:addressee", rcb_hello, port);
 
-    app.router = wrouter_compile(builder);
+    wrouter_error_t rcerr;
+    app.router = wrouter_compile(builder, &rcerr);
     wrouter_builder_free(builder);
+
+    if (rcerr)
+        return 1;
 
     d = MHD_start_daemon(MHD_USE_THREAD_PER_CONNECTION, atoi(port), NULL, NULL, &ahc_echo, &app,
                          MHD_OPTION_END);

@@ -46,9 +46,15 @@ static PyObject *PyBuilder_compile(PyBuilderObject *self, PyObject *args)
     if (!obj->inner)
         return PyErr_NoMemory();
 
-    obj->inner->router = wrouter_compile(self->inner->builder);
-    if (!obj->inner->router)
+    wrouter_error_t err;
+    obj->inner->router = wrouter_compile(self->inner->builder, &err);
+    if (err == WROUTER_ERR_NO_MEMORY)
         return PyErr_NoMemory();
+
+    if (err != WROUTER_OK) {
+        PyErr_SetString(WrouterRouteError, wrouter_strerror(err));
+        return NULL;
+    }
 
     return (PyObject *)obj;
 }
