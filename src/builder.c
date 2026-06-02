@@ -12,7 +12,7 @@
 #include <stddef.h>
 #include <limits.h>
 
-static inline void builder_retain(wrouter_builder_t *builder, const wrouter_route_t *route)
+static inline void builder_retain(const wrouter_builder_t *builder, const wrouter_route_t *route)
 {
     if (builder->retain != NULL)
         builder->retain(route->ctx);

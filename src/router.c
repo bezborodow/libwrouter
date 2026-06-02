@@ -10,7 +10,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-inline void router_retain(wrouter_t *router, const wrouter_route_t *route)
+inline void router_retain(const wrouter_t *router, const wrouter_route_t *route)
 {
     if (router->retain != NULL)
         router->retain(route->ctx);
