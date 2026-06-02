@@ -13,11 +13,11 @@ typedef enum {
     SPEC_WILDCARD,
 } special_type_t;
 
-typedef struct wildcard {
+typedef struct {
     wrouter_route_t route;
 } wildcard_t;
 
-typedef struct trailing {
+typedef struct {
     wrouter_route_t route;
 } trailing_t;
 
@@ -60,15 +60,3 @@ struct wrouter_builder {
     wrouter_reference_fn release;
     wrouter_param_syntax_t param_syntax;
 };
-
-typedef struct graph_stats {
-    size_t nodes;
-    size_t edges;
-    size_t symbolic_edges;
-    size_t terminals;
-    size_t size;
-    size_t param_depth;
-    size_t max_params;
-} graph_stats_t;
-
-void graph_stats(const segment_t *segment, graph_stats_t *stats);

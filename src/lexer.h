@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-typedef struct lexer {
+typedef struct {
     const char *str;
     const char *cursor;
     size_t length;
