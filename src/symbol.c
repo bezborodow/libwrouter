@@ -85,6 +85,64 @@ miss:
     return (unsigned char)*key - (unsigned char)*sym;
 }
 
+static int strpcmp(const void *p1, const void *p2)
+{
+    return strcmp(*(const char **)p1, *(const char **)p2);
+}
+
+/**
+ * Compiles an alphabetically sorted symbol list from a symbol strings table.
+ *
+ * References its own memory region of character strings.
+ *
+ * @param tbl Symbol strings table.
+ * @param sym Symbol list.
+ */
+wrouter_error_t symbol_compile(const symbol_table_t *tbl, symbols_t *sym)
+{
+    sym->count = tbl->count;
+
+    // Check for an empty symbol table, which is valid, and return immediately
+    // without any changes. This assumes that the symbol list is initialised
+    // to zeros.
+    if (!sym->count)
+        return WROUTER_OK;
+
+    // Allocate space for the string pointers.
+    sym->base = malloc(sizeof(char *) * sym->count);
+    if (sym->base == NULL)
+        goto no_memory;
+
+    // Allocate space for the strings in a contiguous memory region.
+    sym->region = malloc(arena_used(&tbl->arena));
+    if (sym->region == NULL) {
+        goto no_memory;
+    }
+
+    // Copy and sort string pointers by string contents.
+    memcpy(sym->base, tbl->base, sizeof(char *) * sym->count);
+    qsort(sym->base, sym->count, sizeof(char *), strpcmp);
+
+    // Copy strings from the arena and update the string pointers.
+    for (size_t cursor = 0, i = 0; i < sym->count; i++) {
+        size_t n = strlen(sym->base[i]) + 1;
+
+        // Copy string.
+        memcpy(sym->region + cursor, sym->base[i], n);
+
+        // Update pointer to point to the copied string!
+        sym->base[i] = sym->region + cursor;
+
+        cursor += n;
+    }
+
+    return WROUTER_OK;
+
+no_memory:
+    symbols_free(sym);
+    return WROUTER_ERR_NO_MEMORY;
+}
+
 size_t symbol_resolve(const char *key, const char **base, size_t nmemb)
 {
     const char *k = key;
