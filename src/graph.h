@@ -1,3 +1,4 @@
+#pragma once
 #include "builder.h"
 #include <stddef.h>
 #include <stdlib.h>

@@ -28,6 +28,7 @@ src = files(
     'src/prelexer.c',
     'src/router.c',
     'src/symbol.c',
+    'src/terminal.c',
 )
 
 libwrouter = library(

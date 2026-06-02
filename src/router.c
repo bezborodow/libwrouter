@@ -1,5 +1,6 @@
 #include "params.h"
 #include "wrouter.h"
+#include "terminal.h"
 #include "router.h"
 #include "graph.h"
 #include "lexer.h"
@@ -21,18 +22,6 @@ static inline const edge_t *node_edge_base(const node_t *node)
 static inline const node_t *next_node(const uint8_t *graph, const edge_t *edge)
 {
     return (const node_t *)(graph + edge->next);
-}
-
-static wrouter_route_t *terminal_lookup(const wrouter_t *router, uint16_t ref)
-{
-    // TODO custom binary search.
-    const terminals_t *t = &router->terminals;
-
-    for (uint16_t i = 0; i < t->count; i++)
-        if (t->refs[i] == ref)
-            return &t->base[i];
-
-    return NULL;
 }
 
 /**
@@ -176,7 +165,7 @@ wildcard:
     goto terminal;
 
 terminal:
-    return terminal_lookup(router, graph_offset(g, cur));
+    return terminal_lookup(&router->terminals, graph_offset(g, cur));
 }
 
 /**

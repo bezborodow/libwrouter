@@ -1,19 +1,10 @@
 #pragma once
 #include "wrouter.h"
 #include "lexer.h"
+#include "terminal.h"
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
-
-/**
- * These are the node terminals, which correspond to a route.  The terminals
- * are referenced by the terminating node's offset.
- */
-typedef struct terminals {
-    wrouter_route_t *base; // Routes.
-    uint16_t *refs;        // List of node offsets, being the key to the route.
-    uint16_t count;        // Number of terminals.
-} terminals_t;
 
 struct wrouter_router {
     void *graph;
