@@ -1,8 +1,5 @@
 import pytest
 import wrouter
-import random
-import string
-import time
 
 
 def test_invalid_syntax():
