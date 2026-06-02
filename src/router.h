@@ -18,4 +18,6 @@ struct wrouter_router {
     wrouter_reference_fn release;
 };
 
+void router_retain(wrouter_t *router, const wrouter_route_t *route);
+
 const wrouter_route_t *route_match(wrouter_dispatcher_t *d);

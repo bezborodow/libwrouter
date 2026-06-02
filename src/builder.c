@@ -12,6 +12,12 @@
 #include <stddef.h>
 #include <limits.h>
 
+static inline void builder_retain(wrouter_builder_t *builder, const wrouter_route_t *route)
+{
+    if (builder->retain != NULL)
+        builder->retain(route->ctx);
+}
+
 /**
  * Create a route builder.
  *
@@ -33,8 +39,8 @@ wrouter_builder_t *wrouter_builder_create(const wrouter_options_t options)
     builder->fallback.ctx = options.fallback_ctx;
     builder->retain = options.retain;
     builder->release = options.release;
-    if (builder->retain)
-        builder->retain(builder->fallback.ctx);
+
+    builder_retain(builder, &builder->fallback);
 
     builder->root = calloc(1, sizeof(segment_t));
     if (builder->root == NULL)
@@ -142,8 +148,7 @@ wrouter_error_t wrouter_add_route(wrouter_builder_t *builder, const char *patter
                 // Append terminal route to the end segment.
                 cur->route = route;
                 cur->terminal = true;
-                if (builder->retain != NULL)
-                    builder->retain(route.ctx);
+                builder_retain(builder, &route);
 
                 return 0;
 
@@ -252,8 +257,7 @@ wrouter_error_t wrouter_add_route(wrouter_builder_t *builder, const char *patter
                 cur->spec_type = SPEC_WILDCARD;
                 cur->special.wildcard->route = route;
 
-                if (builder->retain != NULL)
-                    builder->retain(route.ctx);
+                builder_retain(builder, &route);
 
                 return 0;
             }
@@ -270,8 +274,7 @@ wrouter_error_t wrouter_add_route(wrouter_builder_t *builder, const char *patter
                     return WROUTER_ERR_NO_MEMORY;
                 cur->trailing->route = route;
 
-                if (builder->retain != NULL)
-                    builder->retain(route.ctx);
+                builder_retain(builder, &route);
 
                 return 0;
             }
@@ -307,8 +310,7 @@ wrouter_t *wrouter_compile(const wrouter_builder_t *builder, wrouter_error_t *er
     router->fallback = builder->fallback;
     router->retain = builder->retain;
     router->release = builder->release;
-    if (router->retain != NULL)
-        router->retain(router->fallback.ctx);
+    router_retain(router, &router->fallback);
 
     // Obtain graph statistics.
     graph_stats(builder->root, &stats);
