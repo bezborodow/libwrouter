@@ -1,14 +1,20 @@
-#include "params.h"
-#include "wrouter.h"
-#include "terminal.h"
-#include "router.h"
+#include "dispatcher.h"
 #include "graph.h"
 #include "lexer.h"
+#include "params.h"
+#include "router.h"
 #include "symbol.h"
-#include "dispatcher.h"
+#include "terminal.h"
+#include "wrouter.h"
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
+
+inline void router_retain(wrouter_t *router, const wrouter_route_t *route)
+{
+    if (router->retain != NULL)
+        router->retain(route->ctx);
+}
 
 /**
  * Match a route in the dispatcher.

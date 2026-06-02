@@ -199,8 +199,7 @@ node_t *graph_compile(wrouter_t *router, const segment_t *segment, size_t *curso
         // Retain context.
         // Callback to retain context reference count for garbage collection if
         // required (for example, the Python library needs this.)
-        if (router->retain != NULL)
-            router->retain(segment->route.ctx);
+        router_retain(router, &segment->route);
     }
 
     // Special edges.
@@ -271,8 +270,7 @@ node_t *graph_compile(wrouter_t *router, const segment_t *segment, size_t *curso
         router->terminals.base[router->terminals.count++] = segment->special.wildcard->route;
 
         // Retain context.
-        if (router->retain != NULL)
-            router->retain(segment->special.wildcard->route.ctx);
+        router_retain(router, &segment->special.wildcard->route);
     }
 
     // Append trailing node.
@@ -284,8 +282,7 @@ node_t *graph_compile(wrouter_t *router, const segment_t *segment, size_t *curso
         router->terminals.base[router->terminals.count++] = segment->trailing->route;
 
         // Retain context.
-        if (router->retain != NULL)
-            router->retain(segment->trailing->route.ctx);
+        router_retain(router, &segment->trailing->route);
     }
 
     return node;
