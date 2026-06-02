@@ -310,7 +310,8 @@ void test_router_basic(void)
     assert(fallback_tc.released == 0);
 
     // Compile.
-    wrouter_t *router = wrouter_compile(builder);
+    wrouter_error_t err;
+    wrouter_t *router = wrouter_compile(builder, &err);
 
     assert(wrouter_route_count(router) == n);
     for (size_t i = 0; i < n; i++) {
@@ -322,6 +323,7 @@ void test_router_basic(void)
 
     // Free the builder.
     wrouter_builder_free(builder);
+    assert(err == 0);
 
     assert(router != NULL);
     for (size_t i = 0; i < n; i++) {
@@ -395,8 +397,10 @@ void test_router_not_found(void)
     // builder_print_tree(builder);
 
     // Compile.
-    wrouter_t *router = wrouter_compile(builder);
+    wrouter_error_t err;
+    wrouter_t *router = wrouter_compile(builder, &err);
     wrouter_builder_free(builder);
+    assert(err == 0);
     assert(router != NULL);
 
     // Dispatch.
@@ -440,8 +444,10 @@ void test_router_end_wildcard(void)
     // builder_print_tree(builder);
 
     // Compile.
-    wrouter_t *router = wrouter_compile(builder);
+    wrouter_error_t err;
+    wrouter_t *router = wrouter_compile(builder, &err);
     wrouter_builder_free(builder);
+    assert(err == 0);
     assert(router != NULL);
 
     // Dispatch.
@@ -475,8 +481,10 @@ void test_router_top_wildcard_is_not_root(void)
     builder_print_tree(builder);
 
     // Compile.
-    wrouter_t *router = wrouter_compile(builder);
+    wrouter_error_t err;
+    wrouter_t *router = wrouter_compile(builder, &err);
     wrouter_builder_free(builder);
+    assert(err == 0);
     assert(router != NULL);
 
     // Dispatch.
@@ -504,8 +512,10 @@ void test_router_empty_router(void)
     builder_print_tree(builder);
 
     // Compile.
-    wrouter_t *router = wrouter_compile(builder);
+    wrouter_error_t err;
+    wrouter_t *router = wrouter_compile(builder, &err);
     wrouter_builder_free(builder);
+    assert(err == 0);
     assert(router != NULL);
 
     // Dispatch.

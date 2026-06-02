@@ -49,7 +49,8 @@ int main(void)
     wrouter_builder_t *builder = wrouter_builder_create(options);
     wrouter_add_handler(builder, "/hello/:addressee", route_hello);
 
-    wrouter_t *router = wrouter_compile(builder);
+    wrouter_error_t err;
+    wrouter_t *router = wrouter_compile(builder, &err);
     wrouter_builder_free(builder);
 
     wrouter_dispatcher_t *dispatcher = wrouter_dispatcher_create(router);

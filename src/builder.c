@@ -99,7 +99,8 @@ static segment_t *find_child_by_token(segment_t *segment, token_t tok)
 /**
  * Add a route handler to the route tree.
  */
-int wrouter_add_handler(wrouter_builder_t *builder, const char *pattern, wrouter_handler_fn handler)
+wrouter_error_t wrouter_add_handler(wrouter_builder_t *builder, const char *pattern,
+                                    wrouter_handler_fn handler)
 {
     wrouter_route_t route = {
         .handler = handler,
@@ -112,8 +113,8 @@ int wrouter_add_handler(wrouter_builder_t *builder, const char *pattern, wrouter
 /**
  * Add a route handler and context to the route tree.
  */
-int wrouter_add_handler_ctx(wrouter_builder_t *builder, const char *pattern,
-                            wrouter_handler_fn handler, const void *ctx)
+wrouter_error_t wrouter_add_handler_ctx(wrouter_builder_t *builder, const char *pattern,
+                                        wrouter_handler_fn handler, const void *ctx)
 {
     wrouter_route_t route = {
         .handler = handler,
@@ -123,7 +124,8 @@ int wrouter_add_handler_ctx(wrouter_builder_t *builder, const char *pattern,
     return wrouter_add_route(builder, pattern, route);
 }
 
-int wrouter_add_context(wrouter_builder_t *builder, const char *pattern, const void *ctx)
+wrouter_error_t wrouter_add_context(wrouter_builder_t *builder, const char *pattern,
+                                    const void *ctx)
 {
     wrouter_route_t route = {
         .handler = NULL,
@@ -136,7 +138,8 @@ int wrouter_add_context(wrouter_builder_t *builder, const char *pattern, const v
 /**
  * Add a route to the route tree.
  */
-int wrouter_add_route(wrouter_builder_t *builder, const char *pattern, wrouter_route_t route)
+wrouter_error_t wrouter_add_route(wrouter_builder_t *builder, const char *pattern,
+                                  wrouter_route_t route)
 {
     token_t tok;
     prelexer_t lx = { 0 };
@@ -184,7 +187,7 @@ int wrouter_add_route(wrouter_builder_t *builder, const char *pattern, wrouter_r
 
                     // Append child.
                     if (cur->child_count >= UINT8_MAX)
-                          return WROUTER_ERR_OUT_OF_RANGE;
+                        return WROUTER_ERR_OUT_OF_RANGE;
 
                     segment_t **new_children =
                         realloc(cur->children, sizeof(segment_t *) * (cur->child_count + 1));
@@ -599,10 +602,12 @@ failure:
  * This will compile an immutable router from a route tree, which is therefore
  * thread-safe. The router consists of a graph, symbols, and terminals.
  */
-wrouter_t *wrouter_compile(const wrouter_builder_t *builder)
+wrouter_t *wrouter_compile(const wrouter_builder_t *builder, wrouter_error_t *err)
 {
     graph_stats_t stats = { 0 };
     size_t cursor = 0;
+
+    *err = WROUTER_OK;
 
     // New router.
     wrouter_t *router = calloc(1, sizeof(wrouter_t));
@@ -625,41 +630,47 @@ wrouter_t *wrouter_compile(const wrouter_builder_t *builder)
     if (!stats.terminals)
         return router;
 
-    if (stats.size > UINT16_MAX)
-        goto failure; // TODO error code.
-
-    if (stats.terminals > UINT16_MAX)
-        goto failure; // TODO error code.
+    // Range checking.
+    if (stats.size > UINT16_MAX || stats.terminals > UINT16_MAX)
+        goto out_of_range;
 
     // Allocate and compile symbols for literals.
     router->literals = symbol_compile(&builder->literals);
     if (router->literals.base == NULL && router->literals.count)
-        goto failure;
+        goto no_memory;
 
     // Allocate and compile symbols for parameters.
     router->params = symbol_compile(&builder->params);
     if (router->params.base == NULL && router->params.count)
-        goto failure;
+        goto no_memory;
 
     // Allocate terminal refs.
     router->terminals.refs = calloc(stats.terminals, sizeof(uint16_t));
     if (router->terminals.refs == NULL)
-        goto failure;
+        goto no_memory;
 
     // Allocate terminals.
     router->terminals.base = calloc(stats.terminals, sizeof(wrouter_route_t));
     if (router->terminals.base == NULL)
-        goto failure;
+        goto no_memory;
 
     // Allocate the graph.
     router->graph = malloc(stats.size);
     if (router->graph == NULL)
-        goto failure;
+        goto no_memory;
 
     // Compile the graph.
     graph_compile(router, builder->root, &cursor);
 
     return router;
+
+out_of_range:
+    *err = WROUTER_ERR_OUT_OF_RANGE;
+    goto failure;
+
+no_memory:
+    *err = WROUTER_ERR_NO_MEMORY;
+    goto failure;
 
 failure:
     wrouter_free(router);
