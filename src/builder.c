@@ -548,16 +548,19 @@ void graph_stats(const segment_t *seg, graph_stats_t *stats)
 }
 
 /**
- * Compiles an alphabetically sorted symbol list from a symbol table.
+ * Compiles an alphabetically sorted symbol list from a symbol strings table.
  *
  * References its own memory region of character strings.
+ *
+ * @param tbl Symbol strings table.
+ * @param sym Symbol list.
  */
 wrouter_error_t symbol_compile(const symbol_table_t *tbl, symbols_t *sym)
 {
     sym->count = tbl->count;
 
     // Check for an empty symbol table, which is valid, and return immediately
-    // without any changes. This assumes that the symbol table is initialised
+    // without any changes. This assumes that the symbol list is initialised
     // to zeros.
     if (!sym->count)
         return WROUTER_OK;
