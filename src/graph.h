@@ -21,6 +21,12 @@ typedef struct edge {
 _Static_assert(sizeof(node_t) % _Alignof(edge_t) == 0, "Node size breaks edge alignment.");
 _Static_assert(sizeof(edge_t) % _Alignof(node_t) == 0, "Edge size breaks node alignment.");
 
+const edge_t *node_edge_base(const node_t *node);
+
+const node_t *next_node(const uint8_t *graph, const edge_t *edge);
+
 size_t graph_offset(const void *graph, const void *entry);
+
 void graph_stats(const segment_t *seg, graph_stats_t *stats);
+
 node_t *graph_compile(wrouter_t *router, const segment_t *segment, size_t *cursor);

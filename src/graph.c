@@ -45,6 +45,21 @@ size_t graph_offset(const void *graph, const void *entry)
     return (const uint8_t *)entry - (const uint8_t *)graph;
 }
 
+
+inline const edge_t *node_edge_base(const node_t *node)
+{
+    uintptr_t align = _Alignof(edge_t);
+    uintptr_t cursor = (uintptr_t)node + sizeof(node_t);
+    uintptr_t base = (cursor + align - 1) & ~(align - 1);
+
+    return (const edge_t *)base;
+}
+
+inline const node_t *next_node(const uint8_t *graph, const edge_t *edge)
+{
+    return (const node_t *)(graph + edge->next);
+}
+
 /**
  * Calculate graph statistics by traversing the route tree.
  *

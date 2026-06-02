@@ -10,20 +10,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-static inline const edge_t *node_edge_base(const node_t *node)
-{
-    uintptr_t align = _Alignof(edge_t);
-    uintptr_t cursor = (uintptr_t)node + sizeof(node_t);
-    uintptr_t base = (cursor + align - 1) & ~(align - 1);
-
-    return (const edge_t *)base;
-}
-
-static inline const node_t *next_node(const uint8_t *graph, const edge_t *edge)
-{
-    return (const node_t *)(graph + edge->next);
-}
-
 /**
  * Match a route in the dispatcher.
  *
@@ -185,10 +171,8 @@ void wrouter_free(wrouter_t *router)
 
     symbols_free(&router->literals);
     symbols_free(&router->params);
-
+    terminals_free(&router->terminals);
     free(router->graph);
-    free(router->terminals.base);
-    free(router->terminals.refs);
     free(router);
 }
 

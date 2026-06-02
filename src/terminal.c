@@ -1,6 +1,7 @@
 #include "wrouter.h"
 #include "terminal.h"
 #include <stdint.h>
+#include <stdlib.h>
 
 wrouter_route_t *terminal_lookup(const terminals_t *terminals, uint16_t ref)
 {
@@ -10,4 +11,13 @@ wrouter_route_t *terminal_lookup(const terminals_t *terminals, uint16_t ref)
             return &terminals->base[i];
 
     return NULL;
+}
+
+void terminals_free(terminals_t *terminals)
+{
+    if (terminals == NULL)
+        return;
+
+    free(terminals->base);
+    free(terminals->refs);
 }
