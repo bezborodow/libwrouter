@@ -155,7 +155,7 @@ int wrouter_add_route(wrouter_builder_t *builder, const char *pattern, wrouter_r
                     return WROUTER_ERR_DUPLICATE_ROUTE;
 
                 // TERMINATE!
-                // Append node terminal route.
+                // Append terminal route to the end segment.
                 cur->route = route;
                 cur->terminal = true;
                 if (builder->retain != NULL)
@@ -171,21 +171,26 @@ int wrouter_add_route(wrouter_builder_t *builder, const char *pattern, wrouter_r
                 // Check for an existing child.
                 segment_t *child = find_child_by_token(cur, tok);
 
-                // If not, create one.
+                // If there is not an equivalent literal child of this segment, create one.
                 if (child == NULL) {
 
-                    if (cur->child_count >= UINT8_MAX)
-                          return WROUTER_ERR_OUT_OF_RANGE;
+                    // Append literal symbol to the literal symbol table.
+                    if (builder->literals.count >= UINT16_MAX)
+                        return WROUTER_ERR_OUT_OF_RANGE;
 
                     const char *strptr = symbol_append(&builder->literals, tok.ptr, tok.length);
                     if (strptr == NULL)
                         return WROUTER_ERR_NO_MEMORY;
 
                     // Append child.
+                    if (cur->child_count >= UINT8_MAX)
+                          return WROUTER_ERR_OUT_OF_RANGE;
+
                     segment_t **new_children =
                         realloc(cur->children, sizeof(segment_t *) * (cur->child_count + 1));
-                    if (new_children == NULL)
+                    if (new_children == NULL) // TODO realloc growth.
                         return WROUTER_ERR_NO_MEMORY;
+
                     cur->children = new_children;
 
                     child = calloc(1, sizeof(segment_t));
@@ -210,6 +215,7 @@ int wrouter_add_route(wrouter_builder_t *builder, const char *pattern, wrouter_r
                 if (cur->child_count)
                     return WROUTER_ERR_PARAM_CONFLICTS_WITH_LITERAL;
 
+                // Check if a parmeter already exists on this segment, otherwise create one.
                 if (cur->spec_type == SPEC_PARAM) {
 
                     // If a parameter is already assigned, it should have the same name.
@@ -218,7 +224,9 @@ int wrouter_add_route(wrouter_builder_t *builder, const char *pattern, wrouter_r
 
                 } else {
 
-                    // Append parameter.
+                    // Append parameter symbol to the parameter symbol table.
+                    if (builder->literals.count >= UINT16_MAX)
+                        return WROUTER_ERR_OUT_OF_RANGE;
                     const char *strptr = symbol_append(&builder->params, tok.ptr, tok.length);
                     if (strptr == NULL)
                         return WROUTER_ERR_NO_MEMORY;
@@ -616,6 +624,12 @@ wrouter_t *wrouter_compile(const wrouter_builder_t *builder)
     // If no terminals, return an empty router.
     if (!stats.terminals)
         return router;
+
+    if (stats.size > UINT16_MAX)
+        goto failure; // TODO error code.
+
+    if (stats.terminals > UINT16_MAX)
+        goto failure; // TODO error code.
 
     // Allocate and compile symbols for literals.
     router->literals = symbol_compile(&builder->literals);
