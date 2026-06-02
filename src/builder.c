@@ -8,6 +8,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <limits.h>
 
 /**
  * Align the cursor to the next memory location for a given alignment.
@@ -172,6 +173,9 @@ int wrouter_add_route(wrouter_builder_t *builder, const char *pattern, wrouter_r
 
                 // If not, create one.
                 if (child == NULL) {
+
+                    if (cur->child_count >= UINT8_MAX)
+                          return WROUTER_ERR_OUT_OF_RANGE;
 
                     const char *strptr = symbol_append(&builder->literals, tok.ptr, tok.length);
                     if (strptr == NULL)
