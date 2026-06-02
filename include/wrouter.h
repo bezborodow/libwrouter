@@ -88,7 +88,7 @@ wrouter_error_t wrouter_add_context(wrouter_builder_t *builder, const char *patt
 
 wrouter_t *wrouter_compile(const wrouter_builder_t *builder, wrouter_error_t *err);
 
-    wrouter_dispatcher_t *wrouter_dispatcher_create(const wrouter_t *router);
+wrouter_dispatcher_t *wrouter_dispatcher_create(const wrouter_t *router);
 
 void wrouter_dispatcher_free(wrouter_dispatcher_t *dispatcher);
 

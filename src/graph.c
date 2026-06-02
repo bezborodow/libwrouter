@@ -45,7 +45,6 @@ size_t graph_offset(const void *graph, const void *entry)
     return (const uint8_t *)entry - (const uint8_t *)graph;
 }
 
-
 inline const edge_t *node_edge_base(const node_t *node)
 {
     uintptr_t align = _Alignof(edge_t);
