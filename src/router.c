@@ -170,6 +170,7 @@ void wrouter_free(wrouter_t *router)
     if (router == NULL)
         return;
 
+    // Release all route contexts.
     if (router->release != NULL) {
         router->release(router->fallback.ctx);
 
@@ -177,6 +178,7 @@ void wrouter_free(wrouter_t *router)
             router->release(router->terminals.base[i].ctx);
     }
 
+    // Free the router.
     symbols_free(&router->literals);
     symbols_free(&router->params);
     terminals_free(&router->terminals);
