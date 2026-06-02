@@ -3,6 +3,7 @@
 #include "router.h"
 #include "builder.h"
 #include "prelexer.h"
+#include "symbol.h"
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
@@ -551,49 +552,49 @@ void graph_stats(const segment_t *seg, graph_stats_t *stats)
  *
  * References its own memory region of character strings.
  */
-symbols_t symbol_compile(const symbol_table_t *tbl)
+wrouter_error_t symbol_compile(const symbol_table_t *tbl, symbols_t *sym)
 {
-    symbols_t sym = { 0 };
+    sym->count = tbl->count;
 
-    sym.count = tbl->count;
-
-    if (!tbl->count || tbl->base == NULL)
-        goto failure;
+    // Check for an empty symbol table, which is valid, and return immediately
+    // without any changes. This assumes that the symbol table is initialised
+    // to zeros.
+    if (!sym->count)
+        return WROUTER_OK;
 
     // Allocate space for the string pointers.
-    sym.base = malloc(sizeof(char *) * tbl->count);
-    if (sym.base == NULL)
-        goto failure;
-
-    // Copy and sort string pointers by string contents.
-    memcpy(sym.base, tbl->base, sizeof(char *) * tbl->count);
-    qsort(sym.base, sym.count, sizeof(char *), strpcmp);
+    sym->base = malloc(sizeof(char *) * sym->count);
+    if (sym->base == NULL)
+        goto no_memory;
 
     // Allocate space for the strings in a contiguous memory region.
-    sym.region = malloc(arena_used(&tbl->arena));
-    if (sym.region == NULL) {
-        goto failure;
+    sym->region = malloc(arena_used(&tbl->arena));
+    if (sym->region == NULL) {
+        goto no_memory;
     }
 
+    // Copy and sort string pointers by string contents.
+    memcpy(sym->base, tbl->base, sizeof(char *) * sym->count);
+    qsort(sym->base, sym->count, sizeof(char *), strpcmp);
+
     // Copy strings from the arena and update the string pointers.
-    for (size_t cursor = 0, i = 0; i < sym.count; i++) {
-        size_t n = strlen(sym.base[i]) + 1;
+    for (size_t cursor = 0, i = 0; i < sym->count; i++) {
+        size_t n = strlen(sym->base[i]) + 1;
 
         // Copy string.
-        memcpy(sym.region + cursor, sym.base[i], n);
+        memcpy(sym->region + cursor, sym->base[i], n);
 
         // Update pointer to point to the copied string!
-        sym.base[i] = sym.region + cursor;
+        sym->base[i] = sym->region + cursor;
 
         cursor += n;
     }
 
-    return sym;
+    return WROUTER_OK;
 
-failure:
-    // Return empty symbol list on memory failure.
-    free(sym.base);
-    return (symbols_t){ 0 };
+no_memory:
+    symbols_free(sym);
+    return WROUTER_ERR_NO_MEMORY;
 }
 
 /**
@@ -635,14 +636,12 @@ wrouter_t *wrouter_compile(const wrouter_builder_t *builder, wrouter_error_t *er
         goto out_of_range;
 
     // Allocate and compile symbols for literals.
-    router->literals = symbol_compile(&builder->literals);
-    if (router->literals.base == NULL && router->literals.count)
-        goto no_memory;
+    if ((*err = symbol_compile(&builder->literals, &router->literals)))
+        goto failure;
 
     // Allocate and compile symbols for parameters.
-    router->params = symbol_compile(&builder->params);
-    if (router->params.base == NULL && router->params.count)
-        goto no_memory;
+    if ((*err = symbol_compile(&builder->params, &router->params)))
+        goto failure;
 
     // Allocate terminal refs.
     router->terminals.refs = calloc(stats.terminals, sizeof(uint16_t));
