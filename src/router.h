@@ -5,24 +5,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#define NODE_FLAG_TERMINAL 1
-#define NODE_FLAG_HAS_PARAM 2
-#define NODE_FLAG_HAS_WILDCARD 4
-#define NODE_FLAG_HAS_TRAILING 8
-
-typedef struct node {
-    uint8_t literals; // Number of literal edges.
-    uint8_t flags;
-} node_t;
-
-typedef struct edge {
-    uint16_t symbol;
-    uint16_t next;
-} edge_t;
-
-_Static_assert(sizeof(node_t) % _Alignof(edge_t) == 0, "Node size breaks edge alignment.");
-_Static_assert(sizeof(edge_t) % _Alignof(node_t) == 0, "Edge size breaks node alignment.");
-
 /**
  * These are the node terminals, which correspond to a route.  The terminals
  * are referenced by the terminating node's offset.
@@ -44,7 +26,5 @@ struct wrouter_router {
     wrouter_reference_fn retain;
     wrouter_reference_fn release;
 };
-
-size_t graph_offset(const void *graph, const void *entry);
 
 const wrouter_route_t *route_match(wrouter_dispatcher_t *d);

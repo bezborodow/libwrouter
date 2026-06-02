@@ -22,6 +22,7 @@ src = files(
     'src/builder.c',
     'src/dispatcher.c',
     'src/errors.c',
+    'src/graph.c',
     'src/lexer.c',
     'src/params.c',
     'src/prelexer.c',
