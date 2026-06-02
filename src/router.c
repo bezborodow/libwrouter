@@ -198,10 +198,9 @@ void wrouter_free(wrouter_t *router)
             router->release(router->terminals.base[i].ctx);
     }
 
-    free(router->literals.region);
-    free(router->literals.base);
-    free(router->params.region);
-    free(router->params.base);
+    symbols_free(&router->literals);
+    symbols_free(&router->params);
+
     free(router->graph);
     free(router->terminals.base);
     free(router->terminals.refs);

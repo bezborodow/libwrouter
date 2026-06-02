@@ -92,3 +92,12 @@ size_t symbol_resolve(const char *key, const char **base, size_t nmemb)
 
     return res ? res - base + 1 : 0;
 }
+
+void symbols_free(symbols_t *symbols)
+{
+    if (symbols == NULL)
+        return;
+
+    free(symbols->region);
+    free(symbols->base);
+}

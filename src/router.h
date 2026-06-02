@@ -23,12 +23,6 @@ typedef struct edge {
 _Static_assert(sizeof(node_t) % _Alignof(edge_t) == 0, "Node size breaks edge alignment.");
 _Static_assert(sizeof(edge_t) % _Alignof(node_t) == 0, "Edge size breaks node alignment.");
 
-typedef struct symbols {
-    const char **base;
-    char *region;
-    uint32_t count;
-} symbols_t;
-
 /**
  * These are the node terminals, which correspond to a route.  The terminals
  * are referenced by the terminating node's offset.
