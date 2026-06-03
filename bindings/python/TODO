@@ -8,14 +8,6 @@ Support fallback routes.
 
 Better interface:
 
-    from wrouter import build_router, Dispatcher
-
-    dispatcher = Dispatcher(build_router(routes))
-
-    endpoint, params = dispatcher.resolve("/account/a/1234")
-
-And:
-
     dispatcher.dispatch(request_path, dispatch_ctx)
 
 And:
