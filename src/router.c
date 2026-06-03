@@ -5,6 +5,7 @@
 #include "router.h"
 #include "symbol.h"
 #include "terminal.h"
+#include "token.h"
 #include "wrouter.h"
 #include <stddef.h>
 #include <string.h>

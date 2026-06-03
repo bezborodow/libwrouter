@@ -29,6 +29,7 @@ src = files(
     'src/router.c',
     'src/symbol.c',
     'src/terminal.c',
+    'src/token.c',
 )
 
 libwrouter = library(

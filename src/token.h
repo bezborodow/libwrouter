@@ -1,5 +1,7 @@
 #pragma once
+#include "segment.h"
 #include <stdint.h>
+#include <stdbool.h>
 
 #define TOKEN_ILLEGAL 0
 #define TOKEN_LITERAL 1
@@ -14,7 +16,6 @@ typedef struct {
     uint8_t type;
 } token_t;
 
-static inline token_t make_token(uint8_t type)
-{
-    return (token_t){ .type = type };
-}
+token_t make_token(uint8_t type);
+
+bool token_matches_segment(token_t tok, const segment_t *segment);
