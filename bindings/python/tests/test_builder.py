@@ -13,7 +13,7 @@ def test_out_of_range_segment_children():
     last_ok = None
 
     with pytest.raises(wrouter.RouteError):
-        for i in range(1024):
+        for i in range(4 * 1024):
             builder.add(f"/foo/a{i}", i)
             last_ok = i
 
@@ -26,6 +26,18 @@ def test_out_of_range_segment_children():
     # The builder is corrupted now.
     with pytest.raises(wrouter.RouteError):
         builder.compile()
+
+    # Try again, but stop before failure.
+    del builder
+    builder = wrouter.Builder()
+    for i in range(last_ok):
+        builder.add(f"/foo/a{i}", i)
+
+    # Compile and resolve the last route.
+    router = builder.compile()
+    dispatcher = wrouter.Dispatcher(router)
+    for i in range(last_ok):
+        assert dispatcher.resolve(f"/foo/a{i}") == (i, {})
 
 
 def test_out_of_range_graph_size():
