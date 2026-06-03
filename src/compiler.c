@@ -90,6 +90,9 @@ failure:
     return NULL;
 }
 
+/**
+ * Compile the router and destroy the builder.
+ */
 wrouter_t *wrouter_consume(wrouter_builder_t **bpp, wrouter_error_t *err)
 {
     if (bpp == NULL || *bpp == NULL) {
