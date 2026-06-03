@@ -101,14 +101,25 @@ static void test_duplicate(void)
         wrouter_builder_t *builder = wrouter_builder_create(options);
         assert(builder != NULL);
 
-        // base insert must succeed
+        // Base insert must succeed.
         assert(wrouter_add_context(builder, cases[i].pattern, NULL) == WROUTER_OK);
 
-        // duplicate insert must fail
+        // Duplicate insert must fail.
         ASSERT_ERROR(
             wrouter_add_context(builder, cases[i].pattern, NULL),
             cases[i].expected
         );
+
+        // Subsequent calls must be denied.
+        ASSERT_ERROR(
+            wrouter_add_context(builder, cases[i].pattern, NULL),
+            WROUTER_ERR_BUILDER_CORRUPTED
+        );
+
+        wrouter_error_t err;
+        wrouter_t *router = wrouter_compile(builder, &err);
+        ASSERT_ERROR(err, WROUTER_ERR_BUILDER_CORRUPTED);
+        assert(router == NULL);
 
         wrouter_builder_free(builder);
     }
@@ -303,7 +314,7 @@ static void test_range_error_literal_edges(void)
 
     if (i != NODE_MAX_CHILD_COUNT) {
         fprintf(stderr,
-            "Max child count Mismatch: got=%zu expected=%d.\n",
+            "Max child count Mismatch: got=%zu expected=%zd.\n",
             (size_t)i,
             NODE_MAX_CHILD_COUNT
         );
