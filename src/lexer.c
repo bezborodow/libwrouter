@@ -30,7 +30,7 @@ void lexer_load(lexer_t *lx, const char *request, size_t length)
     return;
 
 failure:
-        memset(lx, 0, sizeof(*lx));
+    memset(lx, 0, sizeof(*lx));
 }
 
 token_t lexer_next(lexer_t *lx)

@@ -21,7 +21,8 @@ static void test_errors(void)
                   "A parameter segment conflicts with an existing literal segment.") == 0);
 
     assert(strcmp(wrouter_strerror(WROUTER_ERR_PARAM_NAME_MISMATCH),
-                  "The parameter name does not match the existing parameter at this position.") == 0);
+                  "The parameter name does not match the existing parameter at this position.") ==
+           0);
 
     assert(strcmp(wrouter_strerror(WROUTER_ERR_WILDCARD_CONFLICTS_WITH_PARAM),
                   "A wildcard segment conflicts with an existing parameter segment.") == 0);
@@ -30,8 +31,7 @@ static void test_errors(void)
                   "A wildcard segment must be the final segment in the route pattern.") == 0);
 
     /* unknown/default branch */
-    assert(strcmp(wrouter_strerror((wrouter_error_t)9999),
-                  "An unknown error occurred.") == 0);
+    assert(strcmp(wrouter_strerror((wrouter_error_t)9999), "An unknown error occurred.") == 0);
 }
 
 int main(void)

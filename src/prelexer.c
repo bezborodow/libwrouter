@@ -36,7 +36,6 @@ failure:
     return;
 }
 
-
 /**
  * Get next route pattern token.
  *
