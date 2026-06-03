@@ -162,7 +162,7 @@ wrouter_error_t wrouter_add_route(wrouter_builder_t *builder, const char *patter
                         return WROUTER_ERR_NO_MEMORY;
 
                     // Append child.
-                    if (cur->child_count >= UINT8_MAX)
+                    if (cur->child_count >= NODE_CHILD_MAX)
                         return WROUTER_ERR_OUT_OF_RANGE;
 
                     segment_t **new_children =
@@ -204,7 +204,7 @@ wrouter_error_t wrouter_add_route(wrouter_builder_t *builder, const char *patter
                 } else {
 
                     // Append parameter symbol to the parameter symbol table.
-                    if (builder->literals.count >= UINT16_MAX)
+                    if (builder->params.count >= UINT16_MAX)
                         return WROUTER_ERR_OUT_OF_RANGE;
                     const char *strptr = symbol_append(&builder->params, tok.ptr, tok.length);
                     if (strptr == NULL)
