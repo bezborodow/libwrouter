@@ -192,3 +192,13 @@ void wrouter_free(wrouter_t *router)
     free(router->graph);
     free(router);
 }
+
+void wrouter_destroy(wrouter_t **rpp)
+{
+    if (rpp == NULL || *rpp == NULL)
+        return;
+
+    wrouter_free(*rpp);
+
+    *rpp = NULL;
+}

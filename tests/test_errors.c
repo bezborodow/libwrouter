@@ -30,6 +30,8 @@ static void test_errors(void)
     assert(strcmp(wrouter_strerror(WROUTER_ERR_WILDCARD_NOT_FINAL),
                   "A wildcard segment must be the final segment in the route pattern.") == 0);
 
+    assert(strcmp(wrouter_strerror(WROUTER_ERR_NULL_ARGUMENT), "Null argument.") == 0);
+
     /* unknown/default branch */
     assert(strcmp(wrouter_strerror((wrouter_error_t)9999), "An unknown error occurred.") == 0);
 }

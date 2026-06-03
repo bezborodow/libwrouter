@@ -41,28 +41,37 @@ int main(void)
 {
     wrouter_error_t err;
     wrouter_options_t options = { 0 };
+    wrouter_builder_t *builder = NULL;
+    wrouter_t *router = NULL;
+    wrouter_dispatcher_t *dispatcher = NULL;
 
-    wrouter_builder_t *builder = wrouter_builder_create(options);
+    builder = wrouter_builder_create(options);
+    if (builder == NULL)
+        goto failure;
+
     err = wrouter_add_handler(builder, "/hello/:addressee", route_hello);
     if (err)
         goto failure;
 
-    wrouter_t *router = wrouter_compile(builder, &err);
-    wrouter_builder_free(builder);
+    router = wrouter_consume(&builder, &err);
+
     if (err)
         goto failure;
 
-    wrouter_dispatcher_t *dispatcher = wrouter_dispatcher_create(router);
+    dispatcher = wrouter_dispatcher_create(router);
 
     wrouter_dispatch(dispatcher, "/hello/world", NULL);
 
-    wrouter_dispatcher_free(dispatcher);
-    wrouter_free(router);
+    wrouter_dispatcher_destroy(&dispatcher);
+    wrouter_destroy(&router);
 
     return 0;
 
 failure:
     fprintf(stderr, "%s\n", wrouter_strerror(err));
+    wrouter_builder_destroy(&builder);
+    wrouter_dispatcher_destroy(&dispatcher);
+    wrouter_destroy(&router);
     return 1;
 }
 ```
