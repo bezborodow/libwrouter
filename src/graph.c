@@ -135,7 +135,7 @@ void graph_stats(const segment_t *seg, graph_stats_t *stats)
     }
 
     // Terminal node.
-    if (seg->terminal)
+    if (seg->terminal != NULL)
         stats->terminals++;
 }
 
@@ -184,22 +184,23 @@ node_t *graph_compile(wrouter_t *router, const segment_t *segment, size_t *curso
     node->literals = segment->child_count;
 
     // Terminate node.
-    if (segment->terminal) {
+    if (segment->terminal != NULL) {
 
         // Store termination flag.
         node->flags |= NODE_FLAG_TERMINAL;
 
-        // Store route in the terminal parallel arrays.
+        // Copy routes into the terminal dictionary.
+        //
         // refs is the terminating node's graph offset. Searching for the
         // offset yields an index that is used to lookup the terminal in the
         // base array.
         router->terminals.refs[router->terminals.count] = graph_offset(g, node);
-        router->terminals.base[router->terminals.count++] = segment->route;
+        router->terminals.base[router->terminals.count++] = *segment->terminal;
 
         // Retain context.
         // Callback to retain context reference count for garbage collection if
         // required (for example, the Python library needs this.)
-        router_retain(router, &segment->route);
+        router_retain(router, segment->terminal);
     }
 
     // Special edges.
@@ -267,10 +268,10 @@ node_t *graph_compile(wrouter_t *router, const segment_t *segment, size_t *curso
         w_node->flags |= NODE_FLAG_TERMINAL;
         w_edge->next = graph_offset(g, w_node);
         router->terminals.refs[router->terminals.count] = w_edge->next;
-        router->terminals.base[router->terminals.count++] = segment->special.wildcard->route;
+        router->terminals.base[router->terminals.count++] = *segment->special.wildcard;
 
         // Retain context.
-        router_retain(router, &segment->special.wildcard->route);
+        router_retain(router, segment->special.wildcard);
     }
 
     // Append trailing node.
@@ -279,10 +280,10 @@ node_t *graph_compile(wrouter_t *router, const segment_t *segment, size_t *curso
         t_node->flags |= NODE_FLAG_TERMINAL;
         t_edge->next = graph_offset(g, t_node);
         router->terminals.refs[router->terminals.count] = t_edge->next;
-        router->terminals.base[router->terminals.count++] = segment->trailing->route;
+        router->terminals.base[router->terminals.count++] = *segment->trailing;
 
         // Retain context.
-        router_retain(router, &segment->trailing->route);
+        router_retain(router, segment->trailing);
     }
 
     return node;

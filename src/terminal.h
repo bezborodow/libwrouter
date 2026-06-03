@@ -3,12 +3,17 @@
 #include <stdint.h>
 
 /**
+ * Terminal dictionary.
+ *
  * These are the node terminals, which correspond to a route.  The terminals
  * are referenced by the terminating node's offset.
+ *
+ * Refs is the keys.
+ * Base is the values.
  */
 typedef struct {
-    wrouter_route_t *base; // Routes.
     uint16_t *refs;        // List of node offsets, being the key to the route.
+    wrouter_route_t *base; // Routes.
     uint16_t count;        // Number of terminals.
 } terminals_t;
 
