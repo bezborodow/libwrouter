@@ -1,6 +1,7 @@
 #include "wrouter.h"
 #include "builder.h"
 #include "router.h"
+#include "helpers/error_helpers.h"
 #include <assert.h>
 #include <limits.h>
 #include <stdbool.h>
@@ -115,21 +116,92 @@ static void test_conflicts(void)
 
     // Param vs literal.
     assert(wrouter_add_context(builder, "/one/foo", NULL) == WROUTER_OK);
-    assert(wrouter_add_context(builder, "/one/:foo", NULL) == WROUTER_ERR_PARAM_CONFLICTS_WITH_LITERAL);
+    assert(wrouter_add_context(builder, "/one/:foo", NULL) ==
+           WROUTER_ERR_PARAM_CONFLICTS_WITH_LITERAL);
 
     // Literal vs param.
     assert(wrouter_add_context(builder, "/two/:foo", NULL) == WROUTER_OK);
-    assert(wrouter_add_context(builder, "/two/foo", NULL) == WROUTER_ERR_LITERAL_CONFLICTS_WITH_PARAM);
+    assert(wrouter_add_context(builder, "/two/foo", NULL) ==
+           WROUTER_ERR_LITERAL_CONFLICTS_WITH_PARAM);
 
     // Wildcard vs param.
     assert(wrouter_add_context(builder, "/three/:foo", NULL) == WROUTER_OK);
-    assert(wrouter_add_context(builder, "/three/*", NULL) == WROUTER_ERR_WILDCARD_CONFLICTS_WITH_PARAM);
+    assert(wrouter_add_context(builder, "/three/*", NULL) ==
+           WROUTER_ERR_WILDCARD_CONFLICTS_WITH_PARAM);
 
     // Param vs wildcard.
     assert(wrouter_add_context(builder, "/four/*", NULL) == WROUTER_OK);
-    assert(wrouter_add_context(builder, "/four/:foo", NULL) == WROUTER_ERR_PARAM_CONFLICTS_WITH_WILDCARD);
+    assert(wrouter_add_context(builder, "/four/:foo", NULL) ==
+           WROUTER_ERR_PARAM_CONFLICTS_WITH_WILDCARD);
 
     wrouter_builder_free(builder);
+}
+
+static void test_param_mismatch(void)
+{
+    wrouter_options_t options = { 0 };
+    wrouter_builder_t *builder = wrouter_builder_create(options);
+
+    assert(builder != NULL);
+
+    // Parameters must have the same name at the same level.
+    assert(wrouter_add_context(builder, "/foo/:bar", NULL) == WROUTER_OK);
+    assert(wrouter_add_context(builder, "/foo/:bar/test", NULL) == WROUTER_OK);
+    assert(wrouter_add_context(builder, "/foo/:bar/test/", NULL) == WROUTER_OK);
+    assert(wrouter_add_context(builder, "/foo/:bar/test/*", NULL) == WROUTER_OK);
+    assert(wrouter_add_context(builder, "/foo/:baz", NULL) == WROUTER_ERR_PARAM_NAME_MISMATCH);
+    assert(wrouter_add_context(builder, "/foo/:baz/test", NULL) == WROUTER_ERR_PARAM_NAME_MISMATCH);
+    assert(wrouter_add_context(builder, "/foo/:baz/test/", NULL) ==
+           WROUTER_ERR_PARAM_NAME_MISMATCH);
+    assert(wrouter_add_context(builder, "/foo/:baz/test/*", NULL) ==
+           WROUTER_ERR_PARAM_NAME_MISMATCH);
+
+    // But, at the same level of different parents is fine.
+    assert(wrouter_add_context(builder, "/different-path1/:foo", NULL) == WROUTER_OK);
+    assert(wrouter_add_context(builder, "/different-path2/:bar", NULL) == WROUTER_OK);
+    assert(wrouter_add_context(builder, "/different-path3/:baz", NULL) == WROUTER_OK);
+
+    wrouter_builder_free(builder);
+}
+
+static void test_wildcard_not_final(void)
+{
+    typedef struct {
+        const char *pattern;
+        wrouter_error_t expected;
+    } test_case_t;
+
+    static const test_case_t cases[] = {
+        // OK.
+        { "/*", WROUTER_OK },
+        { "/one/*", WROUTER_OK },
+        { "/two/:foo/*", WROUTER_OK },
+        { "/three/:foo/bar/:baz/*", WROUTER_OK },
+
+        // Not OK.
+        { "/foo/*/bar/", WROUTER_ERR_WILDCARD_NOT_FINAL },
+        { "/foo/*/:bar/", WROUTER_ERR_WILDCARD_NOT_FINAL },
+        { "/foo/*/:bar/baz/:buzz", WROUTER_ERR_WILDCARD_NOT_FINAL },
+        { "/foo/*/:bar/baz/:buzz/", WROUTER_ERR_WILDCARD_NOT_FINAL },
+        { "/foo/*/", WROUTER_ERR_WILDCARD_NOT_FINAL },
+        { "/foo/:bar/*/", WROUTER_ERR_WILDCARD_NOT_FINAL },
+        { "/foo/:bar/baz/:buzz/*/", WROUTER_ERR_WILDCARD_NOT_FINAL },
+        { "/*/foo", WROUTER_ERR_WILDCARD_NOT_FINAL },
+        { "/*/foo/", WROUTER_ERR_WILDCARD_NOT_FINAL },
+        { "/*/", WROUTER_ERR_WILDCARD_NOT_FINAL },
+        { "/*/*", WROUTER_ERR_WILDCARD_NOT_FINAL },
+        { "/*/*/", WROUTER_ERR_WILDCARD_NOT_FINAL },
+    };
+
+    for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
+        wrouter_options_t options = { 0 };
+        wrouter_builder_t *builder = wrouter_builder_create(options);
+        assert(builder != NULL);
+
+        ASSERT_ERROR(wrouter_add_context(builder, cases[i].pattern, NULL), cases[i].expected);
+
+        wrouter_builder_free(builder);
+    }
 }
 
 static void test_illegal_patterns(void)
@@ -139,14 +211,14 @@ static void test_illegal_patterns(void)
 
     assert(builder != NULL);
 
-    assert(wrouter_add_context(builder, "", NULL) == WROUTER_ERR_ILLEGAL_PATTERN);
-    assert(wrouter_add_context(builder, "//", NULL) == WROUTER_ERR_ILLEGAL_PATTERN);
-    assert(wrouter_add_context(builder, "///", NULL) == WROUTER_ERR_ILLEGAL_PATTERN);
-    assert(wrouter_add_context(builder, "//foo/", NULL) == WROUTER_ERR_ILLEGAL_PATTERN);
-    assert(wrouter_add_context(builder, "/foo//", NULL) == WROUTER_ERR_ILLEGAL_PATTERN);
-    assert(wrouter_add_context(builder, "/foo//bar", NULL) == WROUTER_ERR_ILLEGAL_PATTERN);
-    assert(wrouter_add_context(builder, "foo", NULL) == WROUTER_ERR_ILLEGAL_PATTERN);
-    assert(wrouter_add_context(builder, "foo/", NULL) == WROUTER_ERR_ILLEGAL_PATTERN);
+    ASSERT_ERROR(wrouter_add_context(builder, "", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
+    ASSERT_ERROR(wrouter_add_context(builder, "//", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
+    ASSERT_ERROR(wrouter_add_context(builder, "///", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
+    ASSERT_ERROR(wrouter_add_context(builder, "//foo/", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
+    ASSERT_ERROR(wrouter_add_context(builder, "/foo//", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
+    ASSERT_ERROR(wrouter_add_context(builder, "/foo//bar", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
+    ASSERT_ERROR(wrouter_add_context(builder, "foo", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
+    ASSERT_ERROR(wrouter_add_context(builder, "foo/", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
 
     wrouter_builder_free(builder);
 }
@@ -188,6 +260,8 @@ int main(void)
     test_add_context();
     test_duplicate();
     test_conflicts();
+    test_param_mismatch();
+    test_wildcard_not_final();
     test_illegal_patterns();
     test_range_error_literal_edges();
 
