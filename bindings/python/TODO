@@ -17,3 +17,7 @@ Better interface:
 And:
 
     dispatcher.dispatch(request_path, dispatch_ctx)
+
+And:
+
+    dispatcher = router.dispatcher()

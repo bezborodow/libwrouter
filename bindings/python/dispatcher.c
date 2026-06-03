@@ -27,6 +27,11 @@ static PyObject *PyDispatcher_new(PyTypeObject *type, PyObject *args, PyObject *
     if (!PyArg_ParseTuple(args, "O", &router_obj))
         return NULL;
 
+    if (!PyObject_TypeCheck(router_obj, &PyRouterType)) {
+        PyErr_SetString(PyExc_TypeError, "Expected Router object.");
+        return NULL;
+    }
+
     PyRouterObject *r = (PyRouterObject *)router_obj;
 
     PyDispatcherObject *self = (PyDispatcherObject *)type->tp_alloc(type, 0);
