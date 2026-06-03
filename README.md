@@ -54,11 +54,12 @@ int main(void)
         goto failure;
 
     router = wrouter_consume(&builder, &err);
-
     if (err)
         goto failure;
 
     dispatcher = wrouter_dispatcher_create(router);
+    if (dispatcher == NULL)
+        goto failure;
 
     wrouter_dispatch(dispatcher, "/hello/world", NULL);
 
