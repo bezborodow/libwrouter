@@ -158,13 +158,6 @@ URLs for the application server to consume. For example, `/new` could be
 rewritten as `/repo/new`, while `/:user/:repo` could be rewritten as
 `/repos/:user/:repo`. A small rewrite engine might be included in the future.
 
-The ulterior purpose behind the separation of URL rewriting and route
-resolution is to encourage the Web application designer to think carefully
-about URL layout and planning. Application-layer URLs should be utilitarian and
-verbosely descriptive, whilst the proxy rewrite engine provides a more
-accessible, concise, and convenient view that maps to the Web application.  For
-Web APIs, rewriting is not necessary except for aliases at the directory-level.
-
 ## Limitations
 
 This is not an HTTP parser; as such, request paths containing query parameters
