@@ -96,10 +96,10 @@ failure:
 wrouter_t *wrouter_consume(wrouter_builder_t **bpp, wrouter_error_t *err)
 {
     if (bpp == NULL || *bpp == NULL) {
-        if (err) {
+        if (err)
             *err = WROUTER_ERR_NULL_ARGUMENT;
-            return NULL;
-        }
+
+        return NULL;
     }
 
     const wrouter_builder_t *builder = *bpp;
