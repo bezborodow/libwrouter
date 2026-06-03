@@ -17,6 +17,4 @@ typedef struct token {
     uint8_t type;
 } token_t;
 
-token_t make_token(uint8_t type);
-
 bool token_matches_segment(token_t tok, const segment_t *segment);
