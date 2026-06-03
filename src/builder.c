@@ -191,14 +191,8 @@ wrouter_error_t wrouter_add_route(wrouter_builder_t *builder, const char *patter
                 if (cur->child_count)
                     return WROUTER_ERR_PARAM_CONFLICTS_WITH_LITERAL;
 
-                // Check if a parmeter already exists on this segment, otherwise create one.
-                if (cur->spec_type == SPEC_PARAM) {
-
-                    // If a parameter is already assigned, it should have the same name.
-                    if (!token_matches_segment(tok, cur->special.param))
-                        return WROUTER_ERR_PARAM_NAME_MISMATCH;
-
-                } else {
+                // Create a parameter on this segment if one does not already exist.
+                if (cur->spec_type == SPEC_NONE) {
 
                     // Append parameter symbol to the parameter symbol table.
                     if (builder->params.count >= UINT16_MAX)
@@ -216,6 +210,10 @@ wrouter_error_t wrouter_add_route(wrouter_builder_t *builder, const char *patter
 
                     cur->spec_type = SPEC_PARAM;
                     cur->special.param = param;
+                } else if (!token_matches_segment(tok, cur->special.param)) {
+
+                    // If a parameter is already assigned, it should have the same name.
+                    return WROUTER_ERR_PARAM_NAME_MISMATCH;
                 }
 
                 cur = cur->special.param;
