@@ -39,6 +39,9 @@ const char *wrouter_strerror(wrouter_error_t err)
         case WROUTER_ERR_NULL_ARGUMENT:
             return "Null argument.";
 
+        case WROUTER_ERR_BUILDER_CORRUPTED:
+            return "The builder tree is corrupted due to a failed route insertion; start afresh with a new builder.";
+
         default:
             return "An unknown error occurred.";
     }

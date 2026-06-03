@@ -19,6 +19,16 @@ static int edge_cmp(const void *p1, const void *p2)
     return e1->symbol - e2->symbol;
 }
 
+static inline uint16_t to_addr(size_t byte_offset)
+{
+    return (uint16_t)(byte_offset >> GRAPH_ADDR_SHIFT);
+}
+
+static inline size_t from_addr(uint16_t addr)
+{
+    return ((size_t)addr) << GRAPH_ADDR_SHIFT;
+}
+
 /**
  * Align the cursor to the next memory location for a given alignment.
  */

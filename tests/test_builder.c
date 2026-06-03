@@ -85,52 +85,65 @@ static void test_add_context(void)
 static void test_duplicate(void)
 {
     wrouter_options_t options = { 0 };
-    wrouter_builder_t *builder = wrouter_builder_create(options);
 
-    assert(builder != NULL);
+    struct {
+        const char *pattern;
+        wrouter_error_t expected;
+    } cases[] = {
+        { "/users",  WROUTER_ERR_DUPLICATE_ROUTE },
+        { "/users/", WROUTER_ERR_DUPLICATE_ROUTE },
+        { "/*",      WROUTER_ERR_DUPLICATE_ROUTE },
+        { "/",       WROUTER_ERR_DUPLICATE_ROUTE }
+    };
 
-    // Segment literal duplicate.
-    assert(wrouter_add_context(builder, "/users", NULL) == WROUTER_OK);
-    assert(wrouter_add_context(builder, "/users", NULL) == WROUTER_ERR_DUPLICATE_ROUTE);
+    for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
 
-    // Trailing duplicate.
-    assert(wrouter_add_context(builder, "/users/", NULL) == WROUTER_OK);
-    assert(wrouter_add_context(builder, "/users/", NULL) == WROUTER_ERR_DUPLICATE_ROUTE);
+        wrouter_builder_t *builder = wrouter_builder_create(options);
+        assert(builder != NULL);
 
-    // Wildcard duplicate.
-    assert(wrouter_add_context(builder, "/*", NULL) == WROUTER_OK);
-    assert(wrouter_add_context(builder, "/*", NULL) == WROUTER_ERR_DUPLICATE_ROUTE);
+        // base insert must succeed
+        assert(wrouter_add_context(builder, cases[i].pattern, NULL) == WROUTER_OK);
 
-    // Root duplicate.
-    assert(wrouter_add_context(builder, "/", NULL) == WROUTER_OK);
-    assert(wrouter_add_context(builder, "/", NULL) == WROUTER_ERR_DUPLICATE_ROUTE);
+        // duplicate insert must fail
+        ASSERT_ERROR(
+            wrouter_add_context(builder, cases[i].pattern, NULL),
+            cases[i].expected
+        );
 
-    wrouter_builder_free(builder);
+        wrouter_builder_free(builder);
+    }
 }
 
 static void test_conflicts(void)
 {
     wrouter_options_t options = { 0 };
-    wrouter_builder_t *builder = wrouter_builder_create(options);
+    wrouter_builder_t *builder;
 
     assert(builder != NULL);
 
     // Param vs literal.
+    builder = wrouter_builder_create(options);
     assert(wrouter_add_context(builder, "/one/foo", NULL) == WROUTER_OK);
     assert(wrouter_add_context(builder, "/one/:foo", NULL) ==
            WROUTER_ERR_PARAM_CONFLICTS_WITH_LITERAL);
+    wrouter_builder_destroy(&builder);;
 
     // Literal vs param.
+    builder = wrouter_builder_create(options);
     assert(wrouter_add_context(builder, "/two/:foo", NULL) == WROUTER_OK);
     assert(wrouter_add_context(builder, "/two/foo", NULL) ==
            WROUTER_ERR_LITERAL_CONFLICTS_WITH_PARAM);
+    wrouter_builder_destroy(&builder);;
 
     // Wildcard vs param.
+    builder = wrouter_builder_create(options);
     assert(wrouter_add_context(builder, "/three/:foo", NULL) == WROUTER_OK);
     assert(wrouter_add_context(builder, "/three/*", NULL) ==
            WROUTER_ERR_WILDCARD_CONFLICTS_WITH_PARAM);
+    wrouter_builder_destroy(&builder);;
 
     // Param vs wildcard.
+    builder = wrouter_builder_create(options);
     assert(wrouter_add_context(builder, "/four/*", NULL) == WROUTER_OK);
     assert(wrouter_add_context(builder, "/four/:foo", NULL) ==
            WROUTER_ERR_PARAM_CONFLICTS_WITH_WILDCARD);
@@ -141,28 +154,40 @@ static void test_conflicts(void)
 static void test_param_mismatch(void)
 {
     wrouter_options_t options = { 0 };
-    wrouter_builder_t *builder = wrouter_builder_create(options);
 
-    assert(builder != NULL);
+    const char *ok_routes[] = {
+        "/foo/:bar",
+        "/foo/:bar/test",
+        "/foo/:bar/test/",
+        "/foo/:bar/test/*"
+    };
 
-    // Parameters must have the same name at the same level.
-    assert(wrouter_add_context(builder, "/foo/:bar", NULL) == WROUTER_OK);
-    assert(wrouter_add_context(builder, "/foo/:bar/test", NULL) == WROUTER_OK);
-    assert(wrouter_add_context(builder, "/foo/:bar/test/", NULL) == WROUTER_OK);
-    assert(wrouter_add_context(builder, "/foo/:bar/test/*", NULL) == WROUTER_OK);
-    assert(wrouter_add_context(builder, "/foo/:baz", NULL) == WROUTER_ERR_PARAM_NAME_MISMATCH);
-    assert(wrouter_add_context(builder, "/foo/:baz/test", NULL) == WROUTER_ERR_PARAM_NAME_MISMATCH);
-    assert(wrouter_add_context(builder, "/foo/:baz/test/", NULL) ==
-           WROUTER_ERR_PARAM_NAME_MISMATCH);
-    assert(wrouter_add_context(builder, "/foo/:baz/test/*", NULL) ==
-           WROUTER_ERR_PARAM_NAME_MISMATCH);
+    const char *bad_routes[] = {
+        "/foo/:baz",
+        "/foo/:baz/test",
+        "/foo/:baz/test/",
+        "/foo/:baz/test/*"
+    };
 
-    // But, at the same level of different parents is fine.
-    assert(wrouter_add_context(builder, "/different-path1/:foo", NULL) == WROUTER_OK);
-    assert(wrouter_add_context(builder, "/different-path2/:bar", NULL) == WROUTER_OK);
-    assert(wrouter_add_context(builder, "/different-path3/:baz", NULL) == WROUTER_OK);
+    const size_t ok_count = sizeof(ok_routes) / sizeof(ok_routes[0]);
+    const size_t bad_count = sizeof(bad_routes) / sizeof(bad_routes[0]);
 
-    wrouter_builder_free(builder);
+    for (size_t i = 0; i < bad_count; i++) {
+
+        wrouter_builder_t *builder = wrouter_builder_create(options);
+        assert(builder != NULL);
+
+        // Prepopulate valid routes
+        for (size_t j = 0; j < ok_count; j++) {
+            assert(wrouter_add_context(builder, ok_routes[j], NULL) == WROUTER_OK);
+        }
+
+        // Inject offending route
+        assert(wrouter_add_context(builder, bad_routes[i], NULL)
+               == WROUTER_ERR_PARAM_NAME_MISMATCH);
+
+        wrouter_builder_free(builder);
+    }
 }
 
 static void test_wildcard_not_final(void)
@@ -208,36 +233,47 @@ static void test_wildcard_not_final(void)
 static void test_illegal_patterns(void)
 {
     wrouter_options_t options = { 0 };
-    wrouter_builder_t *builder = wrouter_builder_create(options);
 
-    assert(builder != NULL);
+    const char *cases[] = {
 
-    // Slashes in the wrong place.
-    ASSERT_ERROR(wrouter_add_context(builder, "", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
-    ASSERT_ERROR(wrouter_add_context(builder, "//", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
-    ASSERT_ERROR(wrouter_add_context(builder, "///", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
-    ASSERT_ERROR(wrouter_add_context(builder, "//foo/", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
-    ASSERT_ERROR(wrouter_add_context(builder, "/foo//", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
-    ASSERT_ERROR(wrouter_add_context(builder, "/foo//bar", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
-    ASSERT_ERROR(wrouter_add_context(builder, "foo", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
-    ASSERT_ERROR(wrouter_add_context(builder, "foo/", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
+        // Slashes in the wrong place
+        "",
+        "//",
+        "///",
+        "//foo/",
+        "/foo//",
+        "/foo//bar",
+        "foo",
+        "foo/",
 
-    // Wildcards in the wrong place.
-    ASSERT_ERROR(wrouter_add_context(builder, "/**", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
-    ASSERT_ERROR(wrouter_add_context(builder, "/hello*", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
-    ASSERT_ERROR(wrouter_add_context(builder, "/hello*world", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
-    ASSERT_ERROR(wrouter_add_context(builder, "/*world", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
+        // Wildcards in the wrong place
+        "/**",
+        "/hello*",
+        "/hello*world",
+        "/*world",
 
-    // Illegal parameter names.
-    ASSERT_ERROR(wrouter_add_context(builder, "/:*", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
-    ASSERT_ERROR(wrouter_add_context(builder, "/:$", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
-    ASSERT_ERROR(wrouter_add_context(builder, "/:1", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
-    ASSERT_ERROR(wrouter_add_context(builder, "/:_", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
-    ASSERT_ERROR(wrouter_add_context(builder, "/:_a", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
-    ASSERT_ERROR(wrouter_add_context(builder, "/:a:", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
-    ASSERT_ERROR(wrouter_add_context(builder, "/:foo:", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
+        // Illegal parameter names
+        "/:*",
+        "/:$",
+        "/:1",
+        "/:_",
+        "/:_a",
+        "/:a:",
+        "/:foo:"
+    };
 
-    wrouter_builder_free(builder);
+    for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
+
+        wrouter_builder_t *builder = wrouter_builder_create(options);
+        assert(builder != NULL);
+
+        ASSERT_ERROR(
+            wrouter_add_context(builder, cases[i], NULL),
+            WROUTER_ERR_ILLEGAL_PATTERN
+        );
+
+        wrouter_builder_free(builder);
+    }
 }
 
 static void test_range_error_literal_edges(void)
@@ -263,7 +299,16 @@ static void test_range_error_literal_edges(void)
         }
     }
     assert(range_error);
-    assert(i == NODE_CHILD_MAX);
+    i--;
+
+    if (i != NODE_MAX_CHILD_COUNT) {
+        fprintf(stderr,
+            "Max child count Mismatch: got=%zu expected=%d.\n",
+            (size_t)i,
+            NODE_MAX_CHILD_COUNT
+        );
+    }
+    assert(i == NODE_MAX_CHILD_COUNT);
 
     wrouter_builder_free(builder);
 }

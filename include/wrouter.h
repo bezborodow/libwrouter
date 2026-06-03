@@ -15,6 +15,7 @@ typedef enum {
     WROUTER_ERR_WILDCARD_CONFLICTS_WITH_PARAM,
     WROUTER_ERR_WILDCARD_NOT_FINAL,
     WROUTER_ERR_NULL_ARGUMENT,
+    WROUTER_ERR_BUILDER_CORRUPTED,
 } wrouter_error_t;
 
 typedef struct wrouter_router wrouter_t;

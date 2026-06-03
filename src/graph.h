@@ -8,7 +8,8 @@
 #define NODE_FLAG_HAS_WILDCARD 4
 #define NODE_FLAG_HAS_TRAILING 8
 
-#define NODE_CHILD_MAX UINT8_MAX
+// Maximum nodes based on the literal count (node_t.literals.)
+#define NODE_MAX_CHILD_COUNT ((size_t)UINT8_MAX)
 
 typedef struct {
     size_t nodes;
@@ -45,6 +46,9 @@ _Static_assert((1u << GRAPH_ADDR_SHIFT) == GRAPH_ADDR_UNIT,
                "GRAPH_ADDR_SHIFT must match GRAPH_ADDR_UNIT (power-of-two encoding).");
 _Static_assert((GRAPH_ADDR_UNIT & (GRAPH_ADDR_UNIT - 1)) == 0,
                "GRAPH_ADDR_UNIT must be power of two.");
+
+// Max graph bytes. Based on the transition offset (edge_t.next).
+#define GRAPH_CAPACITY_BYTES ((size_t)(UINT16_MAX + 1) << GRAPH_ADDR_SHIFT)
 
 const edge_t *node_edge_base(const node_t *node);
 
