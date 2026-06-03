@@ -142,7 +142,7 @@ void graph_stats(const segment_t *seg, graph_stats_t *stats)
 /**
  * Increases the cursor and returns the base.
  */
-static void *graph_append(void *g, size_t *cursor, size_t size, size_t align)
+void *graph_append(void *g, size_t *cursor, size_t size, size_t align)
 {
     if (!size)
         return NULL;

@@ -42,3 +42,5 @@ size_t graph_offset(const void *graph, const void *entry);
 void graph_stats(const segment_t *segment, graph_stats_t *stats);
 
 node_t *graph_compile(wrouter_t *router, const segment_t *segment, size_t *cursor);
+
+void *graph_append(void *g, size_t *cursor, size_t size, size_t align);
