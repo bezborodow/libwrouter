@@ -80,6 +80,32 @@ static void test_add_context(void)
     wrouter_builder_free(builder);
 }
 
+static void test_duplicate(void)
+{
+    wrouter_options_t options = { 0 };
+    wrouter_builder_t *builder = wrouter_builder_create(options);
+
+    assert(builder != NULL);
+
+    // Segment literal duplicate.
+    assert(wrouter_add_context(builder, "/users", NULL) == WROUTER_OK);
+    assert(wrouter_add_context(builder, "/users", NULL) == WROUTER_ERR_DUPLICATE_ROUTE);
+
+    // Trailing duplicate.
+    assert(wrouter_add_context(builder, "/users/", NULL) == WROUTER_OK);
+    assert(wrouter_add_context(builder, "/users/", NULL) == WROUTER_ERR_DUPLICATE_ROUTE);
+
+    // Wildcard duplicate.
+    assert(wrouter_add_context(builder, "/*", NULL) == WROUTER_OK);
+    assert(wrouter_add_context(builder, "/*", NULL) == WROUTER_ERR_DUPLICATE_ROUTE);
+
+    // Root duplicate.
+    assert(wrouter_add_context(builder, "/", NULL) == WROUTER_OK);
+    assert(wrouter_add_context(builder, "/", NULL) == WROUTER_ERR_DUPLICATE_ROUTE);
+
+    wrouter_builder_free(builder);
+}
+
 static void test_range_error_literal_edges(void)
 {
     char buf[32];
@@ -115,6 +141,7 @@ int main(void)
     test_add_handler();
     test_add_handler_ctx();
     test_add_context();
+    test_duplicate();
     test_range_error_literal_edges();
 
     return 0;
