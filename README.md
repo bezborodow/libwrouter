@@ -39,14 +39,18 @@ static void route_hello(void *dispatch_ctx, const void *route_ctx, const wrouter
 
 int main(void)
 {
+    wrouter_error_t err;
     wrouter_options_t options = { 0 };
 
     wrouter_builder_t *builder = wrouter_builder_create(options);
-    wrouter_add_handler(builder, "/hello/:addressee", route_hello);
+    err = wrouter_add_handler(builder, "/hello/:addressee", route_hello);
+    if (err)
+        goto failure;
 
-    wrouter_error_t err;
     wrouter_t *router = wrouter_compile(builder, &err);
     wrouter_builder_free(builder);
+    if (err)
+        goto failure;
 
     wrouter_dispatcher_t *dispatcher = wrouter_dispatcher_create(router);
 
@@ -56,6 +60,10 @@ int main(void)
     wrouter_free(router);
 
     return 0;
+
+failure:
+    fprintf(stderr, "%s\n", wrouter_strerror(err));
+    return 1;
 }
 ```
 
