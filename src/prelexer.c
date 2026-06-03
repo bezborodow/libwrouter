@@ -86,7 +86,6 @@ token_t prelexer_next(prelexer_t *lx)
 
         if (*c == '*' || *c == '#' || *c == '?' || isspace(*c))
             goto illegal;
-
     }
 
     // TODO handle overflow.

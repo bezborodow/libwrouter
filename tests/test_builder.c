@@ -288,6 +288,25 @@ static void test_range_error_literal_symbols(void)
     wrouter_builder_free(builder);
 }
 
+static void test_range_error_param_symbols(void)
+{
+    wrouter_error_t err;
+    wrouter_options_t options = { 0 };
+
+    wrouter_builder_t *builder = wrouter_builder_create(options);
+
+    assert(builder != NULL);
+
+    err = wrouter_add_context(builder, "/:one", NULL);
+    assert(err == WROUTER_OK);
+
+    builder->params.count = UINT16_MAX;
+
+    err = wrouter_add_context(builder, "/:one/:two", NULL);
+    ASSERT_ERROR(err, WROUTER_ERR_OUT_OF_RANGE);
+
+    wrouter_builder_free(builder);
+}
 
 int main(void)
 {
@@ -303,6 +322,7 @@ int main(void)
     test_illegal_patterns();
     test_range_error_literal_edges();
     test_range_error_literal_symbols();
+    test_range_error_param_symbols();
 
     return 0;
 }

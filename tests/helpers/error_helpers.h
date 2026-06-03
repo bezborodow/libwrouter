@@ -7,6 +7,6 @@
         if (_got != (expected_err)) {                                                              \
             fprintf(stderr, "Expected error: %s got: %s\n", wrouter_strerror(expected_err),        \
                     wrouter_strerror(_got));                                                       \
-            assert(expected_err == _got);                                                          \
+            assert(0);                                                                             \
         }                                                                                          \
     } while (0)
