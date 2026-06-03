@@ -27,6 +27,7 @@ src = files(
     'src/params.c',
     'src/prelexer.c',
     'src/router.c',
+    'src/segment.c',
     'src/symbol.c',
     'src/terminal.c',
     'src/token.c',
