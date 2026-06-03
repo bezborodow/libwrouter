@@ -35,6 +35,11 @@ wrouter_params_snapshot_t *wrouter_params_copy(const wrouter_params_t *params)
     if (snapshot == NULL)
         goto failure;
 
+    // Check for an empty parameter set. This is valid, but should return here early
+    // will zero initialisation to avoid calling calloc with a size of zero.
+    if (!params->count)
+        return snapshot;
+
     // Calculate size of region.
     for (uint32_t i = 0; i < params->count; i++) {
         wrouter_param_t *param = &params->base[i];
