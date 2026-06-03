@@ -89,3 +89,21 @@ failure:
     wrouter_free(router);
     return NULL;
 }
+
+wrouter_t *wrouter_consume(wrouter_builder_t **bpp, wrouter_error_t *err)
+{
+    if (bpp == NULL || *bpp == NULL) {
+        if (err) {
+            *err = WROUTER_ERR_NULL_ARGUMENT;
+            return NULL;
+        }
+    }
+
+    const wrouter_builder_t *builder = *bpp;
+
+    wrouter_t *router = wrouter_compile(builder, err);
+
+    wrouter_builder_destroy(bpp);
+
+    return router;
+}

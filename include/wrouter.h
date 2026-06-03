@@ -14,6 +14,7 @@ typedef enum {
     WROUTER_ERR_PARAM_NAME_MISMATCH,
     WROUTER_ERR_WILDCARD_CONFLICTS_WITH_PARAM,
     WROUTER_ERR_WILDCARD_NOT_FINAL,
+    WROUTER_ERR_NULL_ARGUMENT,
 } wrouter_error_t;
 
 typedef struct wrouter_router wrouter_t;
@@ -88,11 +89,17 @@ wrouter_error_t wrouter_add_context(wrouter_builder_t *builder, const char *patt
 
 wrouter_t *wrouter_compile(const wrouter_builder_t *builder, wrouter_error_t *err);
 
+wrouter_t *wrouter_consume(wrouter_builder_t **bpp, wrouter_error_t *err);
+
 wrouter_dispatcher_t *wrouter_dispatcher_create(const wrouter_t *router);
 
 void wrouter_dispatcher_free(wrouter_dispatcher_t *dispatcher);
 
+void wrouter_dispatcher_destroy(wrouter_dispatcher_t **dpp);
+
 void wrouter_builder_free(wrouter_builder_t *builder);
+
+void wrouter_builder_destroy(wrouter_builder_t **bpp);
 
 void wrouter_dispatch(wrouter_dispatcher_t *dispatcher, const char *path, void *dispatch_ctx);
 
@@ -116,5 +123,7 @@ void wrouter_snapshot_free(wrouter_params_snapshot_t *snapshot);
 size_t wrouter_route_count(const wrouter_t *router);
 
 void wrouter_free(wrouter_t *router);
+
+void wrouter_destroy(wrouter_t **rpp);
 
 const char *wrouter_strerror(wrouter_error_t err);

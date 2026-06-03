@@ -114,3 +114,13 @@ void wrouter_dispatcher_free(wrouter_dispatcher_t *dispatcher)
     params_free(&dispatcher->params);
     free(dispatcher);
 }
+
+void wrouter_dispatcher_destroy(wrouter_dispatcher_t **dpp)
+{
+    if (dpp == NULL || *dpp == NULL)
+        return;
+
+    wrouter_dispatcher_free(*dpp);
+
+    *dpp = NULL;
+}

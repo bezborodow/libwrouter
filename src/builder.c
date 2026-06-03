@@ -301,3 +301,17 @@ void wrouter_builder_free(wrouter_builder_t *builder)
     // Free the builder.
     free(builder);
 }
+
+void wrouter_builder_destroy(wrouter_builder_t **bpp)
+{
+    if (bpp == NULL)
+        return;
+
+    if (*bpp == NULL)
+        return;
+
+    // Release all route contexts.
+    wrouter_builder_free(*bpp);
+
+    *bpp = NULL;
+}

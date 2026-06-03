@@ -36,6 +36,9 @@ const char *wrouter_strerror(wrouter_error_t err)
         case WROUTER_ERR_WILDCARD_NOT_FINAL:
             return "A wildcard segment must be the final segment in the route pattern.";
 
+        case WROUTER_ERR_NULL_ARGUMENT:
+            return "Null argument.";
+
         default:
             return "An unknown error occurred.";
     }
