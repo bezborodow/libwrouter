@@ -52,19 +52,20 @@ token_t prelexer_next(prelexer_t *lx)
         goto finish;
     }
 
-    if (*c == '/') {
-        tok.type = TOKEN_ILLEGAL;
-        goto finish;
-    }
+    if (*c == '/')
+        goto illegal;
 
     if ((*c == ':' && colon) || (*c == '<' && angle) || (*c == '{' && brace)) {
         tok.type = TOKEN_PARAM;
         c++;
 
-        if (!isalpha(*c)) {
-            tok.type = TOKEN_ILLEGAL;
-            goto finish;
-        }
+        if (!isalpha(*c))
+            goto illegal;
+
+    } else if (*c == '*') {
+        c++;
+        tok.type = *c == '\0' || *c == '/' ? TOKEN_WILDCARD : TOKEN_ILLEGAL;
+        goto finish;
     } else {
         tok.type = TOKEN_LITERAL;
     }
@@ -77,26 +78,30 @@ token_t prelexer_next(prelexer_t *lx)
                 break;
             }
 
-            if (!isalnum(*c) && *c != '_') {
-                tok.type = TOKEN_ILLEGAL;
-                goto finish;
-            }
+            if (!isalnum(*c) && *c != '_')
+                goto illegal;
+
+            continue;
         }
+
+        if (*c == '*' || *c == '#' || *c == '?' || isspace(*c))
+            goto illegal;
+
     }
 
     // TODO handle overflow.
     tok.ptr = start;
     tok.length = c - start;
 
-    if (tok.length == 1 && start[0] == '*') {
-        tok.type = TOKEN_WILDCARD;
-        tok.length = 0;
-    }
-
     c += extra;
 
 finish:
     lx->cursor = c;
-
     return tok;
+
+illegal:
+    tok.type = TOKEN_ILLEGAL;
+    tok.length = 0;
+    tok.ptr = NULL;
+    goto finish;
 }
