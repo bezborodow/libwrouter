@@ -145,8 +145,7 @@ trailing:
     goto terminal;
 
 wildcard:
-    // Follow the wildcard edge and terminate.
-    cur = next_node(g, w_edge);
+    // Save the wildcard parameter.
     {
         wrouter_param_t *param = &d->params.base[d->params.count++];
         param->name = WILDCARD_PARAM;
@@ -154,7 +153,8 @@ wildcard:
         param->length = d->lx.str + d->lx.length - w_param;
     }
 
-    goto terminal;
+    // Follow the wildcard edge and terminate.
+    cur = next_node(g, w_edge);
 
 terminal:
     return terminal_lookup(&router->terminals, graph_offset(g, cur));
