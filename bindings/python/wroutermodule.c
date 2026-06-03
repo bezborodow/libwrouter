@@ -5,7 +5,19 @@
 #include "dispatcher.h"
 #include <Python.h>
 
-static PyMethodDef module_methods[] = { { NULL } };
+static PyObject *py_build_router(PyObject *self, PyObject *args);
+
+// clang-format off
+static PyMethodDef module_methods[] = {
+    {
+        "build_router",
+        py_build_router,
+        METH_VARARGS,
+        "Build a router from (pattern, route_ctx) tuples"
+    },
+    {NULL, NULL, 0, NULL}
+};
+// clang-format on
 
 static struct PyModuleDef moduledef = {
     PyModuleDef_HEAD_INIT, "wrouter", NULL, -1, module_methods, NULL, NULL, NULL, NULL
@@ -26,6 +38,65 @@ static PyObject *PyParamSyntax_New(wrouter_param_syntax_t v)
 
     obj->value = v;
     return (PyObject *)obj;
+}
+
+static PyObject *py_build_router(PyObject *self, PyObject *args)
+{
+    (void)self;
+
+    wrouter_error_t err = WROUTER_OK;
+
+    PyObject *routes;
+    if (!PyArg_ParseTuple(args, "O", &routes))
+        return NULL;
+
+    if (!PyList_Check(routes))
+        return PyErr_Format(PyExc_TypeError, "routes must be a list");
+
+    wrouter_options_t opts = { 0 };
+    wrouter_builder_t *builder = wrouter_builder_create(opts);
+    if (!builder)
+        return PyErr_NoMemory();
+
+    Py_ssize_t n = PyList_Size(routes);
+
+    for (Py_ssize_t i = 0; i < n; i++) {
+        PyObject *item = PyList_GetItem(routes, i);
+
+        const char *pattern;
+        PyObject *route_ctx;
+
+        if (!PyArg_ParseTuple(item, "sO", &pattern, &route_ctx)) {
+            wrouter_builder_free(builder);
+            return PyErr_Format(PyExc_TypeError, "Route must be (pattern, route_ctx)");
+        }
+
+        err = wrouter_add_context(builder, pattern, route_ctx);
+
+        if (err == WROUTER_ERR_NO_MEMORY) {
+            wrouter_builder_free(builder);
+            return PyErr_NoMemory();
+        }
+
+        if (err != WROUTER_OK) {
+            wrouter_builder_free(builder);
+            PyErr_SetString(WrouterRouteError, wrouter_strerror(err));
+            return NULL;
+        }
+    }
+
+    wrouter_t *router = wrouter_compile(builder, &err);
+    wrouter_builder_free(builder);
+
+    if (err == WROUTER_ERR_NO_MEMORY)
+        return PyErr_NoMemory();
+
+    if (err != WROUTER_OK) {
+        PyErr_SetString(WrouterRouteError, wrouter_strerror(err));
+        return NULL;
+    }
+
+    return PyRouter_FromRouter(router);
 }
 
 PyMODINIT_FUNC PyInit_wrouter(void)

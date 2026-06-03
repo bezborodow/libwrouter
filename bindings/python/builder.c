@@ -33,21 +33,15 @@ static int parse_syntax(PyObject *obj, wrouter_param_syntax_t *out)
 static PyObject *PyBuilder_compile(PyBuilderObject *self, PyObject *args)
 {
     (void)args;
-    PyRouterObject *obj = PyObject_New(PyRouterObject, &PyRouterType);
-    if (!obj)
-        return NULL;
 
     if (!pthread_equal(self->inner->owner_tid, pthread_self())) {
         PyErr_SetString(PyExc_RuntimeError, "Builder is thread-bound.");
         return NULL;
     }
 
-    obj->inner = PyMem_Calloc(1, sizeof(PyRouter));
-    if (!obj->inner)
-        return PyErr_NoMemory();
-
     wrouter_error_t err;
-    obj->inner->router = wrouter_compile(self->inner->builder, &err);
+    wrouter_t *router = wrouter_compile(self->inner->builder, &err);
+
     if (err == WROUTER_ERR_NO_MEMORY)
         return PyErr_NoMemory();
 
@@ -56,7 +50,7 @@ static PyObject *PyBuilder_compile(PyBuilderObject *self, PyObject *args)
         return NULL;
     }
 
-    return (PyObject *)obj;
+    return PyRouter_FromRouter(router);
 }
 
 void PyBuilder_dealloc(PyBuilderObject *self)

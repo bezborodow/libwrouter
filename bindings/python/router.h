@@ -12,3 +12,5 @@ typedef struct {
 } PyRouterObject;
 
 extern PyTypeObject PyRouterType;
+
+PyObject *PyRouter_FromRouter(wrouter_t *router);

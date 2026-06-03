@@ -2,6 +2,23 @@
 #include "wrouter.h"
 #include <Python.h>
 
+PyObject *PyRouter_FromRouter(wrouter_t *router)
+{
+    PyRouterObject *obj = PyObject_New(PyRouterObject, &PyRouterType);
+    if (!obj)
+        return NULL;
+
+    obj->inner = PyMem_Calloc(1, sizeof(PyRouter));
+    if (!obj->inner) {
+        Py_DECREF(obj);
+        return PyErr_NoMemory();
+    }
+
+    obj->inner->router = router;
+
+    return (PyObject *)obj;
+}
+
 static void PyRouter_dealloc(PyRouterObject *self)
 {
     if (self->inner) {

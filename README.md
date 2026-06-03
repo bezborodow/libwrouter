@@ -7,7 +7,7 @@
 ### Python
 
 ```python
-import wrouter
+from wrouter import build_router, Dispatcher
 
 
 routes = [
@@ -16,13 +16,7 @@ routes = [
     ("/account/a/:account_id", "account.view")
 ]
 
-builder = wrouter.Builder()
-
-for pattern, endpoint in routes:
-    builder.add(pattern, endpoint)
-
-router = builder.compile()
-dispatcher = wrouter.Dispatcher(router)
+dispatcher = Dispatcher(build_router(routes))
 
 endpoint, params = dispatcher.resolve("/account/a/1234")
 
