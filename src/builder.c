@@ -95,8 +95,8 @@ wrouter_error_t wrouter_add_context(wrouter_builder_t *builder, const char *patt
     return wrouter_add_route(builder, pattern, route);
 }
 
-static wrouter_route_t *builder_terminate( wrouter_builder_t *builder,
-        wrouter_route_t route) {
+static wrouter_route_t *builder_terminate(wrouter_builder_t *builder, wrouter_route_t route)
+{
 
     wrouter_route_t *terminal = calloc(1, sizeof(*terminal));
     if (terminal == NULL)

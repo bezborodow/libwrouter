@@ -80,4 +80,3 @@ void segment_release(wrouter_builder_t *builder, const segment_t *seg)
     if (seg->terminal)
         builder->release(seg->terminal->ctx);
 }
-
