@@ -1,5 +1,5 @@
 import pytest
-from wrouter import build_router, Dispatcher
+from wrouter import build_router, Dispatcher, RouteError
 
 
 def test_build_router():
@@ -19,3 +19,12 @@ def test_build_router():
     route_ctx, params = dispatcher.resolve("/account/a/1234")
     assert route_ctx == "account.view"
     assert params['account_id'] == "1234"
+
+
+def test_invalid_build():
+    routes = [
+        ("/////", "invalid"),
+    ]
+
+    with pytest.raises(RouteError):
+        dispatcher = Dispatcher(build_router(routes))
