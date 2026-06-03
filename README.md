@@ -24,6 +24,8 @@ endpoint, params = dispatcher.resolve("/account/a/1234")
 print(f"{endpoint} {params['account_id']}")
 ```
 
+Will print: `account.view 1234`.
+
 ### C
 
 ```c
@@ -83,6 +85,8 @@ Compile with:
 ```bash
 gcc -o hello hello.c -lwrouter
 ```
+
+Will print: `Hello, world!`
 
 ## Concepts
 
