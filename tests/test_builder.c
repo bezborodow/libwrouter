@@ -308,6 +308,35 @@ static void test_range_error_param_symbols(void)
     wrouter_builder_free(builder);
 }
 
+static void test_out_of_range_graph_size(void)
+{
+    enum { NI = 2, NJ = 55, NK = 100 };
+
+    char buf[64];
+    wrouter_error_t err;
+    wrouter_options_t options = { 0 };
+
+    wrouter_builder_t *builder = wrouter_builder_create(options);
+    assert(builder != NULL);
+
+    for (uint16_t i = 0; i < NI; i++) {
+        for (uint16_t j = 0; j < NJ; j++) {
+            for (uint16_t k = 0; k < NK; k++) {
+                snprintf(buf, sizeof(buf), "/a%u/b%u/c%u", i, j, k);
+
+                err = wrouter_add_context(builder, buf, NULL);
+                assert(err == WROUTER_OK);
+            }
+        }
+    }
+
+    wrouter_t *router = wrouter_compile(builder, &err);
+    assert(router == NULL);
+    assert(err == WROUTER_ERR_OUT_OF_RANGE);
+
+    wrouter_builder_free(builder);
+}
+
 int main(void)
 {
     test_free();
@@ -323,6 +352,7 @@ int main(void)
     test_range_error_literal_edges();
     test_range_error_literal_symbols();
     test_range_error_param_symbols();
+    test_out_of_range_graph_size();
 
     return 0;
 }
