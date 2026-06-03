@@ -15,14 +15,24 @@ void prelexer_init(prelexer_t *lx, wrouter_param_syntax_t param_syntax)
 
 void prelexer_load(prelexer_t *lx, const char *pattern)
 {
+    if (pattern == NULL)
+        goto failure;
+
+    if (*pattern == '\0')
+        goto failure;
+
     // Enforce all patterns begin with '/'.
-    if (*pattern != '/') {
-        memset(lx, 0, sizeof(*lx));
-        return;
-    }
+    if (*pattern != '/')
+        goto failure;
 
     lx->str = pattern;
     lx->cursor = pattern;
+
+    return;
+
+failure:
+    memset(lx, 0, sizeof(*lx));
+    return;
 }
 
 token_t prelexer_next(prelexer_t *lx)
