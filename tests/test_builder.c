@@ -310,6 +310,8 @@ static void test_range_error_param_symbols(void)
 
 static void test_out_of_range_graph_size(void)
 {
+    // Choose a number that will exceed the limits.  (But not ridiculous,
+    // otherwise tonnes of memory will be consumed.)
     enum { NI = 2, NJ = 55, NK = 100 };
 
     char buf[64];
@@ -319,6 +321,7 @@ static void test_out_of_range_graph_size(void)
     wrouter_builder_t *builder = wrouter_builder_create(options);
     assert(builder != NULL);
 
+    // Adding excessive routes will work ...
     for (uint16_t i = 0; i < NI; i++) {
         for (uint16_t j = 0; j < NJ; j++) {
             for (uint16_t k = 0; k < NK; k++) {
@@ -330,6 +333,7 @@ static void test_out_of_range_graph_size(void)
         }
     }
 
+    // ... BUT compiling will run out of graph memory.
     wrouter_t *router = wrouter_compile(builder, &err);
     assert(router == NULL);
     assert(err == WROUTER_ERR_OUT_OF_RANGE);
