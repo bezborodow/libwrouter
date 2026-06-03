@@ -112,6 +112,14 @@ static void print_route_node(const segment_t *seg, int depth, int is_param)
 
     printf("\n");
 
+    // Trailing-slash.
+    if (seg->trailing != NULL) {
+        for (int i = 0; i < depth + 1; i++)
+            printf("  ");
+
+        printf("/ &\n");
+    }
+
     // Literal children.
     for (uint16_t i = 0; i < seg->child_count; i++) {
         print_route_node(seg->children[i], depth + 1, 0);
@@ -128,10 +136,7 @@ static void print_route_node(const segment_t *seg, int depth, int is_param)
         for (int i = 0; i < depth + 1; i++)
             printf("  ");
 
-        printf("*");
-        if (seg->special.wildcard != NULL)
-            printf(" &");
-        printf("\n");
+        printf("* &\n");
     }
 }
 
@@ -395,8 +400,6 @@ void test_router_not_found(void)
     // Add routes.
     assert(wrouter_add_route(builder, "/hello/world", route) == 0);
 
-    // builder_print_tree(builder);
-
     // Compile.
     wrouter_error_t err;
     wrouter_t *router = wrouter_compile(builder, &err);
@@ -453,8 +456,6 @@ void test_router_end_wildcard(void)
     assert(wrouter_add_handler_ctx(builder, "/*", cb_watch, &expected_parameter_count) == 0);
     assert(wrouter_add_handler(builder, "/literal", cb_ignore) == 0);
 
-    // builder_print_tree(builder);
-
     // Compile.
     wrouter_error_t err;
     wrouter_t *router = wrouter_compile(builder, &err);
@@ -490,8 +491,6 @@ void test_router_top_wildcard_is_not_root(void)
     // Add routes.
     assert(wrouter_add_route(builder, "/*", route) == 0);
 
-    builder_print_tree(builder);
-
     // Compile.
     wrouter_error_t err;
     wrouter_t *router = wrouter_compile(builder, &err);
@@ -520,8 +519,6 @@ void test_router_empty_router(void)
         .fallback_ctx = NULL,
     };
     wrouter_builder_t *builder = wrouter_builder_create(options);
-
-    builder_print_tree(builder);
 
     // Compile without adding any routes.
     wrouter_error_t err;
