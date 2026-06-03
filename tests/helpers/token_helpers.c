@@ -1,7 +1,6 @@
 #include "token.h"
 #include "helpers/token_helpers.h"
 
-
 const char *token_ident(int type)
 {
     switch (type) {
