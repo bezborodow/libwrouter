@@ -5,6 +5,21 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+
+static void test_null(void)
+{
+    token_t tok;
+
+    prelexer_t lx = { 0 };
+    prelexer_init(&lx, WROUTER_SYNTAX_COLON);
+    prelexer_load(&lx, NULL);
+
+    tok = prelexer_next(&lx);
+    ASSERT_TOKEN_TYPE(tok, TOKEN_ILLEGAL);
+    assert(tok.length == 0);
+    assert(tok.ptr == NULL);
+}
 
 static void test_root(void)
 {
@@ -293,8 +308,34 @@ static void test_other_illegals(void)
     }
 }
 
+static void test_stupid(void)
+{
+    token_t tok;
+
+    prelexer_t lx = { 0 };
+    prelexer_init(&lx, WROUTER_SYNTAX_COLON);
+
+    // Test a very loooong string.
+    size_t len = 16 * UINT8_MAX + 2;
+
+    char *long_str = malloc(len + 1);
+    memset(long_str, 'a', len);
+    long_str[len] = '\0';
+    long_str[0] = '/';
+
+    prelexer_load(&lx, long_str);
+
+    tok = prelexer_next(&lx);
+    ASSERT_TOKEN_TYPE(tok, TOKEN_ILLEGAL);
+    assert(tok.length == 0);
+    assert(tok.ptr == NULL);
+
+    free(long_str);
+}
+
 int main(void)
 {
+    test_null();
     test_root();
     test_empty();
     test_missing_leading_slash();
@@ -306,5 +347,6 @@ int main(void)
     test_param_angle();
     test_wildcard();
     test_other_illegals();
+    test_stupid();
     return 0;
 }
