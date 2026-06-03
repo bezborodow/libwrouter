@@ -1,0 +1,6 @@
+executable(
+    'hello_cpp',
+    'hello.cpp',
+
+    dependencies: wrouter_cpp_dep,
+)
