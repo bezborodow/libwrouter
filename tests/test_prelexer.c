@@ -256,9 +256,12 @@ static void test_other_illegals(void)
     } test_case_t;
 
     static const test_case_t cases[] = {
+        { "" },
+        { "//" },
         { "foo" },
         { "foo?" },
         { "bar*" },
+        { ":foo" },
         { "/foo?" },
         { "/bar*" },
         { "/bar*bar" },
@@ -269,7 +272,6 @@ static void test_other_illegals(void)
         { "/foo bar" },
         //{ "/foo%" }, TODO
         //{ "/foo%1" },
-        { ":foo" },
         { "/:foo:" },
         { "/:_foo" },
         { "/:foo$" },
