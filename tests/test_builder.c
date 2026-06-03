@@ -87,25 +87,6 @@ static void test_duplicate(void)
 
     assert(builder != NULL);
 
-    assert(wrouter_add_context(builder, "", NULL) == WROUTER_ERR_ILLEGAL_PATTERN);
-    assert(wrouter_add_context(builder, "//", NULL) == WROUTER_ERR_ILLEGAL_PATTERN);
-    assert(wrouter_add_context(builder, "///", NULL) == WROUTER_ERR_ILLEGAL_PATTERN);
-    assert(wrouter_add_context(builder, "//foo/", NULL) == WROUTER_ERR_ILLEGAL_PATTERN);
-    assert(wrouter_add_context(builder, "/foo//", NULL) == WROUTER_ERR_ILLEGAL_PATTERN);
-    assert(wrouter_add_context(builder, "/foo//bar", NULL) == WROUTER_ERR_ILLEGAL_PATTERN);
-    assert(wrouter_add_context(builder, "foo", NULL) == WROUTER_ERR_ILLEGAL_PATTERN);
-    assert(wrouter_add_context(builder, "foo/", NULL) == WROUTER_ERR_ILLEGAL_PATTERN);
-
-    wrouter_builder_free(builder);
-}
-
-static void test_illegal_patterns(void)
-{
-    wrouter_options_t options = { 0 };
-    wrouter_builder_t *builder = wrouter_builder_create(options);
-
-    assert(builder != NULL);
-
     // Segment literal duplicate.
     assert(wrouter_add_context(builder, "/users", NULL) == WROUTER_OK);
     assert(wrouter_add_context(builder, "/users", NULL) == WROUTER_ERR_DUPLICATE_ROUTE);
@@ -121,6 +102,51 @@ static void test_illegal_patterns(void)
     // Root duplicate.
     assert(wrouter_add_context(builder, "/", NULL) == WROUTER_OK);
     assert(wrouter_add_context(builder, "/", NULL) == WROUTER_ERR_DUPLICATE_ROUTE);
+
+    wrouter_builder_free(builder);
+}
+
+static void test_conflicts(void)
+{
+    wrouter_options_t options = { 0 };
+    wrouter_builder_t *builder = wrouter_builder_create(options);
+
+    assert(builder != NULL);
+
+    // Param vs literal.
+    assert(wrouter_add_context(builder, "/one/foo", NULL) == WROUTER_OK);
+    assert(wrouter_add_context(builder, "/one/:foo", NULL) == WROUTER_ERR_PARAM_CONFLICTS_WITH_LITERAL);
+
+    // Literal vs param.
+    assert(wrouter_add_context(builder, "/two/:foo", NULL) == WROUTER_OK);
+    assert(wrouter_add_context(builder, "/two/foo", NULL) == WROUTER_ERR_LITERAL_CONFLICTS_WITH_PARAM);
+
+    // Wildcard vs param.
+    assert(wrouter_add_context(builder, "/three/:foo", NULL) == WROUTER_OK);
+    assert(wrouter_add_context(builder, "/three/*", NULL) == WROUTER_ERR_WILDCARD_CONFLICTS_WITH_PARAM);
+
+    // Param vs wildcard.
+    assert(wrouter_add_context(builder, "/four/*", NULL) == WROUTER_OK);
+    assert(wrouter_add_context(builder, "/four/:foo", NULL) == WROUTER_ERR_PARAM_CONFLICTS_WITH_WILDCARD);
+
+    wrouter_builder_free(builder);
+}
+
+static void test_illegal_patterns(void)
+{
+    wrouter_options_t options = { 0 };
+    wrouter_builder_t *builder = wrouter_builder_create(options);
+
+    assert(builder != NULL);
+
+    assert(wrouter_add_context(builder, "", NULL) == WROUTER_ERR_ILLEGAL_PATTERN);
+    assert(wrouter_add_context(builder, "//", NULL) == WROUTER_ERR_ILLEGAL_PATTERN);
+    assert(wrouter_add_context(builder, "///", NULL) == WROUTER_ERR_ILLEGAL_PATTERN);
+    assert(wrouter_add_context(builder, "//foo/", NULL) == WROUTER_ERR_ILLEGAL_PATTERN);
+    assert(wrouter_add_context(builder, "/foo//", NULL) == WROUTER_ERR_ILLEGAL_PATTERN);
+    assert(wrouter_add_context(builder, "/foo//bar", NULL) == WROUTER_ERR_ILLEGAL_PATTERN);
+    assert(wrouter_add_context(builder, "foo", NULL) == WROUTER_ERR_ILLEGAL_PATTERN);
+    assert(wrouter_add_context(builder, "foo/", NULL) == WROUTER_ERR_ILLEGAL_PATTERN);
 
     wrouter_builder_free(builder);
 }
@@ -161,6 +187,7 @@ int main(void)
     test_add_handler_ctx();
     test_add_context();
     test_duplicate();
+    test_conflicts();
     test_illegal_patterns();
     test_range_error_literal_edges();
 
