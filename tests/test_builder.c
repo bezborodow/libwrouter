@@ -211,6 +211,7 @@ static void test_illegal_patterns(void)
 
     assert(builder != NULL);
 
+    // Slashes in the wrong place.
     ASSERT_ERROR(wrouter_add_context(builder, "", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
     ASSERT_ERROR(wrouter_add_context(builder, "//", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
     ASSERT_ERROR(wrouter_add_context(builder, "///", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
@@ -219,6 +220,21 @@ static void test_illegal_patterns(void)
     ASSERT_ERROR(wrouter_add_context(builder, "/foo//bar", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
     ASSERT_ERROR(wrouter_add_context(builder, "foo", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
     ASSERT_ERROR(wrouter_add_context(builder, "foo/", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
+
+    // Wildcards in the wrong place.
+    ASSERT_ERROR(wrouter_add_context(builder, "/**", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
+    ASSERT_ERROR(wrouter_add_context(builder, "/hello*", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
+    ASSERT_ERROR(wrouter_add_context(builder, "/hello*world", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
+    ASSERT_ERROR(wrouter_add_context(builder, "/*world", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
+
+    // Illegal parameter names.
+    ASSERT_ERROR(wrouter_add_context(builder, "/:*", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
+    ASSERT_ERROR(wrouter_add_context(builder, "/:$", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
+    ASSERT_ERROR(wrouter_add_context(builder, "/:1", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
+    ASSERT_ERROR(wrouter_add_context(builder, "/:_", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
+    ASSERT_ERROR(wrouter_add_context(builder, "/:_a", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
+    ASSERT_ERROR(wrouter_add_context(builder, "/:a:", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
+    ASSERT_ERROR(wrouter_add_context(builder, "/:foo:", NULL), WROUTER_ERR_ILLEGAL_PATTERN);
 
     wrouter_builder_free(builder);
 }

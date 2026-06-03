@@ -20,6 +20,7 @@ static void test_root(void)
     tok = prelexer_next(&lx);
     ASSERT_TOKEN_TYPE(tok, TOKEN_END);
     assert(tok.length == 0);
+    assert(tok.ptr == NULL);
 }
 
 static void test_empty(void)
@@ -34,6 +35,7 @@ static void test_empty(void)
     tok = prelexer_next(&lx);
     ASSERT_TOKEN_TYPE(tok, TOKEN_ILLEGAL);
     assert(tok.length == 0);
+    assert(tok.ptr == NULL);
 }
 
 static void test_missing_leading_slash(void)
@@ -48,6 +50,7 @@ static void test_missing_leading_slash(void)
     tok = prelexer_next(&lx);
     ASSERT_TOKEN_TYPE(tok, TOKEN_ILLEGAL);
     assert(tok.length == 0);
+    assert(tok.ptr == NULL);
 }
 
 static void test_simple_path(void)
@@ -76,6 +79,7 @@ static void test_simple_path(void)
     tok = prelexer_next(&lx);
     ASSERT_TOKEN_TYPE(tok, TOKEN_END);
     assert(tok.length == 0);
+    assert(tok.ptr == NULL);
 }
 
 static void test_param_path(void)
@@ -116,6 +120,7 @@ static void test_param_path(void)
     tok = prelexer_next(&lx);
     ASSERT_TOKEN_TYPE(tok, TOKEN_END);
     assert(tok.length == 0);
+    assert(tok.ptr == NULL);
 }
 
 static void test_trailing(void)
@@ -138,6 +143,7 @@ static void test_trailing(void)
     tok = prelexer_next(&lx);
     ASSERT_TOKEN_TYPE(tok, TOKEN_TRAILING);
     assert(tok.length == 0);
+    assert(tok.ptr == NULL);
 }
 
 static void test_double_slash(void)
@@ -154,6 +160,7 @@ static void test_double_slash(void)
     tok = prelexer_next(&lx);
     ASSERT_TOKEN_TYPE(tok, TOKEN_ILLEGAL);
     assert(tok.length == 0);
+    assert(tok.ptr == NULL);
 }
 
 static void test_param_brace(void)
@@ -182,6 +189,7 @@ static void test_param_brace(void)
     tok = prelexer_next(&lx);
     ASSERT_TOKEN_TYPE(tok, TOKEN_END);
     assert(tok.length == 0);
+    assert(tok.ptr == NULL);
 }
 
 static void test_param_angle(void)
@@ -210,6 +218,7 @@ static void test_param_angle(void)
     tok = prelexer_next(&lx);
     ASSERT_TOKEN_TYPE(tok, TOKEN_END);
     assert(tok.length == 0);
+    assert(tok.ptr == NULL);
 }
 
 static void test_wildcard(void)
@@ -232,10 +241,54 @@ static void test_wildcard(void)
     tok = prelexer_next(&lx);
     ASSERT_TOKEN_TYPE(tok, TOKEN_WILDCARD);
     assert(tok.length == 0);
+    assert(tok.ptr == NULL);
 
     tok = prelexer_next(&lx);
     ASSERT_TOKEN_TYPE(tok, TOKEN_END);
     assert(tok.length == 0);
+    assert(tok.ptr == NULL);
+}
+
+static void test_other_illegals(void)
+{
+    typedef struct {
+        const char *input;
+    } test_case_t;
+
+    static const test_case_t cases[] = {
+        { "foo" },
+        { "foo?" },
+        { "bar*" },
+        { "/foo?" },
+        { "/bar*" },
+        { "/bar*bar" },
+        { "/*bar" },
+        { "/**" },
+        { "/foo#" },
+        { "/foo#bar" },
+        { "/foo bar" },
+        //{ "/foo%" }, TODO
+        //{ "/foo%1" },
+        { ":foo" },
+        { "/:foo:" },
+        { "/:_foo" },
+        { "/:foo$" },
+        { "/:f:oo" },
+        { "/:*" },
+        { "/:1" },
+        { "/:$" },
+    };
+
+    for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
+        prelexer_t lx = { 0 };
+        prelexer_init(&lx, WROUTER_SYNTAX_COLON);
+        prelexer_load(&lx, cases[i].input);
+
+        token_t tok = prelexer_next(&lx);
+        ASSERT_TOKEN_TYPE(tok, TOKEN_ILLEGAL);
+        assert(tok.length == 0);
+        assert(tok.ptr == NULL);
+    }
 }
 
 int main(void)
@@ -250,5 +303,6 @@ int main(void)
     test_param_brace();
     test_param_angle();
     test_wildcard();
+    test_other_illegals();
     return 0;
 }
