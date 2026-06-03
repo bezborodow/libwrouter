@@ -1,4 +1,4 @@
-.PHONY: build test ctags format install clean pytest
+.PHONY: build test ctags format install clean pytest clang-tidy
 
 build:
 	meson setup build
@@ -23,6 +23,9 @@ coverage:
 	lcov --capture --directory build-coverage --output-file coverage.info
 	lcov --extract coverage.info "$$(pwd)/src/*" --output-file coverage.filtered.info
 	genhtml coverage.filtered.info --output-directory coverage_html
+
+clang-tidy:
+	clang-tidy src/params.c -p build --fix --checks=misc-include-cleaner
 
 clean:
 	meson setup --wipe build
