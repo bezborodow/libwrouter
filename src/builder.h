@@ -28,4 +28,5 @@ struct wrouter_builder {
     wrouter_reference_fn retain;
     wrouter_reference_fn release;
     wrouter_param_syntax_t param_syntax;
+    bool corrupted;
 };

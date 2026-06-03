@@ -25,6 +25,11 @@ wrouter_t *wrouter_compile(const wrouter_builder_t *builder, wrouter_error_t *er
 
     *err = WROUTER_OK;
 
+    if (builder->corrupted) {
+        *err = WROUTER_ERR_BUILDER_CORRUPTED;
+        return NULL;
+    }
+
     // New router.
     wrouter_t *router = calloc(1, sizeof(wrouter_t));
     if (router == NULL)

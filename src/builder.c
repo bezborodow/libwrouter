@@ -18,83 +18,6 @@ static inline void builder_retain(const wrouter_builder_t *builder, const wroute
         builder->retain(route->ctx);
 }
 
-/**
- * Create a route builder.
- *
- * Use the builder to create a router tree by adding routes to it. Then compile
- * the tree into a router graph. After this, free the builder.
- *
- * The builder is not thread-safe.
- */
-wrouter_builder_t *wrouter_builder_create(const wrouter_options_t options)
-{
-    wrouter_builder_t *builder;
-
-    builder = calloc(1, sizeof(*builder));
-    if (builder == NULL)
-        return NULL;
-
-    builder->param_syntax = options.param_syntax;
-    builder->fallback.handler = options.fallback_handler;
-    builder->fallback.ctx = options.fallback_ctx;
-    builder->retain = options.retain;
-    builder->release = options.release;
-
-    builder_retain(builder, &builder->fallback);
-
-    builder->root = calloc(1, sizeof(segment_t));
-    if (builder->root == NULL)
-        goto failure;
-
-    symbol_table_init(&builder->literals);
-    symbol_table_init(&builder->params);
-
-    return builder;
-
-failure:
-    free(builder);
-    return NULL;
-}
-
-/**
- * Add a route handler to the route tree.
- */
-wrouter_error_t wrouter_add_handler(wrouter_builder_t *builder, const char *pattern,
-                                    wrouter_handler_fn handler)
-{
-    wrouter_route_t route = {
-        .handler = handler,
-        .ctx = NULL,
-    };
-
-    return wrouter_add_route(builder, pattern, route);
-}
-
-/**
- * Add a route handler and context to the route tree.
- */
-wrouter_error_t wrouter_add_handler_ctx(wrouter_builder_t *builder, const char *pattern,
-                                        wrouter_handler_fn handler, const void *ctx)
-{
-    wrouter_route_t route = {
-        .handler = handler,
-        .ctx = ctx,
-    };
-
-    return wrouter_add_route(builder, pattern, route);
-}
-
-wrouter_error_t wrouter_add_context(wrouter_builder_t *builder, const char *pattern,
-                                    const void *ctx)
-{
-    wrouter_route_t route = {
-        .handler = NULL,
-        .ctx = ctx,
-    };
-
-    return wrouter_add_route(builder, pattern, route);
-}
-
 static wrouter_route_t *builder_terminate(wrouter_builder_t *builder, wrouter_route_t route)
 {
 
@@ -112,15 +35,18 @@ static wrouter_route_t *builder_terminate(wrouter_builder_t *builder, wrouter_ro
 /**
  * Add a route to the route tree.
  */
-wrouter_error_t wrouter_add_route(wrouter_builder_t *builder, const char *pattern,
+static wrouter_error_t builder_add_route(wrouter_builder_t *builder, const char *pattern,
                                   wrouter_route_t route)
 {
     token_t tok;
     prelexer_t lx = { 0 };
+    segment_t *cur = builder->root;
+
+    if (builder->corrupted)
+        return WROUTER_ERR_BUILDER_CORRUPTED;
+
     prelexer_init(&lx, builder->param_syntax);
     prelexer_load(&lx, pattern);
-
-    segment_t *cur = builder->root;
 
     for (;;) {
         tok = prelexer_next(&lx);
@@ -159,7 +85,7 @@ wrouter_error_t wrouter_add_route(wrouter_builder_t *builder, const char *patter
                         return WROUTER_ERR_NO_MEMORY;
 
                     // Append child.
-                    if (cur->child_count >= NODE_CHILD_MAX)
+                    if (cur->child_count > NODE_MAX_CHILD_COUNT)
                         return WROUTER_ERR_OUT_OF_RANGE;
 
                     segment_t **new_children =
@@ -275,6 +201,95 @@ static void builder_release(wrouter_builder_t *builder)
 
     // Release fallback route context.
     builder->release(builder->fallback.ctx);
+}
+
+/**
+ * Create a route builder.
+ *
+ * Use the builder to create a router tree by adding routes to it. Then compile
+ * the tree into a router graph. After this, free the builder.
+ *
+ * The builder is not thread-safe.
+ */
+wrouter_builder_t *wrouter_builder_create(const wrouter_options_t options)
+{
+    wrouter_builder_t *builder;
+
+    builder = calloc(1, sizeof(*builder));
+    if (builder == NULL)
+        return NULL;
+
+    builder->param_syntax = options.param_syntax;
+    builder->fallback.handler = options.fallback_handler;
+    builder->fallback.ctx = options.fallback_ctx;
+    builder->retain = options.retain;
+    builder->release = options.release;
+
+    builder_retain(builder, &builder->fallback);
+
+    builder->root = calloc(1, sizeof(segment_t));
+    if (builder->root == NULL)
+        goto failure;
+
+    symbol_table_init(&builder->literals);
+    symbol_table_init(&builder->params);
+
+    return builder;
+
+failure:
+    free(builder);
+    return NULL;
+}
+
+/**
+ * Add a route handler to the route tree.
+ */
+wrouter_error_t wrouter_add_handler(wrouter_builder_t *builder, const char *pattern,
+                                    wrouter_handler_fn handler)
+{
+    wrouter_route_t route = {
+        .handler = handler,
+        .ctx = NULL,
+    };
+
+    return wrouter_add_route(builder, pattern, route);
+}
+
+/**
+ * Add a route handler and context to the route tree.
+ */
+wrouter_error_t wrouter_add_handler_ctx(wrouter_builder_t *builder, const char *pattern,
+                                        wrouter_handler_fn handler, const void *ctx)
+{
+    wrouter_route_t route = {
+        .handler = handler,
+        .ctx = ctx,
+    };
+
+    return wrouter_add_route(builder, pattern, route);
+}
+
+wrouter_error_t wrouter_add_context(wrouter_builder_t *builder, const char *pattern,
+                                    const void *ctx)
+{
+    wrouter_route_t route = {
+        .handler = NULL,
+        .ctx = ctx,
+    };
+
+    return wrouter_add_route(builder, pattern, route);
+}
+
+wrouter_error_t wrouter_add_route(wrouter_builder_t *builder, const char *pattern,
+                                  wrouter_route_t route)
+{
+    wrouter_error_t err = builder_add_route(builder, pattern, route);
+
+    if (err != WROUTER_OK) {
+        builder->corrupted = true;
+    }
+
+    return err;
 }
 
 /**
