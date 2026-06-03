@@ -107,7 +107,7 @@ static void print_route_node(const segment_t *seg, int depth, int is_param)
     else
         printf("/");
 
-    if (seg->route.handler != NULL)
+    if (seg->terminal != NULL)
         printf(" &");
 
     printf("\n");
@@ -129,7 +129,7 @@ static void print_route_node(const segment_t *seg, int depth, int is_param)
             printf("  ");
 
         printf("*");
-        if (seg->special.wildcard->route.handler != NULL)
+        if (seg->special.wildcard != NULL)
             printf(" &");
         printf("\n");
     }

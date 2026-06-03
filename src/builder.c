@@ -112,6 +112,20 @@ wrouter_error_t wrouter_add_context(wrouter_builder_t *builder, const char *patt
     return wrouter_add_route(builder, pattern, route);
 }
 
+static wrouter_route_t *builder_terminate( wrouter_builder_t *builder,
+        wrouter_route_t route) {
+
+    wrouter_route_t *terminal = calloc(1, sizeof(*terminal));
+    if (terminal == NULL)
+        return NULL;
+
+    *terminal = route;
+
+    builder_retain(builder, terminal);
+
+    return terminal;
+}
+
 /**
  * Add a route to the route tree.
  */
@@ -131,14 +145,14 @@ wrouter_error_t wrouter_add_route(wrouter_builder_t *builder, const char *patter
         switch (tok.type) {
             case TOKEN_END:
                 // Check for duplicate routes.
-                if (cur->terminal)
+                if (cur->terminal != NULL)
                     return WROUTER_ERR_DUPLICATE_ROUTE;
 
                 // TERMINATE!
                 // Append terminal route to the end segment.
-                cur->route = route;
-                cur->terminal = true;
-                builder_retain(builder, &route);
+                cur->terminal = builder_terminate(builder, route);
+                if (cur->terminal == NULL)
+                    return WROUTER_ERR_NO_MEMORY;
 
                 return WROUTER_OK;
 
@@ -241,30 +255,24 @@ wrouter_error_t wrouter_add_route(wrouter_builder_t *builder, const char *patter
 
                 // TERMINATE!
                 // Append wildcard terminal route.
-                cur->special.wildcard = calloc(1, sizeof(wildcard_t));
+                cur->spec_type = SPEC_WILDCARD;
+                cur->special.wildcard = builder_terminate(builder, route);
                 if (cur->special.wildcard == NULL)
                     return WROUTER_ERR_NO_MEMORY;
-                cur->spec_type = SPEC_WILDCARD;
-                cur->special.wildcard->route = route;
-
-                builder_retain(builder, &route);
 
                 return WROUTER_OK;
             }
 
             case TOKEN_TRAILING: {
                 // Check that a trailing-slash is not already assigned.
-                if (cur->trailing)
+                if (cur->trailing != NULL)
                     return WROUTER_ERR_DUPLICATE_ROUTE;
 
                 // TERMINATE!
                 // Append trailing-slash terminal route.
-                cur->trailing = calloc(1, sizeof(trailing_t));
+                cur->trailing = builder_terminate(builder, route);
                 if (cur->trailing == NULL)
                     return WROUTER_ERR_NO_MEMORY;
-                cur->trailing->route = route;
-
-                builder_retain(builder, &route);
 
                 return WROUTER_OK;
             }
@@ -372,12 +380,11 @@ static void segment_free(segment_t *segment)
             break;
     }
 
-    if (segment->trailing)
-        free(segment->trailing);
-
     for (uint16_t i = 0; i < segment->child_count; i++)
         segment_free(segment->children[i]);
 
+    free(segment->trailing);
+    free(segment->terminal);
     free(segment->children);
     free(segment);
 }
@@ -397,7 +404,7 @@ static void segment_release(wrouter_builder_t *builder, const segment_t *seg)
 
         case SPEC_WILDCARD:
             // Release wildcard route context.
-            builder->release(seg->special.wildcard->route.ctx);
+            builder->release(seg->special.wildcard->ctx);
             break;
 
         case SPEC_NONE:
@@ -406,11 +413,11 @@ static void segment_release(wrouter_builder_t *builder, const segment_t *seg)
 
     // Release trailing-slash route context.
     if (seg->trailing)
-        builder->release(seg->trailing->route.ctx);
+        builder->release(seg->trailing->ctx);
 
     // Release segment terminal route context.
     if (seg->terminal)
-        builder->release(seg->route.ctx);
+        builder->release(seg->terminal->ctx);
 }
 
 static void builder_release(wrouter_builder_t *builder)
