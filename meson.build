@@ -20,6 +20,7 @@ inc = include_directories('include')
 src = files(
     'src/arena.c',
     'src/builder.c',
+    'src/compiler.c',
     'src/dispatcher.c',
     'src/errors.c',
     'src/graph.c',
