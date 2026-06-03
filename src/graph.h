@@ -33,6 +33,19 @@ typedef struct {
 _Static_assert(sizeof(node_t) % _Alignof(edge_t) == 0, "Node size breaks edge alignment.");
 _Static_assert(sizeof(edge_t) % _Alignof(node_t) == 0, "Edge size breaks node alignment.");
 
+#define GRAPH_ADDR_UNIT 2
+#define GRAPH_ADDR_SHIFT 1
+
+_Static_assert(sizeof(node_t) % GRAPH_ADDR_UNIT == 0,
+               "INVALID GRAPH LAYOUT: node_t size incompatible with address unit encoding.");
+
+_Static_assert(sizeof(edge_t) % GRAPH_ADDR_UNIT == 0,
+               "INVALID GRAPH LAYOUT: edge_t size incompatible with address unit encoding.");
+_Static_assert((1u << GRAPH_ADDR_SHIFT) == GRAPH_ADDR_UNIT,
+               "GRAPH_ADDR_SHIFT must match GRAPH_ADDR_UNIT (power-of-two encoding).");
+_Static_assert((GRAPH_ADDR_UNIT & (GRAPH_ADDR_UNIT - 1)) == 0,
+               "GRAPH_ADDR_UNIT must be power of two.");
+
 const edge_t *node_edge_base(const node_t *node);
 
 const node_t *next_node(const uint8_t *graph, const edge_t *edge);
