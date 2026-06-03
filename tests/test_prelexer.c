@@ -8,7 +8,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-static void test_null(void)
+static void test_prelexer_null(void)
 {
     token_t tok;
 
@@ -22,7 +22,7 @@ static void test_null(void)
     assert(tok.ptr == NULL);
 }
 
-static void test_root(void)
+static void test_prelexer_root(void)
 {
     token_t tok;
 
@@ -39,7 +39,7 @@ static void test_root(void)
     assert(tok.ptr == NULL);
 }
 
-static void test_empty(void)
+static void test_prelexer_empty(void)
 {
     token_t tok;
 
@@ -54,7 +54,7 @@ static void test_empty(void)
     assert(tok.ptr == NULL);
 }
 
-static void test_missing_leading_slash(void)
+static void test_prelexer_missing_leading_slash(void)
 {
     token_t tok;
 
@@ -69,7 +69,7 @@ static void test_missing_leading_slash(void)
     assert(tok.ptr == NULL);
 }
 
-static void test_simple_path(void)
+static void test_prelexer_simple_path(void)
 {
     token_t tok;
 
@@ -98,7 +98,7 @@ static void test_simple_path(void)
     assert(tok.ptr == NULL);
 }
 
-static void test_param_path(void)
+static void test_prelexer_param_path(void)
 {
     token_t tok;
 
@@ -139,7 +139,7 @@ static void test_param_path(void)
     assert(tok.ptr == NULL);
 }
 
-static void test_trailing(void)
+static void test_prelexer_trailing(void)
 {
     token_t tok;
 
@@ -162,7 +162,7 @@ static void test_trailing(void)
     assert(tok.ptr == NULL);
 }
 
-static void test_double_slash(void)
+static void test_prelexer_double_slash(void)
 {
     token_t tok;
 
@@ -179,7 +179,7 @@ static void test_double_slash(void)
     assert(tok.ptr == NULL);
 }
 
-static void test_param_brace(void)
+static void test_prelexer_param_brace(void)
 {
     token_t tok;
 
@@ -208,7 +208,7 @@ static void test_param_brace(void)
     assert(tok.ptr == NULL);
 }
 
-static void test_param_angle(void)
+static void test_prelexer_param_angle(void)
 {
     token_t tok;
 
@@ -237,7 +237,7 @@ static void test_param_angle(void)
     assert(tok.ptr == NULL);
 }
 
-static void test_wildcard(void)
+static void test_prelexer_wildcard(void)
 {
     token_t tok;
 
@@ -265,7 +265,7 @@ static void test_wildcard(void)
     assert(tok.ptr == NULL);
 }
 
-static void test_other_illegals(void)
+static void test_prelexer_other_illegals(void)
 {
     typedef struct {
         const char *input;
@@ -309,7 +309,7 @@ static void test_other_illegals(void)
     }
 }
 
-static void test_stupid(void)
+static void test_prelexer_stupid(void)
 {
     token_t tok;
 
@@ -336,18 +336,18 @@ static void test_stupid(void)
 
 int main(void)
 {
-    test_null();
-    test_root();
-    test_empty();
-    test_missing_leading_slash();
-    test_simple_path();
-    test_param_path();
-    test_trailing();
-    test_double_slash();
-    test_param_brace();
-    test_param_angle();
-    test_wildcard();
-    test_other_illegals();
-    test_stupid();
+    test_prelexer_null();
+    test_prelexer_root();
+    test_prelexer_empty();
+    test_prelexer_missing_leading_slash();
+    test_prelexer_simple_path();
+    test_prelexer_param_path();
+    test_prelexer_trailing();
+    test_prelexer_double_slash();
+    test_prelexer_param_brace();
+    test_prelexer_param_angle();
+    test_prelexer_wildcard();
+    test_prelexer_other_illegals();
+    test_prelexer_stupid();
     return 0;
 }
