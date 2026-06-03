@@ -140,7 +140,7 @@ wrouter_error_t wrouter_add_route(wrouter_builder_t *builder, const char *patter
                 cur->terminal = true;
                 builder_retain(builder, &route);
 
-                return 0;
+                return WROUTER_OK;
 
             case TOKEN_LITERAL: {
                 // Literals are incompatible with parameters.
@@ -249,7 +249,7 @@ wrouter_error_t wrouter_add_route(wrouter_builder_t *builder, const char *patter
 
                 builder_retain(builder, &route);
 
-                return 0;
+                return WROUTER_OK;
             }
 
             case TOKEN_TRAILING: {
@@ -266,7 +266,7 @@ wrouter_error_t wrouter_add_route(wrouter_builder_t *builder, const char *patter
 
                 builder_retain(builder, &route);
 
-                return 0;
+                return WROUTER_OK;
             }
 
             case TOKEN_ILLEGAL:
@@ -274,8 +274,6 @@ wrouter_error_t wrouter_add_route(wrouter_builder_t *builder, const char *patter
                 return WROUTER_ERR_ILLEGAL_PATTERN;
         }
     }
-
-    return 0;
 }
 
 /**
