@@ -8,15 +8,28 @@
 
 void lexer_load(lexer_t *lx, const char *request, size_t length)
 {
+    if (request == NULL)
+        goto failure;
+
+    if (length == 0)
+        goto failure;
+
     // Enforce all requests begin with '/'.
-    if (*request != '/') {
-        memset(lx, 0, sizeof(*lx));
-        return;
-    }
+    if (*request != '/')
+        goto failure;
+
+    // Guard against ridiculous sizes.
+    if (length > UINT16_MAX)
+        goto failure;
 
     lx->str = request;
     lx->cursor = request;
     lx->length = length;
+
+    return;
+
+failure:
+        memset(lx, 0, sizeof(*lx));
 }
 
 token_t lexer_next(lexer_t *lx)
