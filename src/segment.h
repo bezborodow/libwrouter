@@ -1,10 +1,8 @@
 #pragma once
 #include "wrouter.h"
-#include "token.h"
+#include "common.h"
 #include <stdint.h>
 #include <stdbool.h>
-
-typedef struct segment segment_t;
 
 typedef enum {
     SPEC_NONE,
@@ -27,3 +25,7 @@ struct segment {
     uint16_t child_count;
     uint16_t str_length;
 };
+
+segment_t *segment_find_child_by_token(segment_t *segment, const token_t token);
+void segment_free(segment_t *segment);
+void segment_release(wrouter_builder_t *builder, const segment_t *segment);

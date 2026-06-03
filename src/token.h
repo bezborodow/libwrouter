@@ -1,5 +1,5 @@
 #pragma once
-#include "segment.h"
+#include "common.h"
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -10,7 +10,7 @@
 #define TOKEN_TRAILING 128
 #define TOKEN_END 255
 
-typedef struct {
+typedef struct token {
     const char *ptr;
     uint16_t length;
     uint8_t type;
