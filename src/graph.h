@@ -8,6 +8,8 @@
 #define NODE_FLAG_HAS_WILDCARD 4
 #define NODE_FLAG_HAS_TRAILING 8
 
+#define NODE_CHILD_MAX UINT8_MAX
+
 typedef struct {
     size_t nodes;
     size_t edges;
