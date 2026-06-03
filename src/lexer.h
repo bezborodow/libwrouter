@@ -1,7 +1,7 @@
 #pragma once
-#include "wrouter.h"
 #include "token.h"
 #include "symbol.h"
+#include "wrouter.h"
 #include <stdint.h>
 #include <stddef.h>
 

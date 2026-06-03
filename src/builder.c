@@ -7,7 +7,6 @@
 #include "symbol.h"
 #include <stdlib.h>
 #include <stdint.h>
-#include <string.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <limits.h>
@@ -57,15 +56,6 @@ failure:
 }
 
 /**
- * Check if a token matches against a given segment.
- */
-static bool token_matches(token_t tok, const segment_t *seg)
-{
-    return seg->str && tok.ptr && tok.length == seg->str_length &&
-           strncmp(tok.ptr, seg->str, tok.length) == 0;
-}
-
-/**
  * Find a child of a segment by token.
  */
 static segment_t *find_child_by_token(segment_t *segment, token_t tok)
@@ -76,7 +66,7 @@ static segment_t *find_child_by_token(segment_t *segment, token_t tok)
     for (uint16_t i = 0; i < segment->child_count; i++) {
         segment_t *child = segment->children[i];
 
-        if (token_matches(tok, child))
+        if (token_matches_segment(tok, child))
             return child;
     }
 
@@ -208,7 +198,7 @@ wrouter_error_t wrouter_add_route(wrouter_builder_t *builder, const char *patter
                 if (cur->spec_type == SPEC_PARAM) {
 
                     // If a parameter is already assigned, it should have the same name.
-                    if (!token_matches(tok, cur->special.param))
+                    if (!token_matches_segment(tok, cur->special.param))
                         return WROUTER_ERR_PARAM_NAME_MISMATCH;
 
                 } else {
