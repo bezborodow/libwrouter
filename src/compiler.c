@@ -102,9 +102,7 @@ wrouter_t *wrouter_consume(wrouter_builder_t **bpp, wrouter_error_t *err)
         return NULL;
     }
 
-    const wrouter_builder_t *builder = *bpp;
-
-    wrouter_t *router = wrouter_compile(builder, err);
+    wrouter_t *router = wrouter_compile(*bpp, err);
 
     wrouter_builder_destroy(bpp);
 
