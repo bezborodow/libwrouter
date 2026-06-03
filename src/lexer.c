@@ -1,4 +1,5 @@
 #include "lexer.h"
+#include "common.h"
 #include "token.h"
 #include "symbol.h"
 #include <stdint.h>
@@ -19,7 +20,7 @@ void lexer_load(lexer_t *lx, const char *request, size_t length)
         goto failure;
 
     // Guard against ridiculous sizes.
-    if (length > UINT16_MAX)
+    if (length > LEXER_CHAR_LIMIT)
         goto failure;
 
     lx->str = request;

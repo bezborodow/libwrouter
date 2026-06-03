@@ -1,3 +1,4 @@
+#include "common.h"
 #include "prelexer.h"
 #include "token.h"
 #include "helpers/token_helpers.h"
@@ -316,7 +317,7 @@ static void test_stupid(void)
     prelexer_init(&lx, WROUTER_SYNTAX_COLON);
 
     // Test a very loooong string.
-    size_t len = 16 * UINT8_MAX + 2;
+    size_t len = LEXER_CHAR_LIMIT + 2;
 
     char *long_str = malloc(len + 1);
     memset(long_str, 'a', len);

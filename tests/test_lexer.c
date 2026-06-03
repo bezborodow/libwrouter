@@ -1,8 +1,22 @@
 #include "lexer.h"
-#include <assert.h>
-#include <string.h>
 #include "helpers/token_helpers.h"
 #include "token.h"
+#include "common.h"
+#include <assert.h>
+#include <string.h>
+#include <stdlib.h>
+
+static void test_lexer_null(void)
+{
+    token_t tok;
+
+    lexer_t lx = { 0 };
+    lexer_load(&lx, NULL, 200);
+
+    tok = lexer_next(&lx);
+    ASSERT_TOKEN_TYPE(tok, TOKEN_ILLEGAL);
+    assert(tok.length == 0);
+}
 
 static void test_lexer_root(void)
 {
@@ -116,14 +130,37 @@ static void test_lexer_trailing(void)
     assert(tok.length == 0);
 }
 
+static void test_lexer_stupid_long(void)
+{
+    token_t tok;
+    lexer_t lx = { 0 };
+
+    // Test a very loooong string.
+    size_t len = LEXER_CHAR_LIMIT + 2;
+    char *long_str = malloc(len + 1);
+    memset(long_str, 'a', len);
+    long_str[0] = '/';
+
+    lexer_load(&lx, long_str, len);
+
+    tok = lexer_next(&lx);
+    ASSERT_TOKEN_TYPE(tok, TOKEN_ILLEGAL);
+    assert(tok.length == 0);
+    assert(tok.ptr == 0);
+
+    free(long_str);
+}
+
 int main(void)
 {
+    test_lexer_null();
     test_lexer_root();
     test_lexer_illegal_double_slash();
     test_lexer_illegal_empty();
     test_lexer_illegal_missing_leading_slash();
     test_lexer_easy();
     test_lexer_trailing();
+    test_lexer_stupid_long();
 
     return 0;
 }

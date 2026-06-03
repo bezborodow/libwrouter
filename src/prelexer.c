@@ -1,4 +1,5 @@
 #include "prelexer.h"
+#include "common.h"
 #include "token.h"
 #include <ctype.h>
 #include <stdint.h>
@@ -113,7 +114,7 @@ token_t prelexer_next(prelexer_t *lx)
     tok.length = c - start;
 
     // Guard against stupid sizes.
-    if (tok.length > 16 * UINT8_MAX)
+    if (tok.length > LEXER_CHAR_LIMIT)
         goto illegal;
 
     c += extra;
