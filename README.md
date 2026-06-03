@@ -34,7 +34,8 @@ static void route_hello(void *dispatch_ctx, const void *route_ctx, const wrouter
 {
     const wrouter_param_t *addressee = wrouter_param(params, "addressee");
 
-    printf("Hello, %.*s!\n", addressee->length, addressee->value);
+    if (addressee)
+        printf("Hello, %.*s!\n", addressee->length, addressee->value);
 }
 
 int main(void)
