@@ -13,7 +13,7 @@
 #include <limits.h>
 
 /**
- * Compile the route tree.
+ * Compile the route graph from the builder's route tree.
  *
  * This will compile an immutable router from a route tree, which is therefore
  * thread-safe. The router consists of a graph, symbols, and terminals.
