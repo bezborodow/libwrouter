@@ -1,6 +1,7 @@
 #pragma once
-#include "wrouter.h"
 #include "common.h"
+#include "segment.h"
+#include "wrouter.h"
 #include <stdint.h>
 #include <stdbool.h>
 
