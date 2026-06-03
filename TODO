@@ -1,4 +1,5 @@
 TODO
 
+Store segments in a pool.
 Improve linear to binary search.
 Better documentation.
