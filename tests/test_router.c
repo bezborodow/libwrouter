@@ -408,6 +408,7 @@ void test_router_not_found(void)
     wrouter_dispatcher_t *dispatcher = wrouter_dispatcher_create(router);
     assert(dispatcher != NULL);
 
+    // Test ordinary not found.
     assert(!fallback_seen);
     wrouter_dispatch(dispatcher, "/this/does/not/exist", &fallback_seen);
     assert(fallback_seen);
@@ -416,6 +417,16 @@ void test_router_not_found(void)
     wrouter_dispatch(dispatcher, "/hello/world/hello", &fallback_seen);
     assert(fallback_seen);
 
+    // Test trailing slash not found.
+    fallback_seen = false;
+    wrouter_dispatch(dispatcher, "/this/does/not/exist/trailing/slash/", &fallback_seen);
+    assert(fallback_seen);
+
+    fallback_seen = false;
+    wrouter_dispatch(dispatcher, "/hello/world/", &fallback_seen);
+    assert(fallback_seen);
+
+    // Test root not found.
     fallback_seen = false;
     wrouter_dispatch(dispatcher, "/", &fallback_seen);
     assert(fallback_seen);
@@ -512,7 +523,7 @@ void test_router_empty_router(void)
 
     builder_print_tree(builder);
 
-    // Compile.
+    // Compile without adding any routes.
     wrouter_error_t err;
     wrouter_t *router = wrouter_compile(builder, &err);
     wrouter_builder_free(builder);
@@ -520,7 +531,7 @@ void test_router_empty_router(void)
     assert(router != NULL);
 
     // Dispatch.
-    // Calling / should not match /*.
+    // Calling '/' should not match anything.
     wrouter_dispatcher_t *dispatcher = wrouter_dispatcher_create(router);
     assert(dispatcher != NULL);
     wrouter_dispatch(dispatcher, "/", &fallback_seen);
