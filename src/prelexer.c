@@ -35,6 +35,13 @@ failure:
     return;
 }
 
+
+/**
+ * Get next route pattern token.
+ *
+ * Valid parameter names are [A-Za-z][A-Za-z0-9_]*. E.g., ":param1", but not
+ * ":_param1" or ":1param".
+ */
 token_t prelexer_next(prelexer_t *lx)
 {
     token_t tok = { 0 };
@@ -69,6 +76,7 @@ token_t prelexer_next(prelexer_t *lx)
         tok.type = TOKEN_PARAM;
         c++;
 
+        // Parameter names must begin with a character [a-zA-Z].
         if (!isalpha(*c))
             goto illegal;
 
@@ -88,6 +96,8 @@ token_t prelexer_next(prelexer_t *lx)
                 break;
             }
 
+            // After the first character, parameter names may also contain
+            // digits and underscores.
             if (!isalnum(*c) && *c != '_')
                 goto illegal;
 
@@ -98,9 +108,13 @@ token_t prelexer_next(prelexer_t *lx)
             goto illegal;
     }
 
-    // TODO handle overflow.
+    // Save token string.
     tok.ptr = start;
     tok.length = c - start;
+
+    // Guard against stupid sizes.
+    if (tok.length > 16 * UINT8_MAX)
+        goto illegal;
 
     c += extra;
 
