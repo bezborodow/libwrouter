@@ -42,8 +42,8 @@ static void test_capturing_handler()
     std::string result;
 
     wrouter::Builder builder;
-    builder.add("/hello/:name", [&](wrouter::ParamsView params) {
-        result = captured + ":" + std::string(params["name"]);
+    builder.add("/hello/:name", [&](wrouter::Params params) {
+        result = captured + ":" + params["name"];
     });
 
     auto router = builder.consume();
@@ -57,7 +57,7 @@ static void test_capturing_handler()
 static void test_no_context_handler()
 {
     wrouter::Builder builder;
-    builder.add("/write/:value", [](wrouter::ParamsView params) {
+    builder.add("/write/:value", [](wrouter::Params params) {
         assert(params["value"] == "ok");
     });
 
@@ -75,8 +75,8 @@ static void test_typed_dispatch_context_handler()
 {
     wrouter::Builder builder;
     builder.add<TypedResponse>("/write/:value", [](TypedResponse& response,
-                                                   wrouter::ParamsView params) {
-        response.body = std::string(params["value"]);
+                                                   wrouter::Params params) {
+        response.body = params["value"];
     });
 
     auto router = builder.consume();
@@ -94,8 +94,8 @@ static void test_raw_callable_removed_from_add()
     std::string out;
 
     builder.add<std::string>("/typed/:value", [](std::string& dest,
-                                                 wrouter::ParamsView params) {
-        dest = std::string(params["value"]);
+                                                 wrouter::Params params) {
+        dest = params["value"];
     });
 
     auto router = builder.consume();
@@ -135,7 +135,7 @@ static void test_router_move_keeps_handlers()
     int calls = 0;
 
     wrouter::Builder builder;
-    builder.add("/move", [&](wrouter::ParamsView params) {
+    builder.add("/move", [&](wrouter::Params params) {
         assert(params.empty());
         calls++;
     });
@@ -150,6 +150,34 @@ static void test_router_move_keeps_handlers()
     assert(calls == 2);
 }
 
+static void test_callable_params_survive_nested_dispatch()
+{
+    std::string result;
+    wrouter::Dispatcher *dispatcher_ptr = nullptr;
+
+    wrouter::Builder builder;
+    builder.add("/outer/:value", [&](wrouter::Params params) {
+        assert(params["value"] == "one");
+
+        dispatcher_ptr->dispatch("/inner/two");
+
+        assert(params["value"] == "one");
+        result = params["value"];
+    });
+
+    builder.add("/inner/:value", [](wrouter::Params params) {
+        assert(params["value"] == "two");
+    });
+
+    auto router = builder.consume();
+    wrouter::Dispatcher dispatcher(router);
+    dispatcher_ptr = &dispatcher;
+
+    dispatcher.dispatch("/outer/one");
+
+    assert(result == "one");
+}
+
 static void ref_noop(const void *)
 {}
 
@@ -161,7 +189,7 @@ static void test_callable_rejects_c_reference_callbacks()
     wrouter::Builder builder(opts);
 
     try {
-        builder.add("/bad", [](wrouter::ParamsView) {});
+        builder.add("/bad", [](wrouter::Params) {});
     } catch (const std::logic_error &) {
         return;
     }
@@ -178,5 +206,6 @@ int main()
     test_raw_callable_removed_from_add();
     test_params_view();
     test_router_move_keeps_handlers();
+    test_callable_params_survive_nested_dispatch();
     test_callable_rejects_c_reference_callbacks();
 }

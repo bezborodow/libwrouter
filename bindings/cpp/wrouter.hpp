@@ -39,13 +39,39 @@ private:
     const wrouter_params_t *params_;
 };
 
+class Params {
+public:
+    explicit Params(const wrouter_params_t *params = nullptr);
+
+    [[nodiscard]]
+    uint32_t count() const noexcept;
+
+    [[nodiscard]]
+    bool empty() const noexcept;
+
+    [[nodiscard]]
+    std::string at(uint32_t index) const;
+
+    [[nodiscard]]
+    std::string get(std::string_view name) const;
+
+    [[nodiscard]]
+    std::string operator[](std::string_view name) const;
+
+    [[nodiscard]]
+    const wrouter_params_snapshot_t *native() const noexcept;
+
+private:
+    std::shared_ptr<wrouter_params_snapshot_t> snapshot_;
+};
+
 namespace detail {
 
 class HandlerBase {
 public:
     virtual ~HandlerBase() = default;
 
-    virtual void invoke(void *dispatch_ctx, ParamsView params) const = 0;
+    virtual void invoke(void *dispatch_ctx, Params params) const = 0;
 };
 
 void handler_trampoline(void *dispatch_ctx,
@@ -59,10 +85,10 @@ public:
         : fn_(std::move(fn))
     {}
 
-    void invoke(void *dispatch_ctx, ParamsView params) const override
+    void invoke(void *dispatch_ctx, Params params) const override
     {
         (void)dispatch_ctx;
-        fn_(params);
+        fn_(std::move(params));
     }
 
 private:
@@ -76,10 +102,10 @@ public:
         : fn_(std::move(fn))
     {}
 
-    void invoke(void *dispatch_ctx, ParamsView params) const override
+    void invoke(void *dispatch_ctx, Params params) const override
     {
         auto *ctx = static_cast<DispatchCtx *>(dispatch_ctx);
-        fn_(*ctx, params);
+        fn_(*ctx, std::move(params));
     }
 
 private:
@@ -197,8 +223,8 @@ Builder& Builder::add(std::string_view pattern, Fn&& fn)
     using Handler = detail::Handler<std::decay_t<Fn>>;
 
     static_assert(
-        std::is_invocable_v<std::decay_t<Fn>&, ParamsView>,
-        "handler must be invocable as fn(ParamsView)"
+        std::is_invocable_v<std::decay_t<Fn>&, Params>,
+        "handler must be invocable as fn(Params)"
     );
 
     auto handler = std::make_unique<Handler>(std::forward<Fn>(fn));
@@ -232,8 +258,8 @@ Builder& Builder::add(std::string_view pattern, Fn&& fn)
     using Handler = detail::TypedHandler<DispatchCtx, std::decay_t<Fn>>;
 
     static_assert(
-        std::is_invocable_v<std::decay_t<Fn>&, DispatchCtx&, ParamsView>,
-        "handler must be invocable as fn(DispatchCtx&, ParamsView)"
+        std::is_invocable_v<std::decay_t<Fn>&, DispatchCtx&, Params>,
+        "handler must be invocable as fn(DispatchCtx&, Params)"
     );
 
     auto handler = std::make_unique<Handler>(std::forward<Fn>(fn));
