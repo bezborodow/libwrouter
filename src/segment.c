@@ -1,6 +1,5 @@
 #include "wrouter.h"
 #include "segment.h"
-#include "builder.h"
 #include "token.h"
 #include <stdint.h>
 #include <stdlib.h>
@@ -50,22 +49,22 @@ void segment_free(segment_t *segment)
     free(segment);
 }
 
-void segment_release(wrouter_builder_t *builder, const segment_t *seg)
+void segment_release(const segment_t *segment, const wrouter_reference_fn release)
 {
     // Descend into literals.
-    for (uint16_t i = 0; i < seg->child_count; i++) {
-        segment_release(builder, seg->children[i]);
+    for (uint16_t i = 0; i < segment->child_count; i++) {
+        segment_release(segment->children[i], release);
     }
 
-    switch (seg->spec_type) {
+    switch (segment->spec_type) {
         case SPEC_PARAM:
             // Descend into parameters.
-            segment_release(builder, seg->special.param);
+            segment_release(segment->special.param, release);
             break;
 
         case SPEC_WILDCARD:
             // Release wildcard route context.
-            builder->release(seg->special.wildcard->ctx);
+            release(segment->special.wildcard->ctx);
             break;
 
         case SPEC_NONE:
@@ -73,10 +72,10 @@ void segment_release(wrouter_builder_t *builder, const segment_t *seg)
     }
 
     // Release trailing-slash route context.
-    if (seg->trailing)
-        builder->release(seg->trailing->ctx);
+    if (segment->trailing)
+        release(segment->trailing->ctx);
 
     // Release segment terminal route context.
-    if (seg->terminal)
-        builder->release(seg->terminal->ctx);
+    if (segment->terminal)
+        release(segment->terminal->ctx);
 }

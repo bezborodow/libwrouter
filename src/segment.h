@@ -29,4 +29,4 @@ struct segment {
 
 segment_t *segment_find_child_by_token(segment_t *segment, const token_t token);
 void segment_free(segment_t *segment);
-void segment_release(wrouter_builder_t *builder, const segment_t *segment);
+void segment_release(const segment_t *segment, wrouter_reference_fn release);
