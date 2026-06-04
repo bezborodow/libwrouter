@@ -11,3 +11,17 @@ executable(
 
     dependencies: wrouter_cpp_dep,
 )
+
+executable(
+    'no_context_cpp',
+    'no_context.cpp',
+
+    dependencies: wrouter_cpp_dep,
+)
+
+executable(
+    'raw_handler_cpp',
+    'raw_handler.cpp',
+
+    dependencies: wrouter_cpp_dep,
+)

@@ -190,8 +190,13 @@ Dispatcher::~Dispatcher()
         wrouter_dispatcher_destroy(&ptr_);
 }
 
-void Dispatcher::dispatch(std::string_view path,
-                          void *dispatch_ctx)
+void Dispatcher::dispatch(std::string_view path)
+{
+    dispatch_raw(path);
+}
+
+void Dispatcher::dispatch_raw(std::string_view path,
+                              void *dispatch_ctx)
 {
     wrouter_dispatch(ptr_, path.data(), dispatch_ctx);
 }
