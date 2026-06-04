@@ -5,9 +5,9 @@ int main()
 {
     wrouter::Builder<> builder;
 
-    builder.add_context("/account", (void*)"account.list");
-    builder.add_context("/account/create", (void*)"account.create");
-    builder.add_context("/account/a/:account_id", (void*)"account.view");
+    builder.add_context("/account", "account.list");
+    builder.add_context("/account/create", "account.create");
+    builder.add_context("/account/a/:account_id", "account.view");
 
     auto router = builder.consume();
 
