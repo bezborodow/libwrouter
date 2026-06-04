@@ -122,6 +122,7 @@ void test_symbol_resolve(void)
 
 int main(void)
 {
+    // TODO fix the test cases here. This test suite is currently disabled in meson.build.
     test_symbol_append();
     test_symbol_table_growth();
     test_symbol_compare();

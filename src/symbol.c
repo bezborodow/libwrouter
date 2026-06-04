@@ -149,8 +149,11 @@ size_t symbol_resolve(const symbols_t *symbols, const char *key)
     size_t nmemb = symbols->count;
     const char **res, **base = symbols->base;
 
+    // Binary search of the sorted symbol array.
     res = bsearch(&k, base, nmemb, sizeof(char *), symbol_compare);
 
+    // Zero indicates that a symbol was not found. Therefore, increment the
+    // index by one if there was a match; return zero otherwise.
     return res ? res - base + 1 : 0;
 }
 
