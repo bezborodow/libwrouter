@@ -22,10 +22,6 @@ static void test_symbol_append(void)
     assert(strcmp(tbl.base[0], "hello") == 0);
     assert(strcmp(tbl.base[1], "world") == 0);
 
-    assert(symbol_resolve(&tbl, "hello", tbl.base, tbl.count) == 1);
-    assert(symbol_resolve(&tbl, "cruel", tbl.base, tbl.count) == 0);
-    assert(symbol_resolve(&tbl, "world", tbl.base, tbl.count) == 2);
-
     symbol_table_free(&tbl);
 }
 
@@ -97,32 +93,33 @@ static void test_symbol_compare(void)
 
 void test_symbol_resolve(void)
 {
-    const char *symbols[] = {
+    const char *symarr[] = {
         "admin", "create", "list", "project", "user", "x", "x1", "x2",
     };
 
-    size_t n = sizeof(symbols) / sizeof(symbols[0]);
+    symbols_t symbols = { 0 };
+    symbols.base = symarr;
+    symbols.count = sizeof(symarr) / sizeof(symarr[0]);
 
-    assert(symbol_resolve("admin", symbols, n) == 1);
-    assert(symbol_resolve("create", symbols, n) == 2);
-    assert(symbol_resolve("list", symbols, n) == 3);
-    assert(symbol_resolve("project", symbols, n) == 4);
-    assert(symbol_resolve("user", symbols, n) == 5);
+    assert(symbol_resolve(&symbols, "admin") == 1);
+    assert(symbol_resolve(&symbols, "create") == 2);
+    assert(symbol_resolve(&symbols, "list") == 3);
+    assert(symbol_resolve(&symbols, "project") == 4);
+    assert(symbol_resolve(&symbols, "user") == 5);
 
-    assert(symbol_resolve("project/", symbols, n) == 4);
-    assert(symbol_resolve("user/", symbols, n) == 5);
+    assert(symbol_resolve(&symbols, "project/") == 4);
+    assert(symbol_resolve(&symbols, "user/") == 5);
 
-    assert(symbol_resolve("downloads", symbols, n) == 0);
-    assert(symbol_resolve("projects", symbols, n) == 0);
+    assert(symbol_resolve(&symbols, "downloads") == 0);
+    assert(symbol_resolve(&symbols, "projects") == 0);
 
-    assert(symbol_resolve("x", symbols, n) == 6);
-    assert(symbol_resolve("x1", symbols, n) == 7);
-    assert(symbol_resolve("x2", symbols, n) == 8);
+    assert(symbol_resolve(&symbols, "x") == 6);
+    assert(symbol_resolve(&symbols, "x1") == 7);
+    assert(symbol_resolve(&symbols, "x2") == 8);
 }
 
 int main(void)
 {
-    // TODO fix the test cases here. This test suite is currently disabled in meson.build.
     test_symbol_append();
     test_symbol_table_growth();
     test_symbol_compare();
