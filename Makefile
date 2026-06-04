@@ -19,6 +19,8 @@ ctags:
 format:
 	clang-format -i include/* src/* tests/*.c tests/helpers/* examples/libmicrohttpd/*.c bindings/python/*.c bindings/python/*.h
 
+alltest: test cpptests pytest
+
 coverage:
 	meson setup build-coverage -Db_coverage=true -Db_sanitize=none
 	meson compile -C build-coverage
