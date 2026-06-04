@@ -3,6 +3,26 @@
 #include "terminal.h"
 #include <stdint.h>
 #include <stdlib.h>
+#include <errno.h>
+
+int terminal_alloc(terminals_t *terminals, size_t n)
+{
+    // Allocate refs.
+    terminals->refs = calloc(n, sizeof(uint16_t));
+    if (terminals->refs == NULL)
+        goto failure;
+
+    // Allocate terminals.
+    terminals->base = calloc(n, sizeof(wrouter_route_t));
+    if (terminals->base == NULL)
+        goto failure;
+
+    return 0;
+
+failure:
+    terminals_free(terminals);
+    return -ENOMEM;
+}
 
 void terminal_append(terminals_t *terminals, uint16_t ref, const wrouter_route_t route)
 {

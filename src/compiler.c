@@ -67,14 +67,7 @@ wrouter_t *wrouter_compile(const wrouter_builder_t *builder, wrouter_error_t *er
     if ((*err = symbol_compile(&builder->params, &router->params)))
         goto failure;
 
-    // Allocate terminal refs.
-    router->terminals.refs = calloc(stats.terminals, sizeof(uint16_t));
-    if (router->terminals.refs == NULL)
-        goto no_memory;
-
-    // Allocate terminals.
-    router->terminals.base = calloc(stats.terminals, sizeof(wrouter_route_t));
-    if (router->terminals.base == NULL)
+    if (terminal_alloc(&router->terminals, stats.terminals))
         goto no_memory;
 
     // TODO sort terminals.

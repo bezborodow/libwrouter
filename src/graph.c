@@ -203,7 +203,8 @@ node_t *graph_compile(wrouter_t *router, const segment_t *segment, size_t *curso
         // refs is the terminating node's graph offset. Searching for the
         // offset yields an index that is used to lookup the terminal in the
         // base array.
-        terminal_append(&router->terminals, graph_offset(g, node), *segment->terminal);
+        size_t node_offset = graph_offset(g, node);
+        terminal_append(&router->terminals, node_offset, *segment->terminal);
 
         // Retain context.
         // Callback to retain context reference count for garbage collection if
@@ -276,8 +277,6 @@ node_t *graph_compile(wrouter_t *router, const segment_t *segment, size_t *curso
         w_node->flags |= NODE_FLAG_TERMINAL;
         w_edge->next = graph_offset(g, w_node);
         terminal_append(&router->terminals, w_edge->next, *segment->special.wildcard);
-
-        // Retain context.
         router_retain(router, segment->special.wildcard);
     }
 
@@ -287,8 +286,6 @@ node_t *graph_compile(wrouter_t *router, const segment_t *segment, size_t *curso
         t_node->flags |= NODE_FLAG_TERMINAL;
         t_edge->next = graph_offset(g, t_node);
         terminal_append(&router->terminals, t_edge->next, *segment->trailing);
-
-        // Retain context.
         router_retain(router, segment->trailing);
     }
 
