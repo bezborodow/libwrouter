@@ -20,10 +20,15 @@ typedef struct {
 } symbols_t;
 
 void symbol_table_init(symbol_table_t *tbl);
+
 const char *symbol_append(symbol_table_t *tbl, const char *str, size_t length);
+
 void symbol_table_free(symbol_table_t *tbl);
 
-size_t symbol_resolve(const char *key, const char **base, size_t nmemb);
+size_t symbol_resolve(const symbols_t *symbols, const char *key);
+
 int symbol_compare(const void *a, const void *b);
+
 wrouter_error_t symbol_compile(const symbol_table_t *tbl, symbols_t *sym);
+
 void symbols_free(symbols_t *symbols);

@@ -161,17 +161,7 @@ static void test_lexer_stupid_long(void)
 static void test_lexer_other_illegals(void)
 {
     const char *cases[] = {
-        "",
-        "/?",
-        "/#",
-        "/*",
-        "/ ",
-        "/\t",
-        "/\n",
-        "/\r",
-        "/\x01",
-        "/\x7f",
-        NULL
+        "", "/?", "/#", "/*", "/ ", "/\t", "/\n", "/\r", "/\x01", "/\x7f", NULL
     };
 
     for (size_t i = 0; cases[i] != NULL; i++) {
