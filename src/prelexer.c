@@ -51,6 +51,7 @@ token_t prelexer_next(prelexer_t *lx)
     const bool brace = lx->param_syntax == WROUTER_SYNTAX_BRACE;
     const bool colon = lx->param_syntax == WROUTER_SYNTAX_COLON;
     size_t extra;
+    size_t length;
     const char *start;
 
     if (lx->cursor == NULL)
@@ -108,13 +109,16 @@ token_t prelexer_next(prelexer_t *lx)
             goto illegal;
     }
 
-    // Save token string.
-    tok.ptr = start;
-    tok.length = c - start;
+    // Measure before narrowing to token_t.length.
+    length = c - start;
 
     // Guard against stupid sizes.
-    if (tok.length > LEXER_CHAR_LIMIT)
+    if (length > LEXER_CHAR_LIMIT)
         goto illegal;
+
+    // Save token string.
+    tok.ptr = start;
+    tok.length = length;
 
     c += extra;
 

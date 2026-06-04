@@ -422,6 +422,29 @@ static void test_builder_consume(void)
     wrouter_destroy(&router);
 }
 
+static void test_builder_compile_null_arguments(void)
+{
+    wrouter_error_t err;
+    wrouter_options_t options = { 0 };
+    wrouter_builder_t *builder = NULL;
+    wrouter_t *router = NULL;
+
+    router = wrouter_compile(NULL, NULL);
+    assert(router == NULL);
+
+    router = wrouter_compile(NULL, &err);
+    assert(router == NULL);
+    assert(err == WROUTER_ERR_NULL_ARGUMENT);
+
+    builder = wrouter_builder_create(options);
+    assert(builder != NULL);
+
+    router = wrouter_compile(builder, NULL);
+    assert(router == NULL);
+
+    wrouter_builder_free(builder);
+}
+
 int main(void)
 {
     test_free();
@@ -440,6 +463,7 @@ int main(void)
     test_range_error_param_symbols();
     test_out_of_range_graph_size();
     test_builder_consume();
+    test_builder_compile_null_arguments();
 
     return 0;
 }
