@@ -6,38 +6,17 @@
 #include <string>
 #include <string_view>
 #include <type_traits>
-#include <unordered_map>
 #include <stdexcept>
 #include <utility>
 #include <vector>
 
 namespace wrouter {
 
-class ParamsView {
-public:
-    explicit ParamsView(const wrouter_params_t *params = nullptr) noexcept;
+template<typename DispatchCtx>
+class Builder;
 
-    [[nodiscard]]
-    uint32_t count() const noexcept;
-
-    [[nodiscard]]
-    bool empty() const noexcept;
-
-    [[nodiscard]]
-    std::string_view at(uint32_t index) const noexcept;
-
-    [[nodiscard]]
-    std::string_view get(std::string_view name) const noexcept;
-
-    [[nodiscard]]
-    std::string_view operator[](std::string_view name) const noexcept;
-
-    [[nodiscard]]
-    const wrouter_params_t *native() const noexcept;
-
-private:
-    const wrouter_params_t *params_;
-};
+template<typename DispatchCtx>
+class Dispatcher;
 
 class Params {
 public:
@@ -78,8 +57,25 @@ void handler_trampoline(void *dispatch_ctx,
                         const void *route_ctx,
                         const wrouter_params_t *params);
 
-template<typename Fn>
+template<typename DispatchCtx, typename Fn>
 class Handler final : public HandlerBase {
+public:
+    explicit Handler(Fn fn)
+        : fn_(std::move(fn))
+    {}
+
+    void invoke(void *dispatch_ctx, Params params) const override
+    {
+        auto *ctx = static_cast<DispatchCtx *>(dispatch_ctx);
+        fn_(*ctx, std::move(params));
+    }
+
+private:
+    mutable Fn fn_;
+};
+
+template<typename Fn>
+class Handler<void, Fn> final : public HandlerBase {
 public:
     explicit Handler(Fn fn)
         : fn_(std::move(fn))
@@ -95,21 +91,71 @@ private:
     mutable Fn fn_;
 };
 
-template<typename DispatchCtx, typename Fn>
-class TypedHandler final : public HandlerBase {
+class RouterBase {
 public:
-    explicit TypedHandler(Fn fn)
-        : fn_(std::move(fn))
-    {}
+    explicit RouterBase(wrouter_t *ptr = nullptr) noexcept;
+    RouterBase(wrouter_t *ptr, std::vector<std::unique_ptr<HandlerBase>> handlers) noexcept;
+    ~RouterBase();
 
-    void invoke(void *dispatch_ctx, Params params) const override
-    {
-        auto *ctx = static_cast<DispatchCtx *>(dispatch_ctx);
-        fn_(*ctx, std::move(params));
-    }
+    RouterBase(RouterBase&& rhs) noexcept;
+    RouterBase& operator=(RouterBase&& rhs) noexcept;
+
+    RouterBase(const RouterBase&) = delete;
+    RouterBase& operator=(const RouterBase&) = delete;
+
+    [[nodiscard]]
+    wrouter_t *native() const noexcept;
 
 private:
-    mutable Fn fn_;
+    wrouter_t *ptr_;
+    std::vector<std::unique_ptr<HandlerBase>> handlers_;
+};
+
+class BuilderBase {
+public:
+    explicit BuilderBase(const wrouter_options_t& opts = {});
+    ~BuilderBase();
+
+    BuilderBase(BuilderBase&& rhs) noexcept;
+    BuilderBase& operator=(BuilderBase&& rhs) noexcept;
+
+    BuilderBase(const BuilderBase&) = delete;
+    BuilderBase& operator=(const BuilderBase&) = delete;
+
+    void install_handler(std::string_view pattern,
+                         std::unique_ptr<HandlerBase> handler);
+
+    void add_context(std::string_view pattern,
+                     const void *ctx);
+
+    [[nodiscard]]
+    RouterBase consume();
+
+private:
+    wrouter_builder_t *ptr_;
+    bool has_reference_callbacks_;
+    std::vector<std::unique_ptr<HandlerBase>> handlers_;
+};
+
+class DispatcherBase {
+public:
+    explicit DispatcherBase(const RouterBase& router);
+    ~DispatcherBase();
+
+    DispatcherBase(const DispatcherBase&) = delete;
+    DispatcherBase& operator=(const DispatcherBase&) = delete;
+
+    [[nodiscard]]
+    const void *resolve_raw(std::string_view path);
+
+    void dispatch_impl(std::string_view path,
+                       void *dispatch_ctx = nullptr);
+
+    [[nodiscard]]
+    Params params() const;
+
+private:
+    wrouter_dispatcher_t *ptr_;
 };
 
 }
@@ -125,65 +171,75 @@ private:
     wrouter_error_t code_;
 };
 
-class Router {
+template<typename DispatchCtx = void>
+class Router : private detail::RouterBase {
 public:
-    explicit Router(wrouter_t *ptr = nullptr) noexcept;
-    Router(wrouter_t *ptr, std::vector<std::unique_ptr<detail::HandlerBase>> handlers) noexcept;
-    ~Router();
+    explicit Router(wrouter_t *ptr = nullptr) noexcept
+        : detail::RouterBase(ptr)
+    {}
 
-    Router(Router&& rhs) noexcept;
-    Router& operator=(Router&& rhs) noexcept;
+    Router(Router&& rhs) noexcept = default;
+    Router& operator=(Router&& rhs) noexcept = default;
 
     Router(const Router&) = delete;
     Router& operator=(const Router&) = delete;
 
     [[nodiscard]]
-    wrouter_t *native() const noexcept;
+    wrouter_t *native() const noexcept
+    {
+        return detail::RouterBase::native();
+    }
 
 private:
-    wrouter_t *ptr_;
-    std::vector<std::unique_ptr<detail::HandlerBase>> handlers_;
+    friend class Builder<DispatchCtx>;
+    friend class Dispatcher<DispatchCtx>;
+
+    explicit Router(detail::RouterBase base) noexcept
+        : detail::RouterBase(std::move(base))
+    {}
 };
 
-class Builder {
+template<typename DispatchCtx = void>
+class Builder : private detail::BuilderBase {
 public:
-    explicit Builder(const wrouter_options_t& opts = {});
+    explicit Builder(const wrouter_options_t& opts = {})
+        : detail::BuilderBase(opts)
+    {}
 
-    ~Builder();
-
-    Builder(Builder&& rhs) noexcept;
-    Builder& operator=(Builder&& rhs) noexcept;
+    Builder(Builder&& rhs) noexcept = default;
+    Builder& operator=(Builder&& rhs) noexcept = default;
 
     Builder(const Builder&) = delete;
     Builder& operator=(const Builder&) = delete;
 
-    Builder& add_handler(std::string_view pattern,
-                         wrouter_handler_fn fn,
-                         const void *ctx = nullptr);
-
     template<typename Fn>
     Builder& add(std::string_view pattern, Fn&& fn);
 
-    template<typename DispatchCtx, typename Fn>
-    Builder& add(std::string_view pattern, Fn&& fn);
-
     Builder& add_context(std::string_view pattern,
-                         const void *ctx);
+                         const void *ctx)
+    {
+        detail::BuilderBase::add_context(pattern, ctx);
+        return *this;
+    }
 
     [[nodiscard]]
-    Router consume();
-
-private:
-    wrouter_builder_t *ptr_;
-    bool has_reference_callbacks_;
-    std::vector<std::unique_ptr<detail::HandlerBase>> handlers_;
+    Router<DispatchCtx> consume()
+    {
+        return Router<DispatchCtx>{ detail::BuilderBase::consume() };
+    }
 };
 
-class Dispatcher {
+template<typename DispatchCtx = void>
+class Dispatcher : private detail::DispatcherBase {
 public:
-    explicit Dispatcher(const Router& router);
-
-    ~Dispatcher();
+    explicit Dispatcher(const Router<DispatchCtx>& router)
+        : detail::DispatcherBase(router)
+    {
+        static_assert(
+            !std::is_void_v<DispatchCtx>,
+            "Dispatcher<void> is handled by the no-context specialization"
+        );
+    }
 
     Dispatcher(const Dispatcher&) = delete;
     Dispatcher& operator=(const Dispatcher&) = delete;
@@ -192,109 +248,95 @@ public:
     [[nodiscard]]
     T *resolve(std::string_view path);
 
-    void dispatch(std::string_view path);
-
-    void dispatch_raw(std::string_view path,
-                      void *dispatch_ctx = nullptr);
-
-    template<typename DispatchCtx>
     void dispatch(std::string_view path, DispatchCtx& dispatch_ctx);
 
     [[nodiscard]]
-    ParamsView params_view() const noexcept;
-
-    [[nodiscard]]
-    std::unordered_map<std::string, std::string>
-    params() const;
-
-private:
-    wrouter_dispatcher_t *ptr_;
+    Params params() const
+    {
+        return detail::DispatcherBase::params();
+    }
 };
 
+template<>
+class Dispatcher<void> : private detail::DispatcherBase {
+public:
+    explicit Dispatcher(const Router<void>& router)
+        : detail::DispatcherBase(router)
+    {}
+
+    Dispatcher(const Dispatcher&) = delete;
+    Dispatcher& operator=(const Dispatcher&) = delete;
+
+    template<typename T = void>
+    [[nodiscard]]
+    T *resolve(std::string_view path);
+
+    void dispatch(std::string_view path)
+    {
+        detail::DispatcherBase::dispatch_impl(path);
+    }
+
+    [[nodiscard]]
+    Params params() const
+    {
+        return detail::DispatcherBase::params();
+    }
+};
+
+template<typename DispatchCtx>
 template<typename Fn>
-Builder& Builder::add(std::string_view pattern, Fn&& fn)
+Builder<DispatchCtx>& Builder<DispatchCtx>::add(std::string_view pattern, Fn&& fn)
 {
-    if (has_reference_callbacks_) {
-        throw std::logic_error{
-            "C++ callable handlers cannot be used with C retain/release callbacks"
-        };
-    }
-
-    using Handler = detail::Handler<std::decay_t<Fn>>;
-
-    static_assert(
-        std::is_invocable_v<std::decay_t<Fn>&, Params>,
-        "handler must be invocable as fn(Params)"
-    );
-
-    auto handler = std::make_unique<Handler>(std::forward<Fn>(fn));
-    auto *ctx = handler.get();
-
-    wrouter_error_t err =
-        wrouter_add_handler_ctx(ptr_, pattern.data(), detail::handler_trampoline, ctx);
-
-    if (err)
-        throw Error(err);
-
-    handlers_.push_back(std::move(handler));
-
-    return *this;
-}
-
-template<typename DispatchCtx, typename Fn>
-Builder& Builder::add(std::string_view pattern, Fn&& fn)
-{
-    if (has_reference_callbacks_) {
-        throw std::logic_error{
-            "C++ callable handlers cannot be used with C retain/release callbacks"
-        };
-    }
-
     static_assert(
         !std::is_pointer_v<DispatchCtx>,
         "dispatch context type must be the pointed-to type, not a pointer type"
     );
 
-    using Handler = detail::TypedHandler<DispatchCtx, std::decay_t<Fn>>;
+    if constexpr (std::is_void_v<DispatchCtx>) {
+        static_assert(
+            std::is_invocable_v<std::decay_t<Fn>&, Params>,
+            "handler must be invocable as fn(Params)"
+        );
+    } else {
+        static_assert(
+            std::is_invocable_v<std::decay_t<Fn>&, DispatchCtx&, Params>,
+            "handler must be invocable as fn(DispatchCtx&, Params)"
+        );
+    }
 
-    static_assert(
-        std::is_invocable_v<std::decay_t<Fn>&, DispatchCtx&, Params>,
-        "handler must be invocable as fn(DispatchCtx&, Params)"
-    );
+    using Handler = detail::Handler<DispatchCtx, std::decay_t<Fn>>;
 
     auto handler = std::make_unique<Handler>(std::forward<Fn>(fn));
-    auto *ctx = handler.get();
-
-    wrouter_error_t err =
-        wrouter_add_handler_ctx(ptr_, pattern.data(), detail::handler_trampoline, ctx);
-
-    if (err)
-        throw Error(err);
-
-    handlers_.push_back(std::move(handler));
+    detail::BuilderBase::install_handler(pattern, std::move(handler));
 
     return *this;
 }
 
+template<typename DispatchCtx>
 template<typename T>
-T *Dispatcher::resolve(std::string_view path)
+T *Dispatcher<DispatchCtx>::resolve(std::string_view path)
 {
     return static_cast<T*>(
         const_cast<void*>(
-            wrouter_resolve(ptr_, path.data())
+            detail::DispatcherBase::resolve_raw(path)
         )
     );
 }
 
 template<typename DispatchCtx>
-void Dispatcher::dispatch(std::string_view path, DispatchCtx& dispatch_ctx)
+void Dispatcher<DispatchCtx>::dispatch(std::string_view path, DispatchCtx& dispatch_ctx)
 {
-    static_assert(
-        !std::is_pointer_v<DispatchCtx>,
-        "use dispatch_raw() for raw pointer dispatch contexts"
-    );
+    detail::DispatcherBase::dispatch_impl(path, &dispatch_ctx);
+}
 
-    dispatch_raw(path, &dispatch_ctx);
+template<typename T>
+T *Dispatcher<void>::resolve(std::string_view path)
+{
+    return static_cast<T*>(
+        const_cast<void*>(
+            detail::DispatcherBase::resolve_raw(path)
+        )
+    );
 }
 
 }

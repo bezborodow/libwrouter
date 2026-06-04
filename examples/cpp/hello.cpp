@@ -3,7 +3,7 @@
 
 int main()
 {
-    wrouter::Builder builder;
+    wrouter::Builder<> builder;
 
     builder.add_context("/account", (void*)"account.list");
     builder.add_context("/account/create", (void*)"account.create");
@@ -11,7 +11,7 @@ int main()
 
     auto router = builder.consume();
 
-    wrouter::Dispatcher dispatcher(router);
+    wrouter::Dispatcher<> dispatcher(router);
 
     auto *endpoint =
         dispatcher.resolve<const char>("/account/a/1234");

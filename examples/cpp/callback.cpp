@@ -9,14 +9,14 @@ struct Response {
 
 int main()
 {
-    wrouter::Builder builder;
+    wrouter::Builder<Response> builder;
 
-    builder.add<Response>("/hello/:name", [](Response& response, wrouter::Params params) {
+    builder.add("/hello/:name", [](Response& response, wrouter::Params params) {
         response.body = "Hello, " + params["name"] + "!";
     });
 
     auto router = builder.consume();
-    wrouter::Dispatcher dispatcher(router);
+    wrouter::Dispatcher<Response> dispatcher(router);
 
     Response response;
     dispatcher.dispatch("/hello/world", response);
