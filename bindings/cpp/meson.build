@@ -12,6 +12,8 @@ wrouter_cpp = library(
   install : true,
 )
 
+install_headers('wrouter.hpp')
+
 # 2. Then expose dependency
 wrouter_cpp_dep = declare_dependency(
   link_with : wrouter_cpp,
