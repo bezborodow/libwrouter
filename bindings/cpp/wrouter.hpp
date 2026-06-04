@@ -12,6 +12,12 @@
 
 namespace wrouter {
 
+enum class ParamSyntax {
+    colon,
+    brace,
+    angle,
+};
+
 template<typename DispatchCtx>
 class Builder;
 
@@ -113,7 +119,7 @@ private:
 
 class BuilderBase {
 public:
-    explicit BuilderBase(const wrouter_options_t& opts = {});
+    explicit BuilderBase(ParamSyntax param_syntax = ParamSyntax::colon);
     ~BuilderBase();
 
     BuilderBase(BuilderBase&& rhs) noexcept;
@@ -133,7 +139,6 @@ public:
 
 private:
     wrouter_builder_t *ptr_;
-    bool has_reference_callbacks_;
     std::vector<std::unique_ptr<HandlerBase>> handlers_;
 };
 
@@ -202,8 +207,8 @@ private:
 template<typename DispatchCtx = void>
 class Builder : private detail::BuilderBase {
 public:
-    explicit Builder(const wrouter_options_t& opts = {})
-        : detail::BuilderBase(opts)
+    explicit Builder(ParamSyntax param_syntax = ParamSyntax::colon)
+        : detail::BuilderBase(param_syntax)
     {}
 
     Builder(Builder&& rhs) noexcept = default;
