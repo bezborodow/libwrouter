@@ -49,7 +49,7 @@ static void test_typed_dispatch_context_handler()
     });
 
     auto router = builder.consume();
-    wrouter::Dispatcher<TypedResponse> dispatcher(router);
+    wrouter::Dispatcher dispatcher(router);
 
     TypedResponse response;
     dispatcher.dispatch("/write/ok", response);
@@ -73,7 +73,7 @@ static void test_typed_dispatch_context_consistent_across_routes()
     });
 
     auto router = builder.consume();
-    wrouter::Dispatcher<std::string> dispatcher(router);
+    wrouter::Dispatcher dispatcher(router);
 
     dispatcher.dispatch("/typed/value", out);
     dispatcher.dispatch("/again/next", out);

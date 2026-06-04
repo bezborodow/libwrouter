@@ -284,6 +284,9 @@ public:
 };
 
 template<typename DispatchCtx>
+Dispatcher(const Router<DispatchCtx>&) -> Dispatcher<DispatchCtx>;
+
+template<typename DispatchCtx>
 template<typename Fn>
 Builder<DispatchCtx>& Builder<DispatchCtx>::add(std::string_view pattern, Fn&& fn)
 {

@@ -11,7 +11,7 @@ int main()
 
     auto router = builder.consume();
 
-    wrouter::Dispatcher<> dispatcher(router);
+    wrouter::Dispatcher dispatcher(router);
 
     auto *endpoint =
         dispatcher.resolve<const char>("/account/a/1234");
