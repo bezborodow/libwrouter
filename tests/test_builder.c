@@ -128,12 +128,11 @@ static void test_duplicate(void)
 static void test_conflicts(void)
 {
     wrouter_options_t options = { 0 };
-    wrouter_builder_t *builder;
-
-    assert(builder != NULL);
+    wrouter_builder_t *builder = NULL;
 
     // Param vs literal.
     builder = wrouter_builder_create(options);
+    assert(builder != NULL);
     assert(wrouter_add_context(builder, "/one/foo", NULL) == WROUTER_OK);
     assert(wrouter_add_context(builder, "/one/:foo", NULL) ==
            WROUTER_ERR_PARAM_CONFLICTS_WITH_LITERAL);

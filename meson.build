@@ -80,6 +80,7 @@ test_helpers = static_library(
 foreach t : [
     'arena',
     'builder',
+    'dispatcher',
     'errors',
     'graph',
     'lexer',
