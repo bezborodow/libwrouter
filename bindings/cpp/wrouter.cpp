@@ -50,6 +50,61 @@ const wrouter_params_t *ParamsView::native() const noexcept
     return params_;
 }
 
+Params::Params(const wrouter_params_t *params)
+{
+    if (!params)
+        return;
+
+    snapshot_.reset(wrouter_params_copy(params), wrouter_snapshot_free);
+
+    if (!snapshot_)
+        throw std::bad_alloc{};
+}
+
+uint32_t Params::count() const noexcept
+{
+    return snapshot_ ? snapshot_->params.count : 0;
+}
+
+bool Params::empty() const noexcept
+{
+    return count() == 0;
+}
+
+std::string Params::at(uint32_t index) const
+{
+    if (!snapshot_ || index >= snapshot_->params.count)
+        return {};
+
+    const auto &param = snapshot_->params.base[index];
+    return param.value;
+}
+
+std::string Params::get(std::string_view name) const
+{
+    if (!snapshot_)
+        return {};
+
+    for (uint32_t i = 0; i < snapshot_->params.count; ++i) {
+        const auto &param = snapshot_->params.base[i];
+
+        if (name == param.name)
+            return param.value;
+    }
+
+    return {};
+}
+
+std::string Params::operator[](std::string_view name) const
+{
+    return get(name);
+}
+
+const wrouter_params_snapshot_t *Params::native() const noexcept
+{
+    return snapshot_.get();
+}
+
 namespace detail {
 
 void handler_trampoline(void *dispatch_ctx,
@@ -57,7 +112,7 @@ void handler_trampoline(void *dispatch_ctx,
                         const wrouter_params_t *params)
 {
     auto *handler = static_cast<const HandlerBase *>(route_ctx);
-    handler->invoke(dispatch_ctx, ParamsView{ params });
+    handler->invoke(dispatch_ctx, Params{ params });
 }
 
 }

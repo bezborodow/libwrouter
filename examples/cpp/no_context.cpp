@@ -9,8 +9,8 @@ int main()
 
     wrouter::Builder builder;
 
-    builder.add("/status/:state", [&](wrouter::ParamsView params) {
-        output = "status=" + std::string(params["state"]);
+    builder.add("/status/:state", [&](wrouter::Params params) {
+        output = "status=" + params["state"];
     });
 
     auto router = builder.consume();

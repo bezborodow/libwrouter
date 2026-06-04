@@ -11,8 +11,8 @@ int main()
 {
     wrouter::Builder builder;
 
-    builder.add<Response>("/hello/:name", [](Response& response, wrouter::ParamsView params) {
-        response.body = "Hello, " + std::string(params["name"]) + "!";
+    builder.add<Response>("/hello/:name", [](Response& response, wrouter::Params params) {
+        response.body = "Hello, " + params["name"] + "!";
     });
 
     auto router = builder.consume();
