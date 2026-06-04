@@ -2,8 +2,7 @@
 #include "wrouter.h"
 #include <assert.h>
 #include <stdint.h>
-#include <string.h>
-
+#include <stdlib.h>
 
 void test_terminal_lookup(void)
 {
@@ -51,9 +50,26 @@ void test_terminal_lookup(void)
     assert(terminal == NULL);
 }
 
+void test_terminal_alloc_free(void)
+{
+
+    terminals_t terminals = { 0 };
+    terminals.refs = calloc(2, sizeof(uint16_t));
+    terminals.base = calloc(2, sizeof(wrouter_route_t));
+    terminals.count = 2; 
+
+    assert(terminals.refs != NULL);
+    assert(terminals.base != NULL);
+
+    terminals_free(&terminals);
+
+    terminals_free(NULL);
+}
+
 int main(void)
 {
     test_terminal_lookup();
+    test_terminal_alloc_free();
 
     return 0;
 }
