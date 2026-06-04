@@ -26,9 +26,12 @@ const wrouter_params_t *wrouter_params(const wrouter_dispatcher_t *dispatcher)
  */
 wrouter_params_snapshot_t *wrouter_params_copy(const wrouter_params_t *params)
 {
-    uint32_t size = 0;
+    size_t size = 0;
     size_t cursor = 0;
     char *dest = NULL;
+
+    if (params == NULL)
+        return NULL;
 
     // Allocate snapshot.
     wrouter_params_snapshot_t *snapshot = calloc(1, sizeof(wrouter_params_snapshot_t));
@@ -40,11 +43,26 @@ wrouter_params_snapshot_t *wrouter_params_copy(const wrouter_params_t *params)
     if (!params->count)
         return snapshot;
 
+    if (params->base == NULL)
+        goto failure;
+
     // Calculate size of region.
     for (uint32_t i = 0; i < params->count; i++) {
         wrouter_param_t *param = &params->base[i];
-        size += strlen(param->name) + 1;
-        size += param->length + 1;
+
+        if (param->name == NULL || param->value == NULL)
+            goto failure;
+
+        size_t name_size = strlen(param->name) + 1;
+        size_t value_size = (size_t)param->length + 1;
+
+        if (name_size > (size_t)UINT16_MAX - size)
+            goto failure;
+        size += name_size;
+
+        if (value_size > (size_t)UINT16_MAX - size)
+            goto failure;
+        size += value_size;
     }
 
     // Allocate character region for storage of strings.

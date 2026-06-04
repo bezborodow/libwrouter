@@ -3,6 +3,8 @@
 #include "params.h"
 #include <string.h>
 #include <assert.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 void test_params_copy(void)
 {
@@ -58,9 +60,43 @@ void test_params_copy(void)
     wrouter_snapshot_free(snapshot);
 }
 
+void test_params_copy_region_size_overflow(void)
+{
+    enum {
+        COUNT = 17,
+        VALUE_LENGTH = 4095,
+    };
+
+    wrouter_params_t params = { 0 };
+    wrouter_params_snapshot_t *snapshot = NULL;
+    char *value = malloc(VALUE_LENGTH);
+
+    // Use the same large value for every parameter. This pushes the logical
+    // snapshot size past UINT16_MAX without allocating large test input.
+    assert(value != NULL);
+    memset(value, 'a', VALUE_LENGTH);
+
+    params.count = COUNT;
+    params.base = calloc(params.count, sizeof(*params.base));
+    assert(params.base != NULL);
+
+    for (uint32_t i = 0; i < params.count; i++) {
+        params.base[i].name = "x";
+        params.base[i].value = value;
+        params.base[i].length = VALUE_LENGTH;
+    }
+
+    snapshot = wrouter_params_copy(&params);
+    assert(snapshot == NULL);
+
+    params_free(&params);
+    free(value);
+}
+
 int main(void)
 {
     test_params_copy();
+    test_params_copy_region_size_overflow();
 
     return 0;
 }
