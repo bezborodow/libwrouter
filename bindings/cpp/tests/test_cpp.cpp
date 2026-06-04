@@ -31,7 +31,7 @@ static void test_raw_handler()
     auto router = builder.consume();
     wrouter::Dispatcher dispatcher(router);
 
-    dispatcher.dispatch("/raw/123", &seen);
+    dispatcher.dispatch_raw("/raw/123", &seen);
 
     assert(seen);
 }
@@ -54,21 +54,56 @@ static void test_capturing_handler()
     assert(result == "prefix:world");
 }
 
-static void test_dispatch_context_handler()
+static void test_no_context_handler()
 {
     wrouter::Builder builder;
-    builder.add("/write/:value", [](void *dispatch_ctx, wrouter::ParamsView params) {
-        auto *out = static_cast<std::string *>(dispatch_ctx);
-        *out = std::string(params["value"]);
+    builder.add("/write/:value", [](wrouter::ParamsView params) {
+        assert(params["value"] == "ok");
     });
 
     auto router = builder.consume();
     wrouter::Dispatcher dispatcher(router);
 
-    std::string out;
-    dispatcher.dispatch("/write/ok", &out);
+    dispatcher.dispatch("/write/ok");
+}
 
-    assert(out == "ok");
+struct TypedResponse {
+    std::string body;
+};
+
+static void test_typed_dispatch_context_handler()
+{
+    wrouter::Builder builder;
+    builder.add<TypedResponse>("/write/:value", [](TypedResponse& response,
+                                                   wrouter::ParamsView params) {
+        response.body = std::string(params["value"]);
+    });
+
+    auto router = builder.consume();
+    wrouter::Dispatcher dispatcher(router);
+
+    TypedResponse response;
+    dispatcher.dispatch("/write/ok", response);
+
+    assert(response.body == "ok");
+}
+
+static void test_raw_callable_removed_from_add()
+{
+    wrouter::Builder builder;
+    std::string out;
+
+    builder.add<std::string>("/typed/:value", [](std::string& dest,
+                                                 wrouter::ParamsView params) {
+        dest = std::string(params["value"]);
+    });
+
+    auto router = builder.consume();
+    wrouter::Dispatcher dispatcher(router);
+
+    dispatcher.dispatch("/typed/value", out);
+
+    assert(out == "value");
 }
 
 static void test_params_view()
@@ -138,7 +173,9 @@ int main()
 {
     test_raw_handler();
     test_capturing_handler();
-    test_dispatch_context_handler();
+    test_no_context_handler();
+    test_typed_dispatch_context_handler();
+    test_raw_callable_removed_from_add();
     test_params_view();
     test_router_move_keeps_handlers();
     test_callable_rejects_c_reference_callbacks();

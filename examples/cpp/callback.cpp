@@ -11,16 +11,15 @@ int main()
 {
     wrouter::Builder builder;
 
-    builder.add("/hello/:name", [&](void *dispatch_ctx, wrouter::ParamsView params) {
-        auto *response = static_cast<Response *>(dispatch_ctx);
-        response->body = "Hello, " + std::string(params["name"]) + "!";
+    builder.add<Response>("/hello/:name", [](Response& response, wrouter::ParamsView params) {
+        response.body = "Hello, " + std::string(params["name"]) + "!";
     });
 
     auto router = builder.consume();
     wrouter::Dispatcher dispatcher(router);
 
     Response response;
-    dispatcher.dispatch("/hello/world", &response);
+    dispatcher.dispatch("/hello/world", response);
 
     std::cout << response.body << "\n";
 }

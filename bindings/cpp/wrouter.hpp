@@ -61,11 +61,25 @@ public:
 
     void invoke(void *dispatch_ctx, ParamsView params) const override
     {
-        if constexpr (std::is_invocable_v<Fn&, void *, ParamsView>) {
-            fn_(dispatch_ctx, params);
-        } else {
-            fn_(params);
-        }
+        (void)dispatch_ctx;
+        fn_(params);
+    }
+
+private:
+    mutable Fn fn_;
+};
+
+template<typename DispatchCtx, typename Fn>
+class TypedHandler final : public HandlerBase {
+public:
+    explicit TypedHandler(Fn fn)
+        : fn_(std::move(fn))
+    {}
+
+    void invoke(void *dispatch_ctx, ParamsView params) const override
+    {
+        auto *ctx = static_cast<DispatchCtx *>(dispatch_ctx);
+        fn_(*ctx, params);
     }
 
 private:
@@ -124,6 +138,9 @@ public:
     template<typename Fn>
     Builder& add(std::string_view pattern, Fn&& fn);
 
+    template<typename DispatchCtx, typename Fn>
+    Builder& add(std::string_view pattern, Fn&& fn);
+
     Builder& add_context(std::string_view pattern,
                          const void *ctx);
 
@@ -149,8 +166,13 @@ public:
     [[nodiscard]]
     T *resolve(std::string_view path);
 
-    void dispatch(std::string_view path,
-                  void *dispatch_ctx = nullptr);
+    void dispatch(std::string_view path);
+
+    void dispatch_raw(std::string_view path,
+                      void *dispatch_ctx = nullptr);
+
+    template<typename DispatchCtx>
+    void dispatch(std::string_view path, DispatchCtx& dispatch_ctx);
 
     [[nodiscard]]
     ParamsView params_view() const noexcept;
@@ -175,9 +197,43 @@ Builder& Builder::add(std::string_view pattern, Fn&& fn)
     using Handler = detail::Handler<std::decay_t<Fn>>;
 
     static_assert(
-        std::is_invocable_v<std::decay_t<Fn>&, void *, ParamsView> ||
-            std::is_invocable_v<std::decay_t<Fn>&, ParamsView>,
-        "handler must be invocable as fn(void *, ParamsView) or fn(ParamsView)"
+        std::is_invocable_v<std::decay_t<Fn>&, ParamsView>,
+        "handler must be invocable as fn(ParamsView)"
+    );
+
+    auto handler = std::make_unique<Handler>(std::forward<Fn>(fn));
+    auto *ctx = handler.get();
+
+    wrouter_error_t err =
+        wrouter_add_handler_ctx(ptr_, pattern.data(), detail::handler_trampoline, ctx);
+
+    if (err)
+        throw Error(err);
+
+    handlers_.push_back(std::move(handler));
+
+    return *this;
+}
+
+template<typename DispatchCtx, typename Fn>
+Builder& Builder::add(std::string_view pattern, Fn&& fn)
+{
+    if (has_reference_callbacks_) {
+        throw std::logic_error{
+            "C++ callable handlers cannot be used with C retain/release callbacks"
+        };
+    }
+
+    static_assert(
+        !std::is_pointer_v<DispatchCtx>,
+        "dispatch context type must be the pointed-to type, not a pointer type"
+    );
+
+    using Handler = detail::TypedHandler<DispatchCtx, std::decay_t<Fn>>;
+
+    static_assert(
+        std::is_invocable_v<std::decay_t<Fn>&, DispatchCtx&, ParamsView>,
+        "handler must be invocable as fn(DispatchCtx&, ParamsView)"
     );
 
     auto handler = std::make_unique<Handler>(std::forward<Fn>(fn));
@@ -202,6 +258,17 @@ T *Dispatcher::resolve(std::string_view path)
             wrouter_resolve(ptr_, path.data())
         )
     );
+}
+
+template<typename DispatchCtx>
+void Dispatcher::dispatch(std::string_view path, DispatchCtx& dispatch_ctx)
+{
+    static_assert(
+        !std::is_pointer_v<DispatchCtx>,
+        "use dispatch_raw() for raw pointer dispatch contexts"
+    );
+
+    dispatch_raw(path, &dispatch_ctx);
 }
 
 }
