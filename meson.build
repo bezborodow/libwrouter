@@ -1,6 +1,7 @@
 project(
     'libwrouter',
     'c',
+    'cpp',
     version : '0.1.0',
     default_options : [
         'c_std=c11',
@@ -114,3 +115,6 @@ python = py.find_installation('python3', required: false)
 if python.found()
   subdir('bindings/python')
 endif
+
+subdir('bindings/cpp')
+subdir('examples/cpp')

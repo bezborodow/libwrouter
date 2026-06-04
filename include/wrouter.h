@@ -2,6 +2,10 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef enum {
     WROUTER_OK = 0,
     WROUTER_ERR_NO_MEMORY,
@@ -128,3 +132,7 @@ void wrouter_free(wrouter_t *router);
 void wrouter_destroy(wrouter_t **rpp);
 
 const char *wrouter_strerror(wrouter_error_t err);
+
+#ifdef __cplusplus
+}
+#endif
