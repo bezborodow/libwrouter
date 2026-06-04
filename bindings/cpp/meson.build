@@ -16,4 +16,5 @@ wrouter_cpp = library(
 wrouter_cpp_dep = declare_dependency(
   link_with : wrouter_cpp,
   include_directories : [cpp_include_dirs, c_include_dirs],
+  dependencies : [libwrouter_dep],
 )
