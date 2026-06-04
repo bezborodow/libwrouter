@@ -1,0 +1,6 @@
+option(
+    'python_package',
+    type : 'boolean',
+    value : false,
+    description : 'Build only the Python packaging targets.',
+)
