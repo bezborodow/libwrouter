@@ -73,7 +73,7 @@ wrouter_t *wrouter_compile(const wrouter_builder_t *builder, wrouter_error_t *er
         goto no_memory;
 
     // Allocate the graph.
-    router->graph = malloc(stats.size);
+    router->graph = calloc(stats.size, 1);
     if (router->graph == NULL)
         goto no_memory;
 

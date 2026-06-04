@@ -160,7 +160,6 @@ void *graph_append(void *g, size_t *cursor, size_t size, size_t align)
     *cursor = align_up(*cursor, align);
 
     void *base = (uint8_t *)g + *cursor;
-    memset(base, 0, size);
     *cursor += size;
 
     return base;
