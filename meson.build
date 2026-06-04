@@ -105,6 +105,7 @@ if not python_package
         'prelexer',
         'router',
         'symbol',
+        'terminal',
     ]
         exe = executable(
             'test_@0@'.format(t),
