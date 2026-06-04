@@ -100,6 +100,9 @@ failure:
  */
 wrouter_t *wrouter_consume(wrouter_builder_t **bpp, wrouter_error_t *err)
 {
+    if (err == NULL)
+        return NULL;
+
     if (bpp == NULL || *bpp == NULL) {
         if (err)
             *err = WROUTER_ERR_NULL_ARGUMENT;
