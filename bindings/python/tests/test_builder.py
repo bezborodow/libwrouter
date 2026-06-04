@@ -10,14 +10,16 @@ def test_invalid_syntax():
 def test_out_of_range_segment_children():
     builder = wrouter.Builder()
 
-    last_ok = None
+    last_ok_index = None
 
     with pytest.raises(wrouter.RouteError):
         for i in range(4 * 1024):
             builder.add(f"/foo/a{i}", i)
-            last_ok = i
+            last_ok_index = i
 
-    assert last_ok == 255
+    accepted_count = last_ok_index + 1
+    assert last_ok_index == 254
+    assert accepted_count == 255
 
     # The builder is corrupted now.
     with pytest.raises(wrouter.RouteError):
@@ -30,13 +32,13 @@ def test_out_of_range_segment_children():
     # Try again, but stop before failure.
     del builder
     builder = wrouter.Builder()
-    for i in range(last_ok):
+    for i in range(accepted_count):
         builder.add(f"/foo/a{i}", i)
 
-    # Compile and resolve the last route.
+    # Compile and resolve all accepted routes.
     router = builder.compile()
     dispatcher = wrouter.Dispatcher(router)
-    for i in range(last_ok):
+    for i in range(accepted_count):
         assert dispatcher.resolve(f"/foo/a{i}") == (i, {})
 
 
