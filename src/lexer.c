@@ -6,6 +6,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 void lexer_load(lexer_t *lx, const char *request, size_t length)
 {
@@ -35,7 +36,7 @@ failure:
 
 token_t lexer_next(lexer_t *lx)
 {
-    const char *c = lx->cursor;
+    const char *start, *c = lx->cursor;
     const char *end = lx->str + lx->length;
     token_t tok = { 0 };
 
@@ -53,12 +54,14 @@ token_t lexer_next(lexer_t *lx)
         return tok; // TOKEN_ILLEGAL.
 
     // Consume until next '/'.
-    for (tok.ptr = c; c < end && *c != '/'; c++)
-        ;
+    for (start = c; c < end && *c != '/'; c++)
+        if (*c == '*' || *c == '#' || *c == '?' || isspace(*c) || iscntrl(*c))
+            return tok; // Illegal.
 
     // If the token has a length, it is a literal.
-    if ((tok.length = (uint16_t)(c - tok.ptr))) {
+    if ((tok.length = (uint16_t)(c - start))) {
         lx->cursor = c;
+        tok.ptr = start;
         tok.type = TOKEN_LITERAL;
         return tok;
     }

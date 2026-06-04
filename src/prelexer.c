@@ -105,7 +105,7 @@ token_t prelexer_next(prelexer_t *lx)
             continue;
         }
 
-        if (*c == '*' || *c == '#' || *c == '?' || isspace(*c))
+        if (*c == '*' || *c == '#' || *c == '?' || isspace(*c) || iscntrl(*c))
             goto illegal;
     }
 

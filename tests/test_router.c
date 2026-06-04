@@ -545,6 +545,64 @@ void test_router_free_null(void)
     wrouter_free(NULL);
 }
 
+void test_router_illegal_paths(void)
+{
+    // Create builder.
+    bool fallback_seen = false;
+    wrouter_options_t options = {
+        .param_syntax = WROUTER_SYNTAX_COLON,
+        .fallback_handler = cb_watch,
+        .fallback_ctx = NULL,
+    };
+    wrouter_builder_t *builder = wrouter_builder_create(options);
+
+    // Route handler.
+    wrouter_route_t route = { cb_ignore, NULL };
+
+    // Add routes.
+    assert(wrouter_add_route(builder, "/*", route) == 0);
+
+    // Compile.
+    wrouter_error_t err;
+    wrouter_t *router = wrouter_compile(builder, &err);
+    wrouter_builder_free(builder);
+    assert(!err);
+    assert(router != NULL);
+    wrouter_dispatcher_t *dispatcher = wrouter_dispatcher_create(router);
+    assert(dispatcher != NULL);
+
+    // Illegal paths should not match the wildcard and fallback instead.
+    wrouter_dispatch(dispatcher, "//", &fallback_seen);
+    assert(fallback_seen);
+
+    fallback_seen = false;
+    wrouter_dispatch(dispatcher, "/?", &fallback_seen);
+    assert(fallback_seen);
+
+    fallback_seen = false;
+    wrouter_dispatch(dispatcher, "/*", &fallback_seen);
+    assert(fallback_seen);
+
+    fallback_seen = false;
+    wrouter_dispatch(dispatcher, "/#", &fallback_seen);
+    assert(fallback_seen);
+
+    fallback_seen = false;
+    wrouter_dispatch(dispatcher, "/ ", &fallback_seen);
+    assert(fallback_seen);
+
+    fallback_seen = false;
+    wrouter_dispatch(dispatcher, "", &fallback_seen);
+    assert(fallback_seen);
+
+    fallback_seen = false;
+    wrouter_dispatch(dispatcher, "/\n", &fallback_seen);
+    assert(fallback_seen);
+
+    wrouter_dispatcher_free(dispatcher);
+    wrouter_free(router);
+}
+
 void test_router_destroy(void)
 {
     wrouter_error_t err;
@@ -576,6 +634,7 @@ int main(void)
     test_router_top_wildcard_is_not_root();
     test_router_empty_router();
     test_router_free_null();
+    test_router_illegal_paths();
     test_router_destroy();
 
     return 0;
