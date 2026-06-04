@@ -603,6 +603,41 @@ void test_router_illegal_paths(void)
     wrouter_free(router);
 }
 
+void test_router_symbol_compare_segfault(void)
+{
+    // Create builder.
+    wrouter_options_t options = { 0 };
+    wrouter_builder_t *builder = wrouter_builder_create(options);
+
+    // Route handler.
+    wrouter_route_t route = { NULL, NULL };
+
+    // Add routes.
+    assert(wrouter_add_route(builder, "/aaaaa", route) == 0);
+
+    // Compile.
+    wrouter_error_t err;
+    wrouter_t *router = wrouter_compile(builder, &err);
+    wrouter_builder_free(builder);
+    assert(!err);
+    assert(router != NULL);
+    wrouter_dispatcher_t *dispatcher = wrouter_dispatcher_create(router);
+    assert(dispatcher != NULL);
+
+    // Segfault!
+    // This will blow up the thing if symbol_compare operates on a string that
+    // is not null-terminated.
+    char *str = calloc(6, 1);
+    memset(str, 'a', 6);
+    str[0] = '/';
+
+    wrouter_ndispatch(dispatcher, str, 6, NULL);
+
+    wrouter_dispatcher_free(dispatcher);
+    wrouter_free(router);
+    free(str);
+}
+
 void test_router_destroy(void)
 {
     wrouter_error_t err;
@@ -635,6 +670,7 @@ int main(void)
     test_router_empty_router();
     test_router_free_null();
     test_router_illegal_paths();
+    test_router_symbol_compare_segfault();
     test_router_destroy();
 
     return 0;
