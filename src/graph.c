@@ -239,6 +239,7 @@ node_t *graph_compile(wrouter_t *router, const segment_t *segment, size_t *curso
 
     // Descend into literals.
     if (segment->child_count) {
+
         // Find the start address for literal edges.
         edge_t *l_edge_base = graph_append_edges(g, cursor, segment->child_count);
 
@@ -252,9 +253,7 @@ node_t *graph_compile(wrouter_t *router, const segment_t *segment, size_t *curso
         // Recurse into literal nodes and save their offsets.
         for (uint16_t i = 0; i < segment->child_count; i++) {
             segment_t *child = segment->children[i];
-
             node_t *l_node = graph_compile(router, child, cursor);
-
             edge_t *l_edge = &l_edge_base[i];
             l_edge->next = graph_offset(g, l_node);
         }
