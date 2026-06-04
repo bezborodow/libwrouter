@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 static void test_symbol_append(void)
 {
@@ -126,3 +127,19 @@ int main(void)
     test_symbol_resolve();
     return 0;
 }
+
+
+#if 0
+TODO This prooves a segfault condition in symbol_compare.
+    char *str = calloc(5, 1);
+    char *strnt = "aaaaaaaaa";
+    memset(str, 'a', 5);
+
+    char **a = &str;
+    char **b = &strnt;
+
+    assert(symbol_compare(a, b) == 0);
+    assert(symbol_compare(b, a) == 0);
+
+    free(str);
+#endif
