@@ -218,8 +218,7 @@ node_t *graph_compile(wrouter_t *router, const segment_t *segment, size_t *curso
         case SPEC_PARAM:
             node->flags |= NODE_FLAG_HAS_PARAM;
             p_edge = graph_append_edge(g, cursor);
-            p_edge->symbol = symbol_resolve(segment->special.param->str, router->params.base,
-                                            router->params.count);
+            p_edge->symbol = symbol_resolve(&router->params, segment->special.param->str);
             break;
 
         // Wildcard edge.
@@ -247,8 +246,7 @@ node_t *graph_compile(wrouter_t *router, const segment_t *segment, size_t *curso
         for (uint16_t i = 0; i < segment->child_count; i++) {
             segment_t *child = segment->children[i];
             edge_t *l_edge = &l_edge_base[i];
-            l_edge->symbol =
-                symbol_resolve(child->str, router->literals.base, router->literals.count);
+            l_edge->symbol = symbol_resolve(&router->literals, child->str);
         }
 
         // Recurse into literal nodes and save their offsets.

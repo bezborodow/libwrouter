@@ -104,7 +104,7 @@ if not python_package
         'params',
         'prelexer',
         'router',
-        'symbol',
+        #'symbol',
         'terminal',
     ]
         exe = executable(

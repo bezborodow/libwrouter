@@ -9,6 +9,8 @@ void test_terminal_lookup(void)
     uint16_t route_ctx1 = 1000, route_ctx2 = 2000;
 
     wrouter_route_t *terminal = NULL;
+
+    // clang-format off
     wrouter_route_t terminal_routes[] = {
         {
             .handler = NULL,
@@ -19,6 +21,7 @@ void test_terminal_lookup(void)
             .ctx = &route_ctx2,
         }
     };
+    // clang-format on
 
     uint16_t refs[] = { 4, 8 };
 
@@ -30,8 +33,8 @@ void test_terminal_lookup(void)
     terminals_t terminals = { 0 };
     terminals.refs = refs;
     terminals.base = terminal_routes;
-    terminals.count = 2; 
-    
+    terminals.count = 2;
+
     // Lookup first terminal by its ref of 4.
     terminal = terminal_lookup(&terminals, 4);
     assert(terminal != NULL);
@@ -57,7 +60,7 @@ void test_terminal_alloc_free(void)
     terminals.refs = calloc(2, sizeof(uint16_t));
     terminals.refs[1] = 4;
     terminals.base = calloc(2, sizeof(wrouter_route_t));
-    terminals.count = 2; 
+    terminals.count = 2;
 
     assert(terminals.refs != NULL);
     assert(terminals.base != NULL);

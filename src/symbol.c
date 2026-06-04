@@ -143,10 +143,13 @@ no_memory:
     return WROUTER_ERR_NO_MEMORY;
 }
 
-size_t symbol_resolve(const char *key, const char **base, size_t nmemb)
+size_t symbol_resolve(const symbols_t *symbols, const char *key)
 {
     const char *k = key;
-    const char **res = bsearch(&k, base, nmemb, sizeof(char *), symbol_compare);
+    size_t nmemb = symbols->count;
+    const char **res, **base = symbols->base;
+
+    res = bsearch(&k, base, nmemb, sizeof(char *), symbol_compare);
 
     return res ? res - base + 1 : 0;
 }
