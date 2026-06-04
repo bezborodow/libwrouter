@@ -55,13 +55,14 @@ void test_terminal_alloc_free(void)
 
     terminals_t terminals = { 0 };
     terminals.refs = calloc(2, sizeof(uint16_t));
+    terminals.refs[1] = 4;
     terminals.base = calloc(2, sizeof(wrouter_route_t));
     terminals.count = 2; 
 
     assert(terminals.refs != NULL);
     assert(terminals.base != NULL);
 
-    wrouter_route_t *route = terminal_lookup(&terminals, 0);
+    wrouter_route_t *route = terminal_lookup(&terminals, 4);
     assert(route != NULL);
 
     terminals_free(&terminals);
