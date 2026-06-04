@@ -59,6 +59,20 @@ const wrouter_params_snapshot_t *Params::native() const noexcept
 
 namespace detail {
 
+static wrouter_param_syntax_t to_native(ParamSyntax param_syntax)
+{
+    switch (param_syntax) {
+    case ParamSyntax::colon:
+        return WROUTER_SYNTAX_COLON;
+    case ParamSyntax::brace:
+        return WROUTER_SYNTAX_BRACE;
+    case ParamSyntax::angle:
+        return WROUTER_SYNTAX_ANGLE;
+    }
+
+    return WROUTER_SYNTAX_COLON;
+}
+
 void handler_trampoline(void *dispatch_ctx,
                         const void *route_ctx,
                         const wrouter_params_t *params)
@@ -113,9 +127,11 @@ RouterBase& RouterBase::operator=(RouterBase&& rhs) noexcept
 
 wrouter_t *RouterBase::native() const noexcept { return ptr_; }
 
-BuilderBase::BuilderBase(const wrouter_options_t& opts)
-    : has_reference_callbacks_(opts.retain != nullptr || opts.release != nullptr)
+BuilderBase::BuilderBase(ParamSyntax param_syntax)
 {
+    wrouter_options_t opts = {};
+    opts.param_syntax = to_native(param_syntax);
+
     ptr_ = wrouter_builder_create(opts);
 
     if (!ptr_)
@@ -130,7 +146,6 @@ BuilderBase::~BuilderBase()
 
 BuilderBase::BuilderBase(BuilderBase&& rhs) noexcept
     : ptr_(std::exchange(rhs.ptr_, nullptr))
-    , has_reference_callbacks_(std::exchange(rhs.has_reference_callbacks_, false))
     , handlers_(std::move(rhs.handlers_))
 {}
 
@@ -141,7 +156,6 @@ BuilderBase& BuilderBase::operator=(BuilderBase&& rhs) noexcept
             wrouter_builder_destroy(&ptr_);
 
         ptr_ = std::exchange(rhs.ptr_, nullptr);
-        has_reference_callbacks_ = std::exchange(rhs.has_reference_callbacks_, false);
         handlers_ = std::move(rhs.handlers_);
     }
 
@@ -151,12 +165,6 @@ BuilderBase& BuilderBase::operator=(BuilderBase&& rhs) noexcept
 void BuilderBase::install_handler(std::string_view pattern,
                                   std::unique_ptr<HandlerBase> handler)
 {
-    if (has_reference_callbacks_) {
-        throw std::logic_error{
-            "C++ callable handlers cannot be used with C retain/release callbacks"
-        };
-    }
-
     auto *ctx = handler.get();
 
     wrouter_error_t err =

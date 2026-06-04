@@ -1,7 +1,6 @@
 #include "wrouter.hpp"
 
 #include <cassert>
-#include <stdexcept>
 #include <string>
 #include <string_view>
 
@@ -154,23 +153,21 @@ static void test_callable_params_survive_nested_dispatch()
     assert(result == "one");
 }
 
-static void ref_noop(const void *)
-{}
-
-static void test_callable_rejects_c_reference_callbacks()
+static void test_brace_param_syntax()
 {
-    wrouter_options_t opts = {};
-    opts.retain = ref_noop;
+    std::string result;
 
-    wrouter::Builder builder(opts);
+    wrouter::Builder builder(wrouter::ParamSyntax::brace);
+    builder.add("/hello/{name}", [&](wrouter::Params params) {
+        result = params["name"];
+    });
 
-    try {
-        builder.add("/bad", [](wrouter::Params) {});
-    } catch (const std::logic_error &) {
-        return;
-    }
+    auto router = builder.consume();
+    wrouter::Dispatcher dispatcher(router);
 
-    assert(false);
+    dispatcher.dispatch("/hello/world");
+
+    assert(result == "world");
 }
 
 int main()
@@ -182,5 +179,5 @@ int main()
     test_resolve_params();
     test_router_move_keeps_handlers();
     test_callable_params_survive_nested_dispatch();
-    test_callable_rejects_c_reference_callbacks();
+    test_brace_param_syntax();
 }
