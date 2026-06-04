@@ -14,7 +14,7 @@ int main()
     });
 
     auto router = builder.consume();
-    wrouter::Dispatcher<> dispatcher(router);
+    wrouter::Dispatcher dispatcher(router);
 
     dispatcher.dispatch("/status/ready");
 

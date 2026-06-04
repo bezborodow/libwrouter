@@ -47,7 +47,7 @@ int main()
     });
 
     auto router = builder.consume();
-    wrouter::Dispatcher<Response> dispatcher(router);
+    wrouter::Dispatcher dispatcher(router);
 
     Response response;
     dispatcher.dispatch("/hello/world", response);
