@@ -36,7 +36,7 @@ static wrouter_route_t *builder_terminate(wrouter_builder_t *builder, wrouter_ro
  * Add a route to the route tree.
  */
 static wrouter_error_t builder_add_route(wrouter_builder_t *builder, const char *pattern,
-                                  wrouter_route_t route)
+                                         wrouter_route_t route)
 {
     token_t tok;
     prelexer_t lx = { 0 };
@@ -85,7 +85,7 @@ static wrouter_error_t builder_add_route(wrouter_builder_t *builder, const char 
                         return WROUTER_ERR_NO_MEMORY;
 
                     // Append child.
-                    if (cur->child_count > NODE_MAX_CHILD_COUNT)
+                    if (cur->child_count >= NODE_MAX_CHILD_COUNT)
                         return WROUTER_ERR_OUT_OF_RANGE;
 
                     segment_t **new_children =

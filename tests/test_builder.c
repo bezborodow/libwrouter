@@ -89,12 +89,10 @@ static void test_duplicate(void)
     struct {
         const char *pattern;
         wrouter_error_t expected;
-    } cases[] = {
-        { "/users",  WROUTER_ERR_DUPLICATE_ROUTE },
-        { "/users/", WROUTER_ERR_DUPLICATE_ROUTE },
-        { "/*",      WROUTER_ERR_DUPLICATE_ROUTE },
-        { "/",       WROUTER_ERR_DUPLICATE_ROUTE }
-    };
+    } cases[] = { { "/users", WROUTER_ERR_DUPLICATE_ROUTE },
+                  { "/users/", WROUTER_ERR_DUPLICATE_ROUTE },
+                  { "/*", WROUTER_ERR_DUPLICATE_ROUTE },
+                  { "/", WROUTER_ERR_DUPLICATE_ROUTE } };
 
     for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
 
@@ -105,16 +103,11 @@ static void test_duplicate(void)
         assert(wrouter_add_context(builder, cases[i].pattern, NULL) == WROUTER_OK);
 
         // Duplicate insert must fail.
-        ASSERT_ERROR(
-            wrouter_add_context(builder, cases[i].pattern, NULL),
-            cases[i].expected
-        );
+        ASSERT_ERROR(wrouter_add_context(builder, cases[i].pattern, NULL), cases[i].expected);
 
         // Subsequent calls must be denied.
-        ASSERT_ERROR(
-            wrouter_add_context(builder, cases[i].pattern, NULL),
-            WROUTER_ERR_BUILDER_CORRUPTED
-        );
+        ASSERT_ERROR(wrouter_add_context(builder, cases[i].pattern, NULL),
+                     WROUTER_ERR_BUILDER_CORRUPTED);
 
         wrouter_error_t err;
         wrouter_t *router = wrouter_compile(builder, &err);
@@ -136,21 +129,24 @@ static void test_conflicts(void)
     assert(wrouter_add_context(builder, "/one/foo", NULL) == WROUTER_OK);
     assert(wrouter_add_context(builder, "/one/:foo", NULL) ==
            WROUTER_ERR_PARAM_CONFLICTS_WITH_LITERAL);
-    wrouter_builder_destroy(&builder);;
+    wrouter_builder_destroy(&builder);
+    ;
 
     // Literal vs param.
     builder = wrouter_builder_create(options);
     assert(wrouter_add_context(builder, "/two/:foo", NULL) == WROUTER_OK);
     assert(wrouter_add_context(builder, "/two/foo", NULL) ==
            WROUTER_ERR_LITERAL_CONFLICTS_WITH_PARAM);
-    wrouter_builder_destroy(&builder);;
+    wrouter_builder_destroy(&builder);
+    ;
 
     // Wildcard vs param.
     builder = wrouter_builder_create(options);
     assert(wrouter_add_context(builder, "/three/:foo", NULL) == WROUTER_OK);
     assert(wrouter_add_context(builder, "/three/*", NULL) ==
            WROUTER_ERR_WILDCARD_CONFLICTS_WITH_PARAM);
-    wrouter_builder_destroy(&builder);;
+    wrouter_builder_destroy(&builder);
+    ;
 
     // Param vs wildcard.
     builder = wrouter_builder_create(options);
@@ -165,19 +161,11 @@ static void test_param_mismatch(void)
 {
     wrouter_options_t options = { 0 };
 
-    const char *ok_routes[] = {
-        "/foo/:bar",
-        "/foo/:bar/test",
-        "/foo/:bar/test/",
-        "/foo/:bar/test/*"
-    };
+    const char *ok_routes[] = { "/foo/:bar", "/foo/:bar/test", "/foo/:bar/test/",
+                                "/foo/:bar/test/*" };
 
-    const char *bad_routes[] = {
-        "/foo/:baz",
-        "/foo/:baz/test",
-        "/foo/:baz/test/",
-        "/foo/:baz/test/*"
-    };
+    const char *bad_routes[] = { "/foo/:baz", "/foo/:baz/test", "/foo/:baz/test/",
+                                 "/foo/:baz/test/*" };
 
     const size_t ok_count = sizeof(ok_routes) / sizeof(ok_routes[0]);
     const size_t bad_count = sizeof(bad_routes) / sizeof(bad_routes[0]);
@@ -193,8 +181,8 @@ static void test_param_mismatch(void)
         }
 
         // Inject offending route
-        assert(wrouter_add_context(builder, bad_routes[i], NULL)
-               == WROUTER_ERR_PARAM_NAME_MISMATCH);
+        assert(wrouter_add_context(builder, bad_routes[i], NULL) ==
+               WROUTER_ERR_PARAM_NAME_MISMATCH);
 
         wrouter_builder_free(builder);
     }
@@ -247,29 +235,13 @@ static void test_illegal_patterns(void)
     const char *cases[] = {
 
         // Slashes in the wrong place
-        "",
-        "//",
-        "///",
-        "//foo/",
-        "/foo//",
-        "/foo//bar",
-        "foo",
-        "foo/",
+        "", "//", "///", "//foo/", "/foo//", "/foo//bar", "foo", "foo/",
 
         // Wildcards in the wrong place
-        "/**",
-        "/hello*",
-        "/hello*world",
-        "/*world",
+        "/**", "/hello*", "/hello*world", "/*world",
 
         // Illegal parameter names
-        "/:*",
-        "/:$",
-        "/:1",
-        "/:_",
-        "/:_a",
-        "/:a:",
-        "/:foo:"
+        "/:*", "/:$", "/:1", "/:_", "/:_a", "/:a:", "/:foo:"
     };
 
     for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
@@ -277,10 +249,7 @@ static void test_illegal_patterns(void)
         wrouter_builder_t *builder = wrouter_builder_create(options);
         assert(builder != NULL);
 
-        ASSERT_ERROR(
-            wrouter_add_context(builder, cases[i], NULL),
-            WROUTER_ERR_ILLEGAL_PATTERN
-        );
+        ASSERT_ERROR(wrouter_add_context(builder, cases[i], NULL), WROUTER_ERR_ILLEGAL_PATTERN);
 
         wrouter_builder_free(builder);
     }
@@ -311,14 +280,34 @@ static void test_range_error_literal_edges(void)
     assert(range_error);
     i--;
 
-    if (i != NODE_MAX_CHILD_COUNT) {
-        fprintf(stderr,
-            "Max child count Mismatch: got=%zu expected=%zd.\n",
-            (size_t)i,
-            NODE_MAX_CHILD_COUNT
-        );
+    if (i != NODE_MAX_CHILD_COUNT - 1) {
+        fprintf(stderr, "Max child count Mismatch: got=%zu expected=%zd.\n", (size_t)i,
+                NODE_MAX_CHILD_COUNT - 1);
     }
-    assert(i == NODE_MAX_CHILD_COUNT);
+    assert(i == NODE_MAX_CHILD_COUNT - 1);
+
+    wrouter_builder_free(builder);
+}
+
+static void test_range_error_literal_edges_uint8_boundary(void)
+{
+    char buf[32];
+    wrouter_error_t err;
+    wrouter_options_t options = { 0 };
+
+    wrouter_builder_t *builder = wrouter_builder_create(options);
+
+    assert(builder != NULL);
+
+    for (uint16_t i = 0; i < NODE_MAX_CHILD_COUNT; i++) {
+        snprintf(buf, sizeof(buf), "/hello_%u", i);
+        assert(wrouter_add_context(builder, buf, NULL) == WROUTER_OK);
+    }
+
+    // node_t.literals is uint8_t, so reject the next edge before it truncates.
+    snprintf(buf, sizeof(buf), "/hello_%zu", NODE_MAX_CHILD_COUNT);
+    err = wrouter_add_context(builder, buf, NULL);
+    ASSERT_ERROR(err, WROUTER_ERR_OUT_OF_RANGE);
 
     wrouter_builder_free(builder);
 }
@@ -446,6 +435,7 @@ int main(void)
     test_wildcard_not_final();
     test_illegal_patterns();
     test_range_error_literal_edges();
+    test_range_error_literal_edges_uint8_boundary();
     test_range_error_literal_symbols();
     test_range_error_param_symbols();
     test_out_of_range_graph_size();
