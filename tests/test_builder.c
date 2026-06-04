@@ -419,19 +419,17 @@ static void test_builder_consume(void)
     assert(err == WROUTER_ERR_NULL_ARGUMENT);
 
     builder = wrouter_builder_create(options);
-
     assert(builder != NULL);
 
     wrouter_route_t route = { 0 };
-
     assert(wrouter_add_route(builder, "/users/:id", route) == WROUTER_OK);
 
     router = wrouter_consume(&builder, NULL);
     assert(router == NULL);
 
-
     router = wrouter_consume(&builder, &err);
     assert(err == WROUTER_OK);
+    assert(router != NULL);
 
     wrouter_destroy(&router);
 }
