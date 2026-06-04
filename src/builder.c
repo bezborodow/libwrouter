@@ -237,7 +237,8 @@ wrouter_builder_t *wrouter_builder_create(const wrouter_options_t options)
     return builder;
 
 failure:
-    free(builder);
+    // Use the normal free path to release any retained fallback context.
+    wrouter_builder_free(builder);
     return NULL;
 }
 

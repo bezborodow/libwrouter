@@ -334,6 +334,32 @@ static void test_prelexer_stupid(void)
     free(long_str);
 }
 
+static void test_prelexer_uint16_length_overflow(void)
+{
+    token_t tok;
+
+    prelexer_t lx = { 0 };
+    prelexer_init(&lx, WROUTER_SYNTAX_COLON);
+
+    // The segment length must be rejected before it narrows into token_t.length.
+    size_t len = (size_t)UINT16_MAX + 2;
+
+    char *long_str = malloc(len + 1);
+    assert(long_str != NULL);
+    memset(long_str, 'a', len);
+    long_str[len] = '\0';
+    long_str[0] = '/';
+
+    prelexer_load(&lx, long_str);
+
+    tok = prelexer_next(&lx);
+    ASSERT_TOKEN_TYPE(tok, TOKEN_ILLEGAL);
+    assert(tok.length == 0);
+    assert(tok.ptr == NULL);
+
+    free(long_str);
+}
+
 int main(void)
 {
     test_prelexer_null();
@@ -349,5 +375,6 @@ int main(void)
     test_prelexer_wildcard();
     test_prelexer_other_illegals();
     test_prelexer_stupid();
+    test_prelexer_uint16_length_overflow();
     return 0;
 }

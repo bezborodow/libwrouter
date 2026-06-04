@@ -1,11 +1,7 @@
-#include "token.h"
 #include "graph.h"
 #include "wrouter.h"
 #include "router.h"
-#include "builder.h"
-#include "prelexer.h"
 #include "symbol.h"
-#include "segment.h"
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -23,7 +19,16 @@ wrouter_t *wrouter_compile(const wrouter_builder_t *builder, wrouter_error_t *er
     graph_stats_t stats = { 0 };
     size_t cursor = 0;
 
+    // Require an error output so failures can be reported.
+    if (err == NULL)
+        return NULL;
+
     *err = WROUTER_OK;
+
+    if (builder == NULL) {
+        *err = WROUTER_ERR_NULL_ARGUMENT;
+        return NULL;
+    }
 
     if (builder->corrupted) {
         *err = WROUTER_ERR_BUILDER_CORRUPTED;
@@ -33,7 +38,7 @@ wrouter_t *wrouter_compile(const wrouter_builder_t *builder, wrouter_error_t *er
     // New router.
     wrouter_t *router = calloc(1, sizeof(wrouter_t));
     if (router == NULL)
-        return NULL;
+        goto no_memory;
 
     // Copy options from the builder onto the router.
     router->fallback = builder->fallback;
@@ -104,9 +109,7 @@ wrouter_t *wrouter_consume(wrouter_builder_t **bpp, wrouter_error_t *err)
         return NULL;
 
     if (bpp == NULL || *bpp == NULL) {
-        if (err)
-            *err = WROUTER_ERR_NULL_ARGUMENT;
-
+        *err = WROUTER_ERR_NULL_ARGUMENT;
         return NULL;
     }
 
