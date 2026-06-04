@@ -17,6 +17,8 @@ typedef struct {
     uint16_t count;        // Number of terminals.
 } terminals_t;
 
+void terminal_append(terminals_t *terminals, uint16_t ref, wrouter_route_t route);
+
 wrouter_route_t *terminal_lookup(const terminals_t *terminals, uint16_t ref);
 
 void terminals_free(terminals_t *terminals);

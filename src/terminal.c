@@ -1,7 +1,14 @@
+#include "router.h"
 #include "wrouter.h"
 #include "terminal.h"
 #include <stdint.h>
 #include <stdlib.h>
+
+void terminal_append(terminals_t *terminals, uint16_t ref, const wrouter_route_t route)
+{
+    terminals->refs[terminals->count] = ref;
+    terminals->base[terminals->count++] = route;
+}
 
 wrouter_route_t *terminal_lookup(const terminals_t *terminals, uint16_t ref)
 {

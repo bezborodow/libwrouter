@@ -77,6 +77,8 @@ wrouter_t *wrouter_compile(const wrouter_builder_t *builder, wrouter_error_t *er
     if (router->terminals.base == NULL)
         goto no_memory;
 
+    // TODO sort terminals.
+
     // Allocate the graph.
     router->graph = calloc(stats.size, 1);
     if (router->graph == NULL)

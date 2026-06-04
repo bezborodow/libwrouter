@@ -203,8 +203,7 @@ node_t *graph_compile(wrouter_t *router, const segment_t *segment, size_t *curso
         // refs is the terminating node's graph offset. Searching for the
         // offset yields an index that is used to lookup the terminal in the
         // base array.
-        router->terminals.refs[router->terminals.count] = graph_offset(g, node);
-        router->terminals.base[router->terminals.count++] = *segment->terminal;
+        terminal_append(&router->terminals, graph_offset(g, node), *segment->terminal);
 
         // Retain context.
         // Callback to retain context reference count for garbage collection if
@@ -276,8 +275,7 @@ node_t *graph_compile(wrouter_t *router, const segment_t *segment, size_t *curso
         node_t *w_node = graph_append_node(g, cursor);
         w_node->flags |= NODE_FLAG_TERMINAL;
         w_edge->next = graph_offset(g, w_node);
-        router->terminals.refs[router->terminals.count] = w_edge->next;
-        router->terminals.base[router->terminals.count++] = *segment->special.wildcard;
+        terminal_append(&router->terminals, w_edge->next, *segment->special.wildcard);
 
         // Retain context.
         router_retain(router, segment->special.wildcard);
@@ -288,8 +286,7 @@ node_t *graph_compile(wrouter_t *router, const segment_t *segment, size_t *curso
         node_t *t_node = graph_append_node(g, cursor);
         t_node->flags |= NODE_FLAG_TERMINAL;
         t_edge->next = graph_offset(g, t_node);
-        router->terminals.refs[router->terminals.count] = t_edge->next;
-        router->terminals.base[router->terminals.count++] = *segment->trailing;
+        terminal_append(&router->terminals, t_edge->next, *segment->trailing);
 
         // Retain context.
         router_retain(router, segment->trailing);
