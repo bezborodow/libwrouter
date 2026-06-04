@@ -25,3 +25,10 @@ executable(
 
     dependencies: wrouter_cpp_dep,
 )
+
+executable(
+    'http_resolve_cpp',
+    'http_resolve.cpp',
+
+    dependencies: wrouter_cpp_dep,
+)
