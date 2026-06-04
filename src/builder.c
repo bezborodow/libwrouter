@@ -197,7 +197,7 @@ static void builder_release(wrouter_builder_t *builder)
         return;
 
     // Release all route contexts in the tree.
-    segment_release(builder, builder->root);
+    segment_release(builder->root, builder->release);
 
     // Release fallback route context.
     builder->release(builder->fallback.ctx);
