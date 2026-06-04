@@ -18,3 +18,10 @@ executable(
 
     dependencies: wrouter_cpp_dep,
 )
+
+executable(
+    'resolve_lambda_cpp',
+    'resolve_lambda.cpp',
+
+    dependencies: wrouter_cpp_dep,
+)
