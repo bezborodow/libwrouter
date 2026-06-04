@@ -61,6 +61,9 @@ void test_terminal_alloc_free(void)
     assert(terminals.refs != NULL);
     assert(terminals.base != NULL);
 
+    wrouter_route_t *route = terminal_lookup(&terminals, 0);
+    assert(route != NULL);
+
     terminals_free(&terminals);
 
     terminals_free(NULL);
