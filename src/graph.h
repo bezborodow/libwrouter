@@ -8,7 +8,7 @@
 #define NODE_FLAG_HAS_WILDCARD 4
 #define NODE_FLAG_HAS_TRAILING 8
 
-// Maximum nodes based on the literal count (node_t.literals.)
+// Maximum literal edges based on node_t.literals.
 #define NODE_MAX_CHILD_COUNT ((size_t)UINT8_MAX)
 
 typedef struct {

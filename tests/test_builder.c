@@ -304,7 +304,7 @@ static void test_range_error_literal_edges_uint8_boundary(void)
         assert(wrouter_add_context(builder, buf, NULL) == WROUTER_OK);
     }
 
-    // node_t.literals is uint8_t, so reject the next edge before it truncates.
+    // Reject the next edge before the public per-node limit is exceeded.
     snprintf(buf, sizeof(buf), "/hello_%zu", NODE_MAX_CHILD_COUNT);
     err = wrouter_add_context(builder, buf, NULL);
     ASSERT_ERROR(err, WROUTER_ERR_OUT_OF_RANGE);
