@@ -545,6 +545,29 @@ void test_router_free_null(void)
     wrouter_free(NULL);
 }
 
+void test_router_destroy(void)
+{
+    wrouter_error_t err;
+    wrouter_options_t options = { 0 };
+    wrouter_builder_t *builder = NULL;
+    wrouter_t *router = NULL;
+
+    builder = wrouter_builder_create(options);
+    assert(builder != NULL);
+
+    router = wrouter_consume(&builder, &err);
+    assert(err == WROUTER_OK);
+    assert(router != NULL);
+
+    wrouter_destroy(&router);
+    assert(router == NULL);
+
+    wrouter_destroy(&router);
+    assert(router == NULL);
+
+    wrouter_destroy(NULL);
+}
+
 int main(void)
 {
     test_router_basic();
@@ -553,6 +576,7 @@ int main(void)
     test_router_top_wildcard_is_not_root();
     test_router_empty_router();
     test_router_free_null();
+    test_router_destroy();
 
     return 0;
 }
