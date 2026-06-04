@@ -18,3 +18,11 @@ wrouter_cpp_dep = declare_dependency(
   include_directories : [cpp_include_dirs, c_include_dirs],
   dependencies : [libwrouter_dep],
 )
+
+cpp_test = executable(
+  'test_cpp',
+  'tests/test_cpp.cpp',
+  dependencies : wrouter_cpp_dep,
+)
+
+test('cpp', cpp_test)

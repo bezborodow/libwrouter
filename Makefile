@@ -1,4 +1,4 @@
-.PHONY: build test ctags format install clean pytest clang-tidy
+.PHONY: build test cpptests ctags format install clean pytest clang-tidy
 
 build:
 	meson setup build
@@ -6,6 +6,9 @@ build:
 
 test: build
 	meson test -C build --print-errorlogs -v
+
+cpptests: build
+	meson test -C build cpp --print-errorlogs -v
 
 pytest: test
 	PYTHONPATH=build/bindings/python pytest -s bindings/python/tests/
