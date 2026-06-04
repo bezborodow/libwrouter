@@ -134,6 +134,7 @@ lexer_next:
             // Not found.
             goto not_found;
     }
+    goto not_found;
 
 not_found:
     // Not found; no parameters.

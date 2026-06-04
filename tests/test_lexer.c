@@ -16,6 +16,7 @@ static void test_lexer_null(void)
     tok = lexer_next(&lx);
     ASSERT_TOKEN_TYPE(tok, TOKEN_ILLEGAL);
     assert(tok.length == 0);
+    assert(tok.ptr == NULL);
 }
 
 static void test_lexer_root(void)
@@ -29,6 +30,7 @@ static void test_lexer_root(void)
     tok = lexer_next(&lx);
     ASSERT_TOKEN_TYPE(tok, TOKEN_END);
     assert(tok.length == 0);
+    assert(tok.ptr == NULL);
 }
 
 static void test_lexer_illegal_double_slash(void)
@@ -44,6 +46,7 @@ static void test_lexer_illegal_double_slash(void)
         tok = lexer_next(&lx);
         ASSERT_TOKEN_TYPE(tok, TOKEN_ILLEGAL);
         assert(tok.length == 0);
+        assert(tok.ptr == NULL);
     }
 }
 
@@ -60,6 +63,7 @@ static void test_lexer_illegal_empty(void)
         tok = lexer_next(&lx);
         ASSERT_TOKEN_TYPE(tok, TOKEN_ILLEGAL);
         assert(tok.length == 0);
+        assert(tok.ptr == NULL);
     }
 }
 
@@ -76,6 +80,7 @@ static void test_lexer_illegal_missing_leading_slash(void)
         tok = lexer_next(&lx);
         ASSERT_TOKEN_TYPE(tok, TOKEN_ILLEGAL);
         assert(tok.length == 0);
+        assert(tok.ptr == NULL);
     }
 }
 
@@ -105,6 +110,7 @@ static void test_lexer_easy(void)
     tok = lexer_next(&lx);
     ASSERT_TOKEN_TYPE(tok, TOKEN_END);
     assert(tok.length == 0);
+    assert(tok.ptr == NULL);
 }
 
 static void test_lexer_trailing(void)
@@ -128,6 +134,7 @@ static void test_lexer_trailing(void)
     tok = lexer_next(&lx);
     ASSERT_TOKEN_TYPE(tok, TOKEN_TRAILING);
     assert(tok.length == 0);
+    assert(tok.ptr == NULL);
 }
 
 static void test_lexer_stupid_long(void)
@@ -146,9 +153,39 @@ static void test_lexer_stupid_long(void)
     tok = lexer_next(&lx);
     ASSERT_TOKEN_TYPE(tok, TOKEN_ILLEGAL);
     assert(tok.length == 0);
-    assert(tok.ptr == 0);
+    assert(tok.ptr == NULL);
 
     free(long_str);
+}
+
+static void test_lexer_other_illegals(void)
+{
+    const char *cases[] = {
+        "",
+        "/?",
+        "/#",
+        "/*",
+        "/ ",
+        "/\t",
+        "/\n",
+        "/\r",
+        "/\x01",
+        "/\x7f",
+        NULL
+    };
+
+    for (size_t i = 0; cases[i] != NULL; i++) {
+        token_t tok;
+
+        lexer_t lx = { 0 };
+        lexer_load(&lx, cases[i], strlen(cases[i]));
+
+        tok = lexer_next(&lx);
+
+        ASSERT_TOKEN_TYPE(tok, TOKEN_ILLEGAL);
+        assert(tok.length == 0);
+        assert(tok.ptr == NULL);
+    }
 }
 
 int main(void)
@@ -161,6 +198,7 @@ int main(void)
     test_lexer_easy();
     test_lexer_trailing();
     test_lexer_stupid_long();
+    test_lexer_other_illegals();
 
     return 0;
 }

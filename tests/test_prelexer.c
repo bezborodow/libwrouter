@@ -273,6 +273,7 @@ static void test_prelexer_other_illegals(void)
 
     static const test_case_t cases[] = {
         { "" },
+        { " " },
         { "//" },
         { "foo" },
         { "foo?" },
@@ -295,6 +296,11 @@ static void test_prelexer_other_illegals(void)
         { "/:*" },
         { "/:1" },
         { "/:$" },
+        { "/\n" },
+        { "/\t" },
+        { "/ " },
+        { "/\x01" },
+        { "/\x7f" },
     };
 
     for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
