@@ -263,7 +263,6 @@ def test_resolve_cases():
     del builder
 
     dispatcher = wrouter.Dispatcher(router)
-    #dispatcher = router.dispatcher() TODO
 
     for pattern, request, expected_params in cases:
         ctx, params = dispatcher.resolve(request)
