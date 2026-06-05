@@ -4,6 +4,7 @@
 #include "symbol.h"
 #include "builder.h"
 #include "graph.h"
+#include "helpers/error_helpers.h"
 #include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -663,8 +664,8 @@ static void test_router_lots(void)
 
     // Compile.
     wrouter_t *router = wrouter_consume(&builder, &err);
+    ASSERT_ERROR(err, WROUTER_OK);
     assert(router != NULL);
-    assert(!err);
     wrouter_dispatcher_t *dispatcher = wrouter_dispatcher_create(router);
     assert(dispatcher != NULL);
 

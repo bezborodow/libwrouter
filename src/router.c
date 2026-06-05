@@ -127,7 +127,7 @@ lexer_next:
 
                 // Record parameter name and value.
                 wrouter_param_t *param = &d->params.base[d->params.count++];
-                param->name = router->params.base[s_edge->symbol - 1];
+                param->name = symbol_lookup(&router->params, s_edge->symbol);
                 param->value = tok.ptr;
                 param->length = tok.length;
 

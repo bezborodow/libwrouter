@@ -22,7 +22,7 @@ static int edge_cmp(const void *p1, const void *p2)
 /**
  * Align the cursor to the next memory location for a given alignment.
  */
-static inline uintptr_t align_up(size_t cursor, size_t align)
+uintptr_t graph_align_up(size_t cursor, size_t align)
 {
     return (cursor + align - 1) & ~(align - 1);
 }
@@ -36,7 +36,7 @@ static void size_up(size_t *total_size, size_t align, size_t size)
     if (!size)
         return;
 
-    *total_size = align_up(*total_size, align);
+    *total_size = graph_align_up(*total_size, align);
     *total_size += size;
 }
 
@@ -147,7 +147,7 @@ void *graph_append(void *g, size_t *cursor, size_t size, size_t align)
     if (!size)
         return NULL;
 
-    *cursor = align_up(*cursor, align);
+    *cursor = graph_align_up(*cursor, align);
 
     void *base = (uint8_t *)g + *cursor;
     *cursor += size;

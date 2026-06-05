@@ -24,7 +24,13 @@ struct symbol_key {
     size_t length;
 };
 
+int symbol_ncompare(const void *a, const void *b);
+
+int symbol_compare(const void *a, const void *b);
+
 const char *symbol_append(symbol_table_t *tbl, const char *str, size_t len, wrouter_error_t *err);
+
+wrouter_error_t symbol_compile(const symbol_table_t *tbl, symbols_t *sym);
 
 void symbol_table_free(symbol_table_t *tbl);
 
@@ -32,10 +38,6 @@ size_t symbol_nresolve(const symbols_t *symbols, const char *key, size_t n);
 
 size_t symbol_resolve(const symbols_t *symbols, const char *key);
 
-int symbol_ncompare(const void *a, const void *b);
-
-int symbol_compare(const void *a, const void *b);
-
-wrouter_error_t symbol_compile(const symbol_table_t *tbl, symbols_t *sym);
+const char *symbol_lookup(const symbols_t *symbols, uint16_t symbol);
 
 void symbols_free(symbols_t *symbols);
