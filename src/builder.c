@@ -215,24 +215,25 @@ wrouter_builder_t *wrouter_builder_create(const wrouter_options_t options)
 {
     wrouter_builder_t *builder;
 
+    // Allocate builder.
     builder = calloc(1, sizeof(*builder));
     if (builder == NULL)
         return NULL;
 
+    // Copy options.
     builder->param_syntax = options.param_syntax;
     builder->fallback.handler = options.fallback_handler;
     builder->fallback.ctx = options.fallback_ctx;
     builder->retain = options.retain;
     builder->release = options.release;
 
+    // Retain fallback context.
     builder_retain(builder, &builder->fallback);
 
+    // Create root node.
     builder->root = calloc(1, sizeof(segment_t));
     if (builder->root == NULL)
         goto failure;
-
-    symbol_table_init(&builder->literals);
-    symbol_table_init(&builder->params);
 
     return builder;
 
