@@ -32,10 +32,32 @@ void terminal_append(terminals_t *terminals, uint16_t ref, const wrouter_route_t
 
 wrouter_route_t *terminal_lookup(const terminals_t *terminals, uint16_t ref)
 {
-    // TODO custom binary search.
-    for (uint16_t i = 0; i < terminals->count; i++)
-        if (terminals->refs[i] == ref)
-            return &terminals->base[i];
+    if (terminals->count > 16) {
+
+        // See binary search example from 6.4 Pointers to Structures, K&R C 2nd
+        // ed. (ANSI), page 137.
+        uint16_t mid, low = 0, high = terminals->count;
+
+        int32_t cond;
+        while (low < high) {
+            mid = low + (high - low) / 2;
+            if ((cond = ref - terminals->refs[mid]) < 0)
+                high = mid;
+            else if (cond > 0)
+                low = mid + 1;
+            else
+                return &terminals->base[mid];
+        }
+
+    } else {
+
+        // Linear search by ref.
+        for (uint16_t i = 0; i < terminals->count; i++) {
+            if (terminals->refs[i] == ref) {
+                return &terminals->base[i];
+            }
+        }
+    }
 
     return NULL;
 }

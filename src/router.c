@@ -93,7 +93,7 @@ lexer_next:
                         const edge_t *l_edge_low = l_edge_base,
                                      *l_edge_high = l_edge_base + n_literals;
 
-                        int32_t cond;
+                        ptrdiff_t cond;
                         while (l_edge_low < l_edge_high) {
                             l_edge = l_edge_low + (l_edge_high - l_edge_low) / 2;
                             if ((cond = symbol - l_edge->symbol) < 0)
