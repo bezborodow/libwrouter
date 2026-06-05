@@ -26,6 +26,8 @@ print(f"{endpoint} {params['account_id']}")
 
 Will print: `account.view 1234`.
 
+Install from [PyPI](https://pypi.org/project/wrouter/0.1.0/) with `pip install wrouter`.
+
 ### C++
 
 ```
