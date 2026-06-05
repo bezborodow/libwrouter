@@ -180,13 +180,13 @@ node_t *graph_compile(wrouter_t *router, const segment_t *segment, size_t *curso
     node = graph_append_node(g, cursor);
 
     // Store number of literals.
-    node->literals = segment->child_count;
+    node->data |= segment->child_count;
 
     // Terminate node.
     if (segment->terminal != NULL) {
 
         // Store termination flag.
-        node->flags |= NODE_FLAG_TERMINAL;
+        node->data |= NODE_FLAG_TERMINAL;
 
         // Copy routes into the terminal dictionary.
         //
@@ -206,14 +206,14 @@ node_t *graph_compile(wrouter_t *router, const segment_t *segment, size_t *curso
     switch (segment->spec_type) {
         // Parameter edge.
         case SPEC_PARAM:
-            node->flags |= NODE_FLAG_HAS_PARAM;
+            node->data |= NODE_FLAG_HAS_PARAM;
             p_edge = graph_append_edge(g, cursor);
             p_edge->symbol = symbol_resolve(&router->params, segment->special.param->str);
             break;
 
         // Wildcard edge.
         case SPEC_WILDCARD:
-            node->flags |= NODE_FLAG_HAS_WILDCARD;
+            node->data |= NODE_FLAG_HAS_WILDCARD;
             w_edge = graph_append_edge(g, cursor);
             break;
 
@@ -223,7 +223,7 @@ node_t *graph_compile(wrouter_t *router, const segment_t *segment, size_t *curso
 
     // Trailing-slash edge is stored after the special edge if one exists.
     if (segment->trailing != NULL) {
-        node->flags |= NODE_FLAG_HAS_TRAILING;
+        node->data |= NODE_FLAG_HAS_TRAILING;
         t_edge = graph_append_edge(g, cursor);
     }
 
@@ -261,7 +261,7 @@ node_t *graph_compile(wrouter_t *router, const segment_t *segment, size_t *curso
     // Append wildcard node.
     if (w_edge != NULL) {
         node_t *w_node = graph_append_node(g, cursor);
-        w_node->flags |= NODE_FLAG_TERMINAL;
+        w_node->data |= NODE_FLAG_TERMINAL;
         w_edge->next = graph_offset(g, w_node);
         terminal_append(&router->terminals, w_edge->next, *segment->special.wildcard);
         router_retain(router, segment->special.wildcard);
@@ -270,7 +270,7 @@ node_t *graph_compile(wrouter_t *router, const segment_t *segment, size_t *curso
     // Append trailing node.
     if (t_edge != NULL) {
         node_t *t_node = graph_append_node(g, cursor);
-        t_node->flags |= NODE_FLAG_TERMINAL;
+        t_node->data |= NODE_FLAG_TERMINAL;
         t_edge->next = graph_offset(g, t_node);
         terminal_append(&router->terminals, t_edge->next, *segment->trailing);
         router_retain(router, segment->trailing);
