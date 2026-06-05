@@ -56,7 +56,7 @@ wrouter_t *wrouter_compile(const wrouter_builder_t *builder, wrouter_error_t *er
         return router;
 
     // Range checking.
-    if (stats.size > UINT16_MAX || stats.terminals > UINT16_MAX)
+    if (stats.size > GRAPH_CAPACITY_BYTES || stats.terminals > GRAPH_CAPACITY_BYTES)
         goto out_of_range;
 
     // Allocate and compile symbols for literals.

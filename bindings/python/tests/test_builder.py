@@ -45,7 +45,7 @@ def test_out_of_range_segment_children():
 def test_out_of_range_graph_size():
 
     # Choose a number that will exceed the limits.
-    NI = 2
+    NI = 4
     NJ = 55
     NK = 100
 
