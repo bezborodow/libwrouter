@@ -3,13 +3,13 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-#define NODE_FLAG_TERMINAL 1
-#define NODE_FLAG_HAS_PARAM 2
-#define NODE_FLAG_HAS_WILDCARD 4
-#define NODE_FLAG_HAS_TRAILING 8
-
 // Maximum literal edges based on node_t.literals.
-#define NODE_MAX_CHILD_COUNT ((size_t)UINT8_MAX)
+#define NODE_LITERALS_MASK ((size_t)((1 << 11) - 1))
+#define NODE_MAX_CHILD_COUNT NODE_LITERALS_MASK
+#define NODE_FLAG_TERMINAL (1 << 12)
+#define NODE_FLAG_HAS_PARAM (1 << 13)
+#define NODE_FLAG_HAS_WILDCARD (1 << 14)
+#define NODE_FLAG_HAS_TRAILING (1 << 15)
 
 typedef struct {
     size_t nodes;
@@ -22,8 +22,7 @@ typedef struct {
 } graph_stats_t;
 
 typedef struct {
-    uint8_t literals; // Number of literal edges.
-    uint8_t flags;
+    uint16_t data;
 } node_t;
 
 typedef struct {

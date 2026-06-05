@@ -8,6 +8,7 @@
 #include "token.h"
 #include "wrouter.h"
 #include <stddef.h>
+#include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -27,6 +28,7 @@ const wrouter_route_t *route_match(wrouter_dispatcher_t *d)
     token_t tok = { 0 };
     size_t symbol = 0;
     const char *w_param = NULL;
+    uint16_t n_literals = 0;
 
     const wrouter_t *router = d->router;
     const void *g = router->graph;
@@ -53,16 +55,16 @@ lexer_next:
     // The literal edges start after the special edge, if present.  A special
     // edge is either a parameter or a wildcard. They cannot coexist; that is,
     // there is only ever one or zero special edges.
-    if (cur->flags & (NODE_FLAG_HAS_PARAM | NODE_FLAG_HAS_WILDCARD))
+    if (cur->data & (NODE_FLAG_HAS_PARAM | NODE_FLAG_HAS_WILDCARD))
         l_edge_base++;
 
     // The trailing-slash edge is stored after the special edge if it exists,
     // otherwise immediately after the node.
-    if (cur->flags & NODE_FLAG_HAS_TRAILING)
+    if (cur->data & NODE_FLAG_HAS_TRAILING)
         t_edge = l_edge_base++;
 
     // Remember the most specific wildcard edge, if present.
-    if (cur->flags & NODE_FLAG_HAS_WILDCARD) {
+    if (cur->data & NODE_FLAG_HAS_WILDCARD) {
         w_edge = s_edge;
         w_param = tok.ptr;
     }
@@ -74,7 +76,8 @@ lexer_next:
         case TOKEN_LITERAL:
 
             // If this node has literals, try to resolve and match.
-            if (cur->literals) {
+            n_literals = cur->data & NODE_LITERALS_MASK;
+            if (n_literals) {
 
                 // Resolve the literal string to a symbol.
                 symbol = symbol_nresolve(&router->literals, tok.ptr, tok.length);
@@ -83,7 +86,7 @@ lexer_next:
                 if (symbol) {
 
                     // TODO do bsearch if n > 8. Need to sort symbols first though when compiling.
-                    for (uint16_t i = 0; i < cur->literals; i++) {
+                    for (uint16_t i = 0; i < n_literals; i++) {
                         l_edge = &l_edge_base[i];
 
                         if (l_edge->symbol == symbol) {
@@ -97,7 +100,7 @@ lexer_next:
             }
 
             // Check for parameter.
-            if (cur->flags & NODE_FLAG_HAS_PARAM) {
+            if (cur->data & NODE_FLAG_HAS_PARAM) {
                 cur = next_node(g, s_edge);
 
                 // Record parameter name and value.
@@ -119,7 +122,7 @@ lexer_next:
 
         // Trailing-slash token.
         case TOKEN_TRAILING:
-            if (cur->flags & NODE_FLAG_HAS_TRAILING)
+            if (cur->data & NODE_FLAG_HAS_TRAILING)
                 goto trailing;
 
             goto not_found;
@@ -128,7 +131,7 @@ lexer_next:
         case TOKEN_END:
 
             // Check for terminal.
-            if (cur->flags & NODE_FLAG_TERMINAL)
+            if (cur->data & NODE_FLAG_TERMINAL)
                 goto terminal;
 
             // Not found.
