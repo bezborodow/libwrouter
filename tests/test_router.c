@@ -633,6 +633,61 @@ void test_router_symbol_compare_segfault(void)
     free(str);
 }
 
+static void test_router_lots(void)
+{
+    // Choose a number that will exceed the limits.  (But not ridiculous,
+    // otherwise tonnes of memory will be consumed.)
+    enum { NI = 400, NJ = 10, NK = 2 };
+
+    char pattern[128], context[16];
+    char contexts[NI][NJ][NK][16];
+    wrouter_error_t err;
+    wrouter_options_t options = { 0 };
+
+    wrouter_builder_t *builder = wrouter_builder_create(options);
+    assert(builder != NULL);
+
+    // Add lots of routes to the builder.
+    for (uint16_t i = 0; i < NI; i++) {
+        for (uint16_t j = 0; j < NJ; j++) {
+            for (uint16_t k = 0; k < NK; k++) {
+                snprintf(pattern, sizeof(pattern), "/a_%u/b_%u/c_%u_%u_%u/:param_%u", i, j, i, j, k, i);
+                snprintf(context, sizeof(context), "%u_%u_%u", i, j, k);
+
+                strcpy(contexts[i][j][k], context);
+                err = wrouter_add_context(builder, pattern, contexts[i][j][k]);
+                assert(err == WROUTER_OK);
+            }
+        }
+    }
+
+    // Compile.
+    wrouter_t *router = wrouter_consume(&builder, &err);
+    assert(router != NULL);
+    assert(!err);
+    wrouter_dispatcher_t *dispatcher = wrouter_dispatcher_create(router);
+    assert(dispatcher != NULL);
+
+    // Resolve.
+    const char *buf = NULL;
+    for (uint16_t i = 0; i < NI; i++) {
+        for (uint16_t j = 0; j < NJ; j++) {
+            for (uint16_t k = 0; k < NK; k++) {
+                snprintf(pattern, sizeof(pattern), "/a_%u/b_%u/c_%u_%u_%u/anything", i, j, i, j, k);
+                snprintf(context, sizeof(context), "%u_%u_%u", i, j, k);
+
+                buf = (const char *)wrouter_resolve(dispatcher, pattern);
+
+                assert(strcmp(buf, context) == 0);
+            }
+        }
+    }
+
+    wrouter_dispatcher_destroy(&dispatcher);
+    wrouter_destroy(&router);
+}
+
+
 void test_router_destroy(void)
 {
     wrouter_error_t err;
@@ -666,6 +721,7 @@ int main(void)
     test_router_free_null();
     test_router_illegal_paths();
     test_router_symbol_compare_segfault();
+    test_router_lots();
     test_router_destroy();
 
     return 0;

@@ -86,7 +86,7 @@ lexer_next:
                 if (symbol) {
 
                     // Do a binary search if n > 16, otherwise do a linear scan.
-                    if (n_literals > 4) {
+                    if (n_literals > 16) {
 
                         // See binary search example from 6.4 Pointers to
                         // Structures, K&R C 2nd ed. (ANSI), page 137.

@@ -20,7 +20,7 @@ static void cb_null(void *dispatch_ctx, const void *route_ctx, const wrouter_par
     return;
 }
 
-static void test_free(void)
+static void test_builder_free(void)
 {
     wrouter_options_t options = { 0 };
     wrouter_builder_t *builder = wrouter_builder_create(options);
@@ -33,7 +33,7 @@ static void test_free(void)
     wrouter_builder_free(NULL);
 }
 
-static void test_add_route(void)
+static void test_builder_add_route(void)
 {
     wrouter_options_t options = { 0 };
     wrouter_builder_t *builder = wrouter_builder_create(options);
@@ -47,7 +47,7 @@ static void test_add_route(void)
     wrouter_builder_free(builder);
 }
 
-static void test_add_handler(void)
+static void test_builder_add_handler(void)
 {
     wrouter_options_t options = { 0 };
     wrouter_builder_t *builder = wrouter_builder_create(options);
@@ -59,7 +59,7 @@ static void test_add_handler(void)
     wrouter_builder_free(builder);
 }
 
-static void test_add_handler_ctx(void)
+static void test_builder_add_handler_ctx(void)
 {
     wrouter_options_t options = { 0 };
     wrouter_builder_t *builder = wrouter_builder_create(options);
@@ -71,7 +71,7 @@ static void test_add_handler_ctx(void)
     wrouter_builder_free(builder);
 }
 
-static void test_add_context(void)
+static void test_builder_add_context(void)
 {
     wrouter_options_t options = { 0 };
     wrouter_builder_t *builder = wrouter_builder_create(options);
@@ -83,7 +83,7 @@ static void test_add_context(void)
     wrouter_builder_free(builder);
 }
 
-static void test_duplicate(void)
+static void test_builder_duplicate(void)
 {
     wrouter_options_t options = { 0 };
 
@@ -119,7 +119,7 @@ static void test_duplicate(void)
     }
 }
 
-static void test_conflicts(void)
+static void test_builder_conflicts(void)
 {
     wrouter_options_t options = { 0 };
     wrouter_builder_t *builder = NULL;
@@ -158,7 +158,7 @@ static void test_conflicts(void)
     wrouter_builder_free(builder);
 }
 
-static void test_param_mismatch(void)
+static void test_builder_param_mismatch(void)
 {
     wrouter_options_t options = { 0 };
 
@@ -189,7 +189,7 @@ static void test_param_mismatch(void)
     }
 }
 
-static void test_wildcard_not_final(void)
+static void test_builder_wildcard_not_final(void)
 {
     typedef struct {
         const char *pattern;
@@ -229,7 +229,7 @@ static void test_wildcard_not_final(void)
     }
 }
 
-static void test_illegal_patterns(void)
+static void test_builder_illegal_patterns(void)
 {
     wrouter_options_t options = { 0 };
 
@@ -256,7 +256,7 @@ static void test_illegal_patterns(void)
     }
 }
 
-static void test_range_error_literal_edges(void)
+static void test_builder_range_error_literal_edges(void)
 {
     char buf[32];
     size_t i;
@@ -290,7 +290,7 @@ static void test_range_error_literal_edges(void)
     wrouter_builder_free(builder);
 }
 
-static void test_range_error_literal_edges_uint8_boundary(void)
+static void test_builder_range_error_literal_edges_uint8_boundary(void)
 {
     char buf[32];
     wrouter_error_t err;
@@ -313,7 +313,7 @@ static void test_range_error_literal_edges_uint8_boundary(void)
     wrouter_builder_free(builder);
 }
 
-static void test_range_error_literal_symbols(void)
+static void test_builder_range_error_literal_symbols(void)
 {
     wrouter_error_t err;
     wrouter_options_t options = { 0 };
@@ -333,7 +333,7 @@ static void test_range_error_literal_symbols(void)
     wrouter_builder_free(builder);
 }
 
-static void test_range_error_param_symbols(void)
+static void test_builder_range_error_param_symbols(void)
 {
     wrouter_error_t err;
     wrouter_options_t options = { 0 };
@@ -353,7 +353,7 @@ static void test_range_error_param_symbols(void)
     wrouter_builder_free(builder);
 }
 
-static void test_out_of_range_graph_size(void)
+static void test_builder_out_of_range_graph_size(void)
 {
     // Choose a number that will exceed the limits.  (But not ridiculous,
     // otherwise tonnes of memory will be consumed.)
@@ -477,21 +477,21 @@ void test_builder_destroy_null()
 
 int main(void)
 {
-    test_free();
-    test_add_route();
-    test_add_handler();
-    test_add_handler_ctx();
-    test_add_context();
-    test_duplicate();
-    test_conflicts();
-    test_param_mismatch();
-    test_wildcard_not_final();
-    test_illegal_patterns();
-    test_range_error_literal_edges();
-    test_range_error_literal_edges_uint8_boundary();
-    test_range_error_literal_symbols();
-    test_range_error_param_symbols();
-    test_out_of_range_graph_size();
+    test_builder_free();
+    test_builder_add_route();
+    test_builder_add_handler();
+    test_builder_add_handler_ctx();
+    test_builder_add_context();
+    test_builder_duplicate();
+    test_builder_conflicts();
+    test_builder_param_mismatch();
+    test_builder_wildcard_not_final();
+    test_builder_illegal_patterns();
+    test_builder_range_error_literal_edges();
+    test_builder_range_error_literal_edges_uint8_boundary();
+    test_builder_range_error_literal_symbols();
+    test_builder_range_error_param_symbols();
+    test_builder_out_of_range_graph_size();
     test_builder_consume();
     test_builder_compile_null_arguments();
     test_builder_destroy_null();
