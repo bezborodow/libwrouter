@@ -412,14 +412,20 @@ static void test_builder_consume(void)
     wrouter_route_t route = { 0 };
     assert(wrouter_add_route(builder, "/users/:id", route) == WROUTER_OK);
 
+    assert(builder != NULL);
     router = wrouter_consume(&builder, NULL);
+    assert(builder == NULL);
     assert(router == NULL);
 
+    builder = wrouter_builder_create(options);
+    assert(builder != NULL);
     router = wrouter_consume(&builder, &err);
+    assert(builder == NULL);
     assert(err == WROUTER_OK);
     assert(router != NULL);
 
     wrouter_destroy(&router);
+    assert(router == NULL);
 }
 
 static void test_builder_compile_null_arguments(void)
@@ -445,6 +451,13 @@ static void test_builder_compile_null_arguments(void)
     wrouter_builder_free(builder);
 }
 
+void test_builder_destroy_null()
+{
+    wrouter_builder_t *builder = NULL;
+    wrouter_builder_destroy(&builder);
+    wrouter_builder_destroy(NULL);
+}
+
 int main(void)
 {
     test_free();
@@ -464,6 +477,7 @@ int main(void)
     test_out_of_range_graph_size();
     test_builder_consume();
     test_builder_compile_null_arguments();
+    test_builder_destroy_null();
 
     return 0;
 }
