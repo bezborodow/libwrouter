@@ -32,13 +32,15 @@ wrouter_error_t segment_append_child(segment_t *cur, segment_t *child)
     if (cur->child_count >= NODE_MAX_CHILD_COUNT)
         return WROUTER_ERR_OUT_OF_RANGE;
 
-    segment_t **new_children =
-        realloc(cur->children, sizeof(segment_t *) * (cur->child_count + 1));
-    if (new_children == NULL) // TODO realloc growth.
-        return WROUTER_ERR_NO_MEMORY;
+    if (cur->head == NULL) {
+        cur->head = child;
+        cur->tail = child;
+    } else {
+        cur->tail->next = child;
+        cur->tail = child;
+    }
 
-    cur->children = new_children;
-    cur->children[cur->child_count++] = child;
+    cur->child_count++;
 
     return WROUTER_OK;
 }
@@ -46,15 +48,13 @@ wrouter_error_t segment_append_child(segment_t *cur, segment_t *child)
 /**
  * Find a child of a segment by token.
  */
-segment_t *segment_find_child_by_token(segment_t *segment, const token_t tok)
+segment_t *segment_find_child_by_token(const segment_t *segment, const token_t tok)
 {
     if (tok.ptr == NULL)
         return NULL;
 
-    // TODO improve speed of search.
-    for (uint16_t i = 0; i < segment->child_count; i++) {
-        segment_t *child = segment->children[i];
 
+    for (segment_t *child = segment->head; child; child = child->next) {
         if (token_matches_segment(tok, child))
             return child;
     }
@@ -80,20 +80,26 @@ void segment_free(segment_t *segment)
             break;
     }
 
-    for (uint16_t i = 0; i < segment->child_count; i++)
-        segment_free(segment->children[i]);
+    // Free child segments.
+    segment_t *child = segment->head;
+    while (child) {
+        segment_t *next = child->next;
+
+        segment_free(child);
+
+        child = next;
+    }
 
     free(segment->trailing);
     free(segment->terminal);
-    free(segment->children);
     free(segment);
 }
 
 void segment_release(const segment_t *segment, const wrouter_reference_fn release)
 {
-    // Descend into literals.
-    for (uint16_t i = 0; i < segment->child_count; i++) {
-        segment_release(segment->children[i], release);
+    // Descend child segments.
+    for (const segment_t *child = segment->head; child; child = child->next) {
+        segment_release(child, release);
     }
 
     switch (segment->spec_type) {

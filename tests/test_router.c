@@ -121,15 +121,12 @@ static void print_route_node(const segment_t *seg, int depth, int is_param)
     }
 
     // Literal children.
-    for (uint16_t i = 0; i < seg->child_count; i++) {
-        print_route_node(seg->children[i], depth + 1, 0);
-    }
+    for (const segment_t *child = seg->head; child; child = child->next)
+        print_route_node(child, depth + 1, 0);
 
     // Param child.
-    if (seg->spec_type == SPEC_PARAM && seg->special.param != NULL) {
-
+    if (seg->spec_type == SPEC_PARAM && seg->special.param != NULL)
         print_route_node(seg->special.param, depth + 1, 1);
-    }
 
     // Wildcard route.
     if (seg->spec_type == SPEC_WILDCARD && seg->special.wildcard != NULL) {

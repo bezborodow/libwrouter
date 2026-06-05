@@ -20,7 +20,6 @@ static inline void builder_retain(const wrouter_builder_t *builder, const wroute
 
 static wrouter_route_t *builder_terminate(wrouter_builder_t *builder, wrouter_route_t route)
 {
-
     wrouter_route_t *terminal = calloc(1, sizeof(*terminal));
     if (terminal == NULL)
         return NULL;

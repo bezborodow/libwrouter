@@ -101,8 +101,8 @@ void graph_stats(const segment_t *seg, graph_stats_t *stats)
     // Literal child node edges and nodes.
     stats->symbolic_edges += seg->child_count;
     size_up(&stats->size, _Alignof(edge_t), seg->child_count * sizeof(edge_t));
-    for (uint16_t i = 0; i < seg->child_count; i++) {
-        segment_t *child = seg->children[i];
+
+    for (segment_t *child = seg->head; child; child = child->next) {
         graph_stats(child, stats);
     }
 
@@ -239,22 +239,22 @@ node_t *graph_compile(wrouter_t *router, const segment_t *segment, size_t *curso
 
     // Descend into literals.
     if (segment->child_count) {
+        uint16_t i = 0;
 
         // Find the start address for literal edges.
         edge_t *l_edge_base = graph_append_edges(g, cursor, segment->child_count);
 
         // Resolve symbols and save into into the literal edges.
-        for (uint16_t i = 0; i < segment->child_count; i++) {
-            segment_t *child = segment->children[i];
-            edge_t *l_edge = &l_edge_base[i];
+        for (segment_t *child = segment->head; child; child = child->next) {
+            edge_t *l_edge = &l_edge_base[i++];
             l_edge->symbol = symbol_resolve(&router->literals, child->str);
         }
 
         // Recurse into literal nodes and save their offsets.
-        for (uint16_t i = 0; i < segment->child_count; i++) {
-            segment_t *child = segment->children[i];
+        i = 0;
+        for (segment_t *child = segment->head; child; child = child->next) {
             node_t *l_node = graph_compile(router, child, cursor);
-            edge_t *l_edge = &l_edge_base[i];
+            edge_t *l_edge = &l_edge_base[i++];
             l_edge->next = graph_offset(g, l_node);
         }
 
