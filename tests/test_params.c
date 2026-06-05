@@ -16,8 +16,6 @@ void test_params_copy(void)
         symbol_table_t table = { 0 };
         wrouter_param_t *param = NULL;
 
-        symbol_table_init(&table);
-
         const char *str0 = "param0";
         const char *str1 = "param1";
 

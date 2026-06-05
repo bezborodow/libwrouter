@@ -24,8 +24,6 @@ struct symbol_key {
     size_t length;
 };
 
-void symbol_table_init(symbol_table_t *tbl);
-
 const char *symbol_append(symbol_table_t *tbl, const char *str, size_t length);
 
 void symbol_table_free(symbol_table_t *tbl);

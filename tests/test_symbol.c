@@ -7,8 +7,7 @@
 
 static void test_symbol_append(void)
 {
-    symbol_table_t tbl;
-    symbol_table_init(&tbl);
+    symbol_table_t tbl = { 0 };
 
     assert(symbol_append(&tbl, "hello", 5) != NULL);
     assert(symbol_append(&tbl, "world", 5) != NULL);
@@ -28,8 +27,7 @@ static void test_symbol_append(void)
 
 static void test_symbol_table_growth(void)
 {
-    symbol_table_t tbl;
-    symbol_table_init(&tbl);
+    symbol_table_t tbl = { 0 };
 
     size_t n = 2000;
     char buf[10];
