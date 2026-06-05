@@ -3,9 +3,13 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-// Maximum literal edges based on node_t.literals.
-#define NODE_LITERALS_MASK ((size_t)((1 << 11) - 1))
+// Maximum literal number of children per node.  Node data has 12 bits reserved
+// for a node count. That allows a maximum of 4095 literal child edges per
+// node. See node_t.data.
+#define NODE_LITERALS_MASK ((size_t)((1 << 12) - 1))
 #define NODE_MAX_CHILD_COUNT NODE_LITERALS_MASK
+
+// The most-significant 4 bits of the 16 bit node data are the following flags:
 #define NODE_FLAG_TERMINAL (1 << 12)
 #define NODE_FLAG_HAS_PARAM (1 << 13)
 #define NODE_FLAG_HAS_WILDCARD (1 << 14)
