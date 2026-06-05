@@ -98,17 +98,25 @@ failure:
  */
 wrouter_t *wrouter_consume(wrouter_builder_t **bpp, wrouter_error_t *err)
 {
+    wrouter_t *router;
+
     if (err == NULL)
-        return NULL;
+        goto failure;
 
     if (bpp == NULL || *bpp == NULL) {
         *err = WROUTER_ERR_NULL_ARGUMENT;
-        return NULL;
+        goto failure;
     }
 
-    wrouter_t *router = wrouter_compile(*bpp, err);
+    router = wrouter_compile(*bpp, err);
 
     wrouter_builder_destroy(bpp);
 
     return router;
+
+failure:
+
+    // Always destroy the builder.
+    wrouter_builder_destroy(bpp);
+    return NULL;
 }
