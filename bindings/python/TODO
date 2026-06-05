@@ -1,18 +1,3 @@
 TODO
 
-PyPI package.
-
-Support handler and context functions.
-
 Support fallback routes.
-
-Better interface:
-
-    def hello(dispatch_ctx, params):
-        pass
-
-    dispatcher.dispatch(request_path, dispatch_ctx)
-
-And:
-
-    dispatcher = router.dispatcher()
