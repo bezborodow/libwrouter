@@ -38,6 +38,7 @@ static wrouter_route_t *builder_terminate(wrouter_builder_t *builder, wrouter_ro
 static wrouter_error_t builder_add_route(wrouter_builder_t *builder, const char *pattern,
                                          wrouter_route_t route)
 {
+    wrouter_error_t err = 0;
     token_t tok;
     prelexer_t lx = { 0 };
     segment_t *cur = builder->root;
@@ -120,22 +121,12 @@ static wrouter_error_t builder_add_route(wrouter_builder_t *builder, const char 
                 // Create a parameter on this segment if one does not already exist.
                 if (cur->spec_type == SPEC_NONE) {
 
-                    // Append parameter symbol to the parameter symbol table.
-                    if (builder->params.count >= UINT16_MAX)
-                        return WROUTER_ERR_OUT_OF_RANGE;
-                    const char *strptr = symbol_append(&builder->params, tok.ptr, tok.length);
-                    if (strptr == NULL)
-                        return WROUTER_ERR_NO_MEMORY;
-
-                    segment_t *param = calloc(1, sizeof(segment_t));
-                    if (param == NULL)
-                        return WROUTER_ERR_NO_MEMORY;
-
-                    param->str = strptr;
-                    param->str_length = tok.length;
-
+                    // Create segment.
                     cur->spec_type = SPEC_PARAM;
-                    cur->special.param = param;
+                    cur->special.param = segment_create(&builder->params, &tok, &err);
+                    if (cur->special.param == NULL)
+                        return err;
+
                 } else if (!token_matches_segment(tok, cur->special.param)) {
 
                     // If a parameter is already assigned, it should have the same name.
