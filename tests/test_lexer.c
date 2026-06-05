@@ -196,6 +196,7 @@ void test_lexer_segfault(void)
     ASSERT_TOKEN_TYPE(tok, TOKEN_LITERAL);
     assert(tok.length == 5);
     assert(tok.ptr == str + 1);
+    assert(memcmp(tok.ptr, "aaaaa", 5) == 0);
 
     tok = lexer_next(&lx);
     ASSERT_TOKEN_TYPE(tok, TOKEN_END);
@@ -216,6 +217,7 @@ int main(void)
     test_lexer_trailing();
     test_lexer_stupid_long();
     test_lexer_other_illegals();
+    test_lexer_segfault();
 
     return 0;
 }
