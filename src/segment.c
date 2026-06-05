@@ -58,6 +58,7 @@ segment_t *segment_find_child_by_token(segment_t *segment, const token_t tok)
     if (tok.ptr == NULL)
         return NULL;
 
+    // TODO improve speed of search.
     for (uint16_t i = 0; i < segment->child_count; i++) {
         segment_t *child = segment->children[i];
 
