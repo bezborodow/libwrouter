@@ -18,8 +18,8 @@ def test_out_of_range_segment_children():
             last_ok_index = i
 
     accepted_count = last_ok_index + 1
-    assert last_ok_index == 254
-    assert accepted_count == 255
+    assert last_ok_index == 2**12 - 2
+    assert accepted_count == 2**12 - 1
 
     # The builder is corrupted now.
     with pytest.raises(wrouter.RouteError):
