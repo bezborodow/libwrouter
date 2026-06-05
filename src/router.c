@@ -88,14 +88,12 @@ lexer_next:
                     // Do a binary search if n > 16, otherwise do a linear scan.
                     if (n_literals > 4) {
 
-                        // l_edge = (low + high) / 2;
-                        // l_edge = (low + high) >> 1
                         // See binary search example from 6.4 Pointers to
                         // Structures, K&R C 2nd ed. (ANSI), page 137.
                         const edge_t *l_edge_low = l_edge_base,
                                      *l_edge_high = l_edge_base + n_literals;
-                        int32_t cond;
 
+                        int32_t cond;
                         while (l_edge_low < l_edge_high) {
                             l_edge = l_edge_low + (l_edge_high - l_edge_low) / 2;
                             if ((cond = symbol - l_edge->symbol) < 0)

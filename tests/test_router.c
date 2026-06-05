@@ -194,13 +194,11 @@ void test_router_basic(void)
     };
 
     terminal_test_case_t cases[] = {
-#if 1
         {
             .pattern = "/downloads/*",
             .request = "/downloads/documents/schematic.pdf",
             .params = &document_params,
         },
-#endif
         {
             .pattern = "/downloads/",
             .request = "/downloads/",
