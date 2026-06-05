@@ -63,15 +63,10 @@ token_t lexer_next(lexer_t *lx)
         if (*c == '*' || *c == '#' || *c == '?' || isspace(*c) || iscntrl(*c))
             return tok; // Illegal.
 
-    // If the token has a length, it is a literal.
-    if ((tok.length = (uint16_t)(c - start))) {
-        lx->cursor = c;
-        tok.ptr = start;
-        tok.type = TOKEN_LITERAL;
-        return tok;
-    }
-
-    // Otherwise, end.
-    tok.type = TOKEN_END;
+    // Literal.
+    lx->cursor = c;
+    tok.type = TOKEN_LITERAL;
+    tok.ptr = start;
+    tok.length = (uint16_t)(c - start);
     return tok;
 }
