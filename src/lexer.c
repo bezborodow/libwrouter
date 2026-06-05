@@ -10,10 +10,8 @@
 
 void lexer_load(lexer_t *lx, const char *request, size_t length)
 {
-    if (request == NULL)
-        goto failure;
-
-    if (length == 0)
+    // Null.
+    if (request == NULL || length == 0)
         goto failure;
 
     // Enforce all requests begin with '/'.
@@ -24,10 +22,10 @@ void lexer_load(lexer_t *lx, const char *request, size_t length)
     if (length > LEXER_CHAR_LIMIT)
         goto failure;
 
+    // Load.
     lx->str = request;
     lx->cursor = request;
     lx->length = length;
-
     return;
 
 failure:
@@ -40,9 +38,11 @@ token_t lexer_next(lexer_t *lx)
     const char *end = lx->str + lx->length;
     token_t tok = { 0 };
 
-    if (c == NULL || !lx->length)
-        return tok;
+    // Null.
+    if (c == NULL || lx->length == 0)
+        return tok; // Illegal.
 
+    // End.
     if (c == end) {
         tok.type = TOKEN_END;
         return tok;
@@ -56,12 +56,12 @@ token_t lexer_next(lexer_t *lx)
 
     // Check for double-slash.
     if (++c < end && *c == '/')
-        return tok; // TOKEN_ILLEGAL.
+        return tok; // Illegal.
 
     // Consume until next '/'.
     for (start = c; c < end && *c != '/'; c++)
         if (*c == '*' || *c == '#' || *c == '?' || isspace(*c) || iscntrl(*c))
-            return tok; // Illegal.
+            return tok; // Illegal character.
 
     // Literal.
     lx->cursor = c;
