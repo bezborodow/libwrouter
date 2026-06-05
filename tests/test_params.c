@@ -12,6 +12,7 @@ void test_params_copy(void)
 
     // Create params in its own scope.
     {
+        wrouter_error_t err = 0;
         wrouter_params_t params = { 0 };
         symbol_table_t table = { 0 };
         wrouter_param_t *param = NULL;
@@ -19,8 +20,12 @@ void test_params_copy(void)
         const char *str0 = "param0";
         const char *str1 = "param1";
 
-        const char *sym0 = symbol_append(&table, str0, strlen(str0));
-        const char *sym1 = symbol_append(&table, str1, strlen(str1));
+        const char *sym0 = symbol_append(&table, str0, strlen(str0), &err);
+        assert(err == 0);
+        assert(sym0 != NULL);
+        const char *sym1 = symbol_append(&table, str1, strlen(str1), &err);
+        assert(sym0 != NULL);
+        assert(err == 0);
 
         params.count = 2;
         params_alloc(&params, 2);
