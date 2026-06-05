@@ -194,10 +194,13 @@ void test_symbol_resolve(void)
 
 void test_symbol_nresolve(void)
 {
+    // This test is designed in a specific way to test for memory access
+    // violations. That is, when lookup up against strings that are not
+    // null-terminated.
     size_t n;
     char *str = NULL;
     const char *symarr[] = {
-        "aaaaa",
+        "aaaaa", // Repeated characters can cause memory errors if not handled correctly.
         "bbb",
     };
     symbols_t symbols = { 0 };
