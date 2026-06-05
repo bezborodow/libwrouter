@@ -1,5 +1,6 @@
 #include "symbol.h"
 #include "arena.h"
+#include "wrouter.h"
 #include <stddef.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -27,8 +28,13 @@ static int symbol_table_next_slot(symbol_table_t *tbl, size_t len, size_t *slot)
     return 0;
 }
 
-const char *symbol_append(symbol_table_t *tbl, const char *str, size_t len)
+const char *symbol_append(symbol_table_t *tbl, const char *str, size_t len, wrouter_error_t *err)
 {
+    if (tbl->count >= UINT16_MAX) {
+        *err = WROUTER_ERR_OUT_OF_RANGE;
+        return NULL;
+    }
+
     // Check for duplicates.
     for (size_t i = 0; i < tbl->count; i++)
         if (strncmp(tbl->base[i], str, len) == 0 && tbl->base[i][len] == '\0')
@@ -36,13 +42,17 @@ const char *symbol_append(symbol_table_t *tbl, const char *str, size_t len)
 
     // Get a slot in the table for the string pointer.
     size_t slot;
-    if (symbol_table_next_slot(tbl, 1, &slot) != 0)
+    if (symbol_table_next_slot(tbl, 1, &slot) != 0) {
+        *err = WROUTER_ERR_NO_MEMORY;
         return NULL;
+    }
 
     // Allocate space in the arena for the string.
     char *a = arena_alloc(&tbl->arena, len + 1);
-    if (a == NULL)
+    if (a == NULL) {
+        *err = WROUTER_ERR_NO_MEMORY;
         return NULL;
+    }
 
     // Copy the string into the arena, ensuring it is null-terminated.
     memcpy(a, str, len);

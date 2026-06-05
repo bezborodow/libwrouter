@@ -1,20 +1,26 @@
+#include "wrouter.h"
 #include "symbol.h"
-#include <assert.h>
 #include <string.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 static void test_symbol_append(void)
 {
     symbol_table_t tbl = { 0 };
+    wrouter_error_t err = 0;
 
-    assert(symbol_append(&tbl, "hello", 5) != NULL);
-    assert(symbol_append(&tbl, "world", 5) != NULL);
+    assert(symbol_append(&tbl, "hello", 5, &err) != NULL);
+    assert(err == 0);
+    const char *worldptr = symbol_append(&tbl, "world", 5, &err);
+    assert(worldptr != NULL);
+    assert(err == 0);
 
     // Check duplicates.
-    const char *strptr = symbol_append(&tbl, "world", 5);
-    assert(strptr != NULL);
+    const char *strptr = symbol_append(&tbl, "world", 5, &err);
+    assert(err == 0);
+    assert(strptr == worldptr);
     assert(strcmp(strptr, "world") == 0);
 
     assert(tbl.count == 2);
@@ -28,13 +34,15 @@ static void test_symbol_append(void)
 static void test_symbol_table_growth(void)
 {
     symbol_table_t tbl = { 0 };
+    wrouter_error_t err = 0;
 
     size_t n = 2000;
     char buf[10];
 
     for (size_t i = 0; i < n; i++) {
         snprintf(buf, 9, "x%lu", i);
-        const char *strptr = symbol_append(&tbl, buf, strlen(buf));
+        const char *strptr = symbol_append(&tbl, buf, strlen(buf), &err);
+        assert(err == 0);
         assert(strptr != NULL);
         assert(strcmp(strptr, buf) == 0);
         assert(tbl.base[i] == strptr);
