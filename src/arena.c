@@ -60,6 +60,9 @@ void *arena_alloc(arena_t *a, size_t length)
 
 void arena_free(arena_t *a)
 {
+    if (a == NULL)
+        return;
+
     arena_block_t *b = a->head;
 
     while (b) {
