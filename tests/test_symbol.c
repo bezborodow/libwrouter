@@ -1,5 +1,6 @@
 #include "wrouter.h"
 #include "symbol.h"
+#include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -50,6 +51,11 @@ static void test_symbol_table_growth(void)
 
     assert(tbl.count == n);
     assert(tbl.capacity >= n);
+
+    // Check range error.
+    tbl.count = UINT16_MAX;
+    symbol_append(&tbl, buf, strlen(buf), &err);
+    assert(err = WROUTER_ERR_OUT_OF_RANGE);
 
     symbol_table_free(&tbl);
 }
@@ -229,18 +235,3 @@ int main(void)
     test_symbol_nresolve();
     return 0;
 }
-
-#if 0
-TODO This prooves a segfault condition in symbol_compare.
-    char *str = calloc(5, 1);
-    char *strnt = "aaaaaaaaa";
-    memset(str, 'a', 5);
-
-    char **a = &str;
-    char **b = &strnt;
-
-    assert(symbol_compare(a, b) == 0);
-    assert(symbol_compare(b, a) == 0);
-
-    free(str);
-#endif
