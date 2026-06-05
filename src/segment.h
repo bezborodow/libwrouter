@@ -2,6 +2,7 @@
 #include "common.h"
 #include "segment.h"
 #include "wrouter.h"
+#include "symbol.h"
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -27,6 +28,10 @@ struct segment {
     uint16_t str_length;
 };
 
+segment_t *segment_create(symbol_table_t *symtbl, token_t *token, wrouter_error_t *err);
+
 segment_t *segment_find_child_by_token(segment_t *segment, const token_t token);
-void segment_free(segment_t *segment);
+
 void segment_release(const segment_t *segment, wrouter_reference_fn release);
+
+void segment_free(segment_t *segment);

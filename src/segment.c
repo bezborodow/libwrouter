@@ -1,8 +1,36 @@
+#include "symbol.h"
 #include "wrouter.h"
 #include "segment.h"
 #include "token.h"
 #include <stdint.h>
 #include <stdlib.h>
+
+segment_t *segment_create(symbol_table_t *symtbl, token_t *token, wrouter_error_t *err)
+{
+    // Append parameter symbol to the parameter symbol table.
+    if (symtbl->count >= UINT16_MAX) {
+        *err = WROUTER_ERR_OUT_OF_RANGE;
+        return NULL;
+    }
+
+    const char *strptr = symbol_append(symtbl, token->ptr, token->length);
+    if (strptr == NULL) {
+        *err = WROUTER_ERR_NO_MEMORY;
+        return NULL;
+    }
+
+    segment_t *segment = calloc(1, sizeof(segment_t));
+    if (segment == NULL) {
+        *err = WROUTER_ERR_NO_MEMORY;
+        return NULL;
+    }
+
+    segment->str = strptr;
+    segment->str_length = token->length;
+
+    return segment;
+}
+
 
 /**
  * Find a child of a segment by token.
