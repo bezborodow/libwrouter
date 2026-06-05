@@ -83,7 +83,7 @@ static wrouter_error_t builder_add_route(wrouter_builder_t *builder, const char 
                     err = segment_append_child(cur, child);
                     if (err) {
                         free(child);
-                        return err; 
+                        return err;
                     }
                 }
 
