@@ -3,6 +3,7 @@
 #include "wrouter.h"
 #include <stddef.h>
 #include <errno.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
@@ -204,6 +205,14 @@ size_t symbol_resolve(const symbols_t *symbols, const char *key)
     // Zero indicates that a symbol was not found. Therefore, increment the
     // index by one if there was a match; return zero otherwise.
     return res ? res - base + 1 : 0;
+}
+
+const char *symbol_lookup(const symbols_t *symbols, uint16_t symbol)
+{
+    if (symbol == 0)
+        return NULL;
+
+    return symbols->base[symbol - 1];
 }
 
 void symbols_free(symbols_t *symbols)

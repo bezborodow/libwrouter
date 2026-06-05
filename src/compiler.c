@@ -50,6 +50,7 @@ wrouter_t *wrouter_compile(const wrouter_builder_t *builder, wrouter_error_t *er
     graph_stats(builder->root, &stats);
     router->num_routes = stats.terminals;
     router->max_params = stats.max_params;
+    router->graph_size = stats.size;
 
     // If no terminals, return an empty router.
     if (!stats.terminals)

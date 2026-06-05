@@ -14,6 +14,7 @@ struct wrouter_router {
     wrouter_route_t fallback;
     size_t max_params;
     size_t num_routes;
+    size_t graph_size;
     wrouter_reference_fn retain;
     wrouter_reference_fn release;
 };
