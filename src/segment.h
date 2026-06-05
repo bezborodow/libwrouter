@@ -30,6 +30,8 @@ struct segment {
 
 segment_t *segment_create(symbol_table_t *symtbl, token_t *token, wrouter_error_t *err);
 
+wrouter_error_t segment_append_child(segment_t *cur, segment_t *child);
+
 segment_t *segment_find_child_by_token(segment_t *segment, const token_t token);
 
 void segment_release(const segment_t *segment, wrouter_reference_fn release);
