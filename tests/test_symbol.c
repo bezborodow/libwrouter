@@ -224,7 +224,6 @@ int main(void)
     return 0;
 }
 
-
 #if 0
 TODO This prooves a segfault condition in symbol_compare.
     char *str = calloc(5, 1);

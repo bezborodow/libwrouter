@@ -75,11 +75,11 @@ int symbol_ncompare(const void *a, const void *b)
     const char *sym = *(const char **)b;
     const char *key = nkey->ptr;
 
-    for (size_t i = 0; ; i++, key++, sym++) {
+    for (size_t i = 0;; i++, key++, sym++) {
         if (!(i < nkey->length)) {
             if (!*sym)
                 return 0;
-            return - (unsigned char)*sym;
+            return -(unsigned char)*sym;
         }
 
         if (*key != *sym)
