@@ -7,10 +7,14 @@ requires = [
 ]
 
 [project]
-name = "wrouter-dummy"
+name = "wrouter"
 version = "0.1.0"
-description = "Symbolic URL router with CPython bindings."
+description = "Fast and deterministric symbolic Web URL route resolver."
+authors = [
+  { name="Damien Bezborodov", email="dbezborodov@gmail.com" },
+]
 readme = "README.md"
+license = {file = "LICENSE"}
 requires-python = ">=3.8"
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
@@ -23,6 +27,10 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP",
     "Topic :: Software Development :: Libraries",
 ]
+
+[project.urls]
+"Homepage" = "https://github.com/bezborodow/libwrouter"
+"Bug Tracker" = "https://github.com/bezborodow/libwrouter/issues"
 
 [tool.meson-python.args]
 setup = ["-Dpython_package=true"]
