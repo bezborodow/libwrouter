@@ -649,7 +649,7 @@ static void test_router_lots(void)
 
     // Add lots of routes to the builder.
     for (uint16_t i = 0; i < NI; i++) {
-        for (uint16_t j = 0; j < NJ; j++) {
+        for (uint16_t j = NJ - 1; j-- > 0; ) {
             for (uint16_t k = 0; k < NK; k++) {
                 snprintf(pattern, sizeof(pattern), "/a_%u/b_%u/c_%u_%u_%u/:param_%u", i, j, i, j, k, i);
                 snprintf(context, sizeof(context), "%u_%u_%u", i, j, k);
@@ -671,7 +671,7 @@ static void test_router_lots(void)
     // Resolve.
     const char *buf = NULL;
     for (uint16_t i = 0; i < NI; i++) {
-        for (uint16_t j = 0; j < NJ; j++) {
+        for (uint16_t j = NJ - 1; j-- > 0; ) {
             for (uint16_t k = 0; k < NK; k++) {
                 snprintf(pattern, sizeof(pattern), "/a_%u/b_%u/c_%u_%u_%u/anything", i, j, i, j, k);
                 snprintf(context, sizeof(context), "%u_%u_%u", i, j, k);
