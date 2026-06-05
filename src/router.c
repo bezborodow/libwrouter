@@ -77,7 +77,7 @@ lexer_next:
             if (cur->literals) {
 
                 // Resolve the literal string to a symbol.
-                symbol = symbol_resolve(&router->literals, tok.ptr);
+                symbol = symbol_nresolve(&router->literals, tok.ptr, tok.length);
 
                 // If the symbol is resolved, try to match against an edge.
                 if (symbol) {

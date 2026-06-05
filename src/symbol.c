@@ -69,16 +69,39 @@ void symbol_table_free(symbol_table_t *tbl)
     arena_free(&tbl->arena);
 }
 
+int symbol_ncompare(const void *a, const void *b)
+{
+    const struct symbol_key *nkey = (const struct symbol_key *)a;
+    const char *sym = *(const char **)b;
+    const char *key = nkey->ptr;
+
+    for (size_t i = 0; ; i++, key++, sym++) {
+        if (!(i < nkey->length)) {
+            if (!*sym)
+                return 0;
+            return - (unsigned char)*sym;
+        }
+
+        if (*key != *sym)
+            goto miss;
+    }
+
+    return 0;
+
+miss:
+    return (unsigned char)*key - (unsigned char)*sym;
+}
+
 int symbol_compare(const void *a, const void *b)
 {
     const char *key = *(const char **)a;
     const char *sym = *(const char **)b;
 
-    for (; *key && *sym && *key != '/'; key++, sym++)
+    for (; *key && *sym; key++, sym++)
         if (*key != *sym)
             goto miss;
 
-    if ((*key == '/' || !*key) && !*sym)
+    if (!*key && !*sym)
         return 0;
 
 miss:
@@ -141,6 +164,24 @@ wrouter_error_t symbol_compile(const symbol_table_t *tbl, symbols_t *sym)
 no_memory:
     symbols_free(sym);
     return WROUTER_ERR_NO_MEMORY;
+}
+
+size_t symbol_nresolve(const symbols_t *symbols, const char *key, size_t n)
+{
+    const struct symbol_key k = {
+        .ptr = key,
+        .length = n,
+    };
+
+    size_t nmemb = symbols->count;
+    const char **res, **base = symbols->base;
+
+    // Binary search of the sorted symbol array.
+    res = bsearch(&k, base, nmemb, sizeof(char *), symbol_ncompare);
+
+    // Zero indicates that a symbol was not found. Therefore, increment the
+    // index by one if there was a match; return zero otherwise.
+    return res ? res - base + 1 : 0;
 }
 
 size_t symbol_resolve(const symbols_t *symbols, const char *key)

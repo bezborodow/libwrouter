@@ -627,7 +627,7 @@ void test_router_symbol_compare_segfault(void)
     // Segfault!
     // This will blow up the thing if symbol_compare operates on a string that
     // is not null-terminated.
-    char *str = calloc(6, 1);
+    char *str = malloc(6);
     memset(str, 'a', 6);
     str[0] = '/';
 
