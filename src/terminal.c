@@ -34,8 +34,9 @@ wrouter_route_t *terminal_lookup(const terminals_t *terminals, uint16_t ref)
 {
     if (terminals->count > 16) {
 
-        // See binary search example from 6.4 Pointers to Structures, K&R C 2nd
-        // ed. (ANSI), page 137.
+        // These terminals must be sorted. This is assumed from the compilation
+        // stage.  See binary search example from 6.4 Pointers to Structures,
+        // K&R C 2nd ed. (ANSI), page 137.
         uint16_t mid, low = 0, high = terminals->count;
 
         int32_t cond;
