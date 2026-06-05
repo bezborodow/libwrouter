@@ -53,7 +53,6 @@ segment_t *segment_find_child_by_token(const segment_t *segment, const token_t t
     if (tok.ptr == NULL)
         return NULL;
 
-
     for (segment_t *child = segment->head; child; child = child->next) {
         if (token_matches_segment(tok, child))
             return child;

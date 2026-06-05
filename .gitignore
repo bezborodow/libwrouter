@@ -2,6 +2,9 @@
 .*.swp
 .*.swo
 
+# Python
+dist/
+
 # Test coverage.
 coverage*
 

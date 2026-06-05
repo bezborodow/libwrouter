@@ -85,15 +85,39 @@ lexer_next:
                 // If the symbol is resolved, try to match against an edge.
                 if (symbol) {
 
-                    // TODO do bsearch if n > 8. Need to sort symbols first though when compiling.
-                    for (uint16_t i = 0; i < n_literals; i++) {
-                        l_edge = &l_edge_base[i];
+                    // Do a binary search if n > 16, otherwise do a linear scan.
+                    if (n_literals > 4) {
 
-                        if (l_edge->symbol == symbol) {
-                            cur = next_node(g, l_edge);
+                        // l_edge = (low + high) / 2;
+                        // l_edge = (low + high) >> 1
+                        // See binary search example from 6.4 Pointers to
+                        // Structures, K&R C 2nd ed. (ANSI), page 137.
+                        const edge_t *l_edge_low = l_edge_base,
+                                     *l_edge_high = l_edge_base + n_literals;
+                        int32_t cond;
 
-                            // Follow symbol.
-                            goto lexer_next;
+                        while (l_edge_low < l_edge_high) {
+                            l_edge = l_edge_low + (l_edge_high - l_edge_low) / 2;
+                            if ((cond = symbol - l_edge->symbol) < 0)
+                                l_edge_high = l_edge;
+                            else if (cond > 0)
+                                l_edge_low = l_edge + 1;
+                            else {
+                                cur = next_node(g, l_edge);
+                                goto lexer_next;
+                            }
+                        }
+
+                    } else {
+                        for (uint16_t i = 0; i < n_literals; i++) {
+                            l_edge = &l_edge_base[i];
+
+                            if (l_edge->symbol == symbol) {
+
+                                // Follow symbol.
+                                cur = next_node(g, l_edge);
+                                goto lexer_next;
+                            }
                         }
                     }
                 }
