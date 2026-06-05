@@ -19,13 +19,22 @@ typedef struct {
     uint32_t count;
 } symbols_t;
 
+struct symbol_key {
+    const char *ptr;
+    size_t length;
+};
+
 void symbol_table_init(symbol_table_t *tbl);
 
 const char *symbol_append(symbol_table_t *tbl, const char *str, size_t length);
 
 void symbol_table_free(symbol_table_t *tbl);
 
+size_t symbol_nresolve(const symbols_t *symbols, const char *key, size_t n);
+
 size_t symbol_resolve(const symbols_t *symbols, const char *key);
+
+int symbol_ncompare(const void *a, const void *b);
 
 int symbol_compare(const void *a, const void *b);
 
