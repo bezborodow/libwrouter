@@ -66,6 +66,9 @@ const char *symbol_append(symbol_table_t *tbl, const char *str, size_t len, wrou
 
 void symbol_table_free(symbol_table_t *tbl)
 {
+    if (tbl == NULL)
+        return;
+
     free(tbl->base);
     tbl->base = NULL;
     tbl->count = 0;

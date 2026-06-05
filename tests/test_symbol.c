@@ -30,6 +30,10 @@ static void test_symbol_append(void)
     assert(strcmp(tbl.base[1], "world") == 0);
 
     symbol_table_free(&tbl);
+
+    // Test free twice.
+    symbol_table_free(&tbl);
+    symbol_table_free(NULL);
 }
 
 static void test_symbol_table_growth(void)
