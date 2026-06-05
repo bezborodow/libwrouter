@@ -40,8 +40,13 @@ token_t lexer_next(lexer_t *lx)
     const char *end = lx->str + lx->length;
     token_t tok = { 0 };
 
-    if (c == NULL)
+    if (c == NULL || !lx->length)
         return tok;
+
+    if (c == end) {
+        tok.type = TOKEN_END;
+        return tok;
+    }
 
     // Check for root '/' or trailing-slash.
     if (*c == '/' && c == end - 1) {

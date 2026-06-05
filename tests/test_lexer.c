@@ -178,6 +178,33 @@ static void test_lexer_other_illegals(void)
     }
 }
 
+void test_lexer_segfault(void)
+{
+    char *str = malloc(6);
+    memset(str, 'a', 6);
+    str[0] = '/';
+
+    token_t tok;
+    lexer_t lx = { 0 };
+    lexer_load(&lx, str, 6);
+
+    // Segfault!
+    // This will blow up if bounds checking is incorrect with strings that are
+    // not null-terminated.
+    tok = lexer_next(&lx);
+
+    ASSERT_TOKEN_TYPE(tok, TOKEN_LITERAL);
+    assert(tok.length == 5);
+    assert(tok.ptr == str + 1);
+
+    tok = lexer_next(&lx);
+    ASSERT_TOKEN_TYPE(tok, TOKEN_END);
+    assert(tok.length == 0);
+    assert(tok.ptr == NULL);
+
+    free(str);
+}
+
 int main(void)
 {
     test_lexer_null();
