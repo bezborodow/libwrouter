@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <limits.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -258,7 +259,7 @@ static void test_illegal_patterns(void)
 static void test_range_error_literal_edges(void)
 {
     char buf[32];
-    uint16_t i;
+    size_t i;
     bool range_error = false;
     wrouter_error_t err;
     wrouter_options_t options = { 0 };
@@ -267,8 +268,8 @@ static void test_range_error_literal_edges(void)
 
     assert(builder != NULL);
 
-    for (i = 0; i < UINT16_MAX; i++) {
-        snprintf(buf, sizeof(buf), "/hello_%u", i);
+    for (i = 0; i < GRAPH_CAPACITY_BYTES; i++) {
+        snprintf(buf, sizeof(buf), "/hello_%lu", i);
         err = wrouter_add_context(builder, buf, NULL);
 
         assert(err == WROUTER_OK || err == WROUTER_ERR_OUT_OF_RANGE);
@@ -356,7 +357,18 @@ static void test_out_of_range_graph_size(void)
 {
     // Choose a number that will exceed the limits.  (But not ridiculous,
     // otherwise tonnes of memory will be consumed.)
-    enum { NI = 2, NJ = 55, NK = 100 };
+    enum { NI = 4, NJ = 55, NK = 100 };
+
+    // Estimate how much space we are going to need for this graph.
+    size_t s = 0;
+    s += sizeof(node_t); // Root node.
+    s += sizeof(edge_t) * NI;
+    s += sizeof(node_t) * NI;
+    s += sizeof(edge_t) * NI * NJ;
+    s += sizeof(node_t) * NI * NJ;
+    s += sizeof(edge_t) * NI * NJ * NK;
+    s += sizeof(node_t) * NI * NJ * NK;
+    assert(s > GRAPH_CAPACITY_BYTES);
 
     char buf[64];
     wrouter_error_t err;
@@ -376,6 +388,11 @@ static void test_out_of_range_graph_size(void)
             }
         }
     }
+
+    // Check our estimate.
+    graph_stats_t stats = { 0 };
+    graph_stats(builder->root, &stats);
+    assert(stats.size == s);
 
     // ... BUT compiling will run out of graph memory.
     wrouter_t *router = wrouter_compile(builder, &err);
