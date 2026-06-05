@@ -19,16 +19,6 @@ static int edge_cmp(const void *p1, const void *p2)
     return e1->symbol - e2->symbol;
 }
 
-static inline uint16_t to_addr(size_t byte_offset)
-{
-    return (uint16_t)(byte_offset >> GRAPH_ADDR_SHIFT);
-}
-
-static inline size_t from_addr(uint16_t addr)
-{
-    return ((size_t)addr) << GRAPH_ADDR_SHIFT;
-}
-
 /**
  * Align the cursor to the next memory location for a given alignment.
  */
@@ -52,7 +42,7 @@ static void size_up(size_t *total_size, size_t align, size_t size)
 
 size_t graph_offset(const void *graph, const void *entry)
 {
-    return (const uint8_t *)entry - (const uint8_t *)graph;
+    return ((const uint8_t *)entry - (const uint8_t *)graph) >> GRAPH_ADDR_SHIFT;
 }
 
 inline const edge_t *node_edge_base(const node_t *node)
@@ -66,7 +56,7 @@ inline const edge_t *node_edge_base(const node_t *node)
 
 inline const node_t *next_node(const uint8_t *graph, const edge_t *edge)
 {
-    return (const node_t *)(graph + edge->next);
+    return (const node_t *)(graph + ((uint16_t)edge->next << GRAPH_ADDR_SHIFT));
 }
 
 /**
