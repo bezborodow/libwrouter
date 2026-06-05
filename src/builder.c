@@ -77,32 +77,15 @@ static wrouter_error_t builder_add_route(wrouter_builder_t *builder, const char 
                 // If there is not an equivalent literal child of this segment, create one.
                 if (child == NULL) {
 
-                    // Append literal symbol to the literal symbol table.
-                    if (builder->literals.count >= UINT16_MAX)
-                        return WROUTER_ERR_OUT_OF_RANGE;
+                    child = segment_create(&builder->literals, &tok, &err);
+                    if (err)
+                        return err;
 
-                    const char *strptr = symbol_append(&builder->literals, tok.ptr, tok.length);
-                    if (strptr == NULL)
-                        return WROUTER_ERR_NO_MEMORY;
-
-                    // Append child.
-                    if (cur->child_count >= NODE_MAX_CHILD_COUNT)
-                        return WROUTER_ERR_OUT_OF_RANGE;
-
-                    segment_t **new_children =
-                        realloc(cur->children, sizeof(segment_t *) * (cur->child_count + 1));
-                    if (new_children == NULL) // TODO realloc growth.
-                        return WROUTER_ERR_NO_MEMORY;
-
-                    cur->children = new_children;
-
-                    child = calloc(1, sizeof(segment_t));
-                    if (child == NULL)
-                        return WROUTER_ERR_NO_MEMORY;
-
-                    child->str = strptr;
-                    child->str_length = tok.length;
-                    cur->children[cur->child_count++] = child;
+                    err = segment_append_child(cur, child);
+                    if (err) {
+                        free(child);
+                        return err; 
+                    }
                 }
 
                 cur = child;

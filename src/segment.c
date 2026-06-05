@@ -1,7 +1,9 @@
+#include "common.h"
 #include "symbol.h"
 #include "wrouter.h"
 #include "segment.h"
 #include "token.h"
+#include "graph.h"
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -28,9 +30,25 @@ segment_t *segment_create(symbol_table_t *symtbl, token_t *token, wrouter_error_
     segment->str = strptr;
     segment->str_length = token->length;
 
+    *err = WROUTER_OK;
     return segment;
 }
 
+wrouter_error_t segment_append_child(segment_t *cur, segment_t *child)
+{
+    if (cur->child_count >= NODE_MAX_CHILD_COUNT)
+        return WROUTER_ERR_OUT_OF_RANGE;
+
+    segment_t **new_children =
+        realloc(cur->children, sizeof(segment_t *) * (cur->child_count + 1));
+    if (new_children == NULL) // TODO realloc growth.
+        return WROUTER_ERR_NO_MEMORY;
+
+    cur->children = new_children;
+    cur->children[cur->child_count++] = child;
+
+    return WROUTER_OK;
+}
 
 /**
  * Find a child of a segment by token.
