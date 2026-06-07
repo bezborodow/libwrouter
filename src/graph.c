@@ -4,7 +4,7 @@
 #include "router.h"
 #include "builder.h"
 #include "symbol.h"
-#include <cstddef>
+#include <stddef.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
@@ -101,15 +101,15 @@ void graph_stats(const segment_t *seg, graph_stats_t *stats)
         stats->terminals++;
 }
 
-uint16_t *graph_compile(wrouter_t *router, const segment_t *segment, uint16_t cursor)
+uint16_t *graph_compile(wrouter_t *router, const segment_t *segment, uint16_t *cursor)
 {
     uint16_t *g = router->graph;
     uint16_t *node = NULL, *l_node = NULL;
-    uint16_t *l_edge_base = NULL, *l_edge = NULL, *p_edge = NULL, *w_edge = NULL, *t_edge = NULL;
+    uint16_t *l_edge_base = NULL, *p_edge = NULL, *w_edge = NULL, *t_edge = NULL;
     uint16_t *l_sym = NULL, *p_sym = NULL;
 
     // Append node.
-    node = g + cursor++;
+    node = cursor++;
 
     // Store number of literals.
     *node |= segment->child_count;
@@ -145,7 +145,7 @@ uint16_t *graph_compile(wrouter_t *router, const segment_t *segment, uint16_t cu
 
         // Wildcard edge.
         case SPEC_WILDCARD:
-            node |= NODE_FLAG_HAS_WILDCARD;
+            *node |= NODE_FLAG_HAS_WILDCARD;
             w_edge = cursor++;
             break;
 
@@ -162,23 +162,21 @@ uint16_t *graph_compile(wrouter_t *router, const segment_t *segment, uint16_t cu
     // Descend into literals.
     if (segment->child_count) {
         // Find the start address for literal edges.
-        uint16_t l_edge_base = cursor++;
+        uint16_t *l_edge_base = cursor;
 
         // Resolve symbols and save into into the literal edges.
-        uint16_t i = 0;
         for (segment_t *child = segment->head; child; child = child->next) {
-            l_sym = l_edge_base + i++;
+            l_sym = cursor++;
+            cursor += 2;
             *l_sym = symbol_resolve(&router->literals, child->str);
-            l_edge = l_edge_base + i++;
         }
 
         // Recurse into literal nodes and save their offsets.
-        i = 1;
+        uint16_t i = 0;
         for (segment_t *child = segment->head; child; child = child->next) {
             l_node = cursor++;
             *l_node = graph_compile(router, child, cursor);
-            *l_edge = graph_offset(g, l_node);
-            i += 2;
+            *(l_edge_base + i * 2 + 1) = (ptrdiff_t)(l_node - g);
         }
 
         // Sort the edges by symbol.

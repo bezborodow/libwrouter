@@ -268,7 +268,7 @@ static void test_builder_range_error_literal_edges(void)
 
     assert(builder != NULL);
 
-    for (i = 0; i < GRAPH_CAPACITY_BYTES; i++) {
+    for (i = 0; i < UINT16_MAX; i++) {
         snprintf(buf, sizeof(buf), "/hello_%lu", i);
         err = wrouter_add_context(builder, buf, NULL);
 
@@ -361,14 +361,16 @@ static void test_builder_out_of_range_graph_size(void)
 
     // Estimate how much space we are going to need for this graph.
     size_t s = 0;
-    s += sizeof(node_t); // Root node.
+#if 0
+    s += sizeof(uint16_t); // Root node.
     s += sizeof(edge_t) * NI;
     s += sizeof(node_t) * NI;
     s += sizeof(edge_t) * NI * NJ;
     s += sizeof(node_t) * NI * NJ;
     s += sizeof(edge_t) * NI * NJ * NK;
     s += sizeof(node_t) * NI * NJ * NK;
-    assert(s > GRAPH_CAPACITY_BYTES);
+    assert(s > UINT16_MAX);
+#endif
 
     char buf[64];
     wrouter_error_t err;

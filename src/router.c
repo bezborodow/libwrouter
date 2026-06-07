@@ -31,9 +31,10 @@ const wrouter_route_t *route_match(wrouter_dispatcher_t *d)
     uint16_t n_literals = 0;
 
     const wrouter_t *router = d->router;
-    const void *g = router->graph;
-    const uint16_t *cur = g;
-    const uint16_t *l_edge_base = NULL, *l_edge = NULL, *s_edge = NULL, *w_edge = NULL,
+    const uint16_t *g = router->graph;
+    const uint16_t *cursor = g;
+    const uint16_t *node = NULL;
+    const uint16_t *l_edge_base = NULL, *p_edge = NULL, *w_edge = NULL,
                    *t_edge = NULL;
 
     // Check for an empty graph, which is valid, but will never match anything.
@@ -48,26 +49,34 @@ lexer_next:
     // Consume next token from the lexer.
     tok = lexer_next(&d->lx);
 
-    // Align the edge base memory location to after the current node.
-    l_edge_base = s_edge = node_edge_base(cur);
+    node = cursor++;
 
     // If the node has a special edge, then advance the base edge beyond it.
     // The literal edges start after the special edge, if present.  A special
     // edge is either a parameter or a wildcard. They cannot coexist; that is,
     // there is only ever one or zero special edges.
-    if (cur->data & (NODE_FLAG_HAS_PARAM | NODE_FLAG_HAS_WILDCARD))
-        l_edge_base++;
+    if (*node & NODE_FLAG_HAS_PARAM) {
+        p_edge = cursor++;
+        cursor++;
+    }
+
+    // Remember the most specific wildcard edge, if present.
+    if (*node & NODE_FLAG_HAS_WILDCARD) {
+        w_edge = cursor++;
+        w_param = tok.ptr;
+    }
 
     // The trailing-slash edge is stored after the special edge if it exists,
     // otherwise immediately after the node.
-    if (cur->data & NODE_FLAG_HAS_TRAILING)
-        t_edge = l_edge_base++;
+    if (*node & NODE_FLAG_HAS_TRAILING)
+        t_edge = cursor++;
 
-    // Remember the most specific wildcard edge, if present.
-    if (cur->data & NODE_FLAG_HAS_WILDCARD) {
-        w_edge = s_edge;
-        w_param = tok.ptr;
-    }
+    // Wildcard edge.
+    if (*node & NODE_FLAG_HAS_WILDCARD)
+        w_edge = cursor++;
+
+    // Literal edges.
+    l_edge_base = cursor;
 
     // Process the segment token against the current node.
     switch (tok.type) {
@@ -76,7 +85,7 @@ lexer_next:
         case TOKEN_LITERAL:
 
             // If this node has literals, try to resolve and match.
-            n_literals = cur->data & NODE_LITERALS_MASK;
+            n_literals = *node & NODE_LITERALS_MASK;
             if (n_literals) {
 
                 // Resolve the literal string to a symbol.
@@ -86,8 +95,10 @@ lexer_next:
                 if (symbol) {
 
                     // Do a binary search if n > 16, otherwise do a linear scan.
-                    if (n_literals > 16) {
+                    // TODO Fix to skip odds.
+                    if (true || n_literals > 16) {
 
+#if 0
                         // See binary search example from 6.4 Pointers to
                         // Structures, K&R C 2nd ed. (ANSI), page 137.
                         const uint16_t *l_edge_low = l_edge_base,
@@ -95,39 +106,36 @@ lexer_next:
 
                         ptrdiff_t cond;
                         while (l_edge_low < l_edge_high) {
-                            l_edge = l_edge_low + (l_edge_high - l_edge_low) / 2;
-                            if ((cond = symbol - l_edge->symbol) < 0)
-                                l_edge_high = l_edge;
+                            cursor = l_edge_low + (l_edge_high - l_edge_low) / 2;
+                            if ((cond = symbol - *(cursor + 1)) < 0)
+                                l_edge_high = cursor;
                             else if (cond > 0)
-                                l_edge_low = l_edge + 1;
-                            else {
-                                cur = next_node(g, l_edge);
+                                l_edge_low = cursor + 1;
+                            else
                                 goto lexer_next;
-                            }
                         }
+#endif
 
                     } else {
-                        for (uint16_t i = 0; i < n_literals; i++) {
-                            l_edge = &l_edge_base[i];
+                        for (uint16_t i = 0; i < n_literals; i += 2) {
+                            cursor = &l_edge_base[i];
 
-                            if (l_edge->symbol == symbol) {
-
-                                // Follow symbol.
-                                cur = next_node(g, l_edge);
+                            // Follow symbol.
+                            if (*(cursor + 1) == symbol)
                                 goto lexer_next;
-                            }
                         }
                     }
                 }
             }
 
             // Check for parameter.
-            if (cur->data & NODE_FLAG_HAS_PARAM) {
-                cur = next_node(g, s_edge);
+            if (*node & NODE_FLAG_HAS_PARAM) {
+
+                symbol = *(p_edge + 1);
 
                 // Record parameter name and value.
                 wrouter_param_t *param = &d->params.base[d->params.count++];
-                param->name = symbol_lookup(&router->params, s_edge->symbol);
+                param->name = symbol_lookup(&router->params, symbol);
                 param->value = tok.ptr;
                 param->length = tok.length;
 
@@ -135,7 +143,7 @@ lexer_next:
                 goto lexer_next;
             }
 
-            // Terminate at wildcard.
+            // Terminate at most specific wildcard if one has been seen.
             if (w_edge != NULL)
                 goto wildcard;
 
@@ -144,7 +152,7 @@ lexer_next:
 
         // Trailing-slash token.
         case TOKEN_TRAILING:
-            if (cur->data & NODE_FLAG_HAS_TRAILING)
+            if (*node & NODE_FLAG_HAS_TRAILING)
                 goto trailing;
 
             goto not_found;
@@ -153,7 +161,7 @@ lexer_next:
         case TOKEN_END:
 
             // Check for terminal.
-            if (cur->data & NODE_FLAG_TERMINAL)
+            if (*node & NODE_FLAG_TERMINAL)
                 goto terminal;
 
             // Not found.
@@ -168,7 +176,7 @@ not_found:
 
 trailing:
     // Follow the trailing-slash edge, and terminate.
-    cur = next_node(g, t_edge);
+    cursor = (g + *t_edge);
     goto terminal;
 
 wildcard:
@@ -181,10 +189,10 @@ wildcard:
     }
 
     // Follow the wildcard edge and terminate.
-    cur = next_node(g, w_edge);
+    cursor = (g + *w_edge);
 
 terminal:
-    return terminal_lookup(&router->terminals, graph_offset(g, cur));
+    return terminal_lookup(&router->terminals, (ptrdiff_t)(g - cursor));
 }
 
 /**
