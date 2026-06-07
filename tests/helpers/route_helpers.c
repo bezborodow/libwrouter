@@ -56,7 +56,7 @@ void router_print_graph(const wrouter_t *router)
                 if (cur->data & NODE_FLAG_TERMINAL)
                     printf(" &");
 
-                //printf("        (found %u literals)\n", n_literals);
+                // printf("        (found %u literals)\n", n_literals);
                 printf("\n");
 
                 break;
@@ -99,7 +99,8 @@ void router_print_graph(const wrouter_t *router)
                 break;
 
             case G_LITERAL:
-                printf("EL '%s' (%u/%u) ", symbol_lookup(&router->literals, edge->symbol), i_lit + 1, n_literals);
+                printf("EL '%s' (%u/%u) ", symbol_lookup(&router->literals, edge->symbol),
+                       i_lit + 1, n_literals);
                 printf("--> %04lx\n", edge->next << 1);
 
                 if (++i_lit < n_literals)
@@ -118,4 +119,3 @@ void router_print_graph(const wrouter_t *router)
         }
     }
 }
-

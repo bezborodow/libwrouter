@@ -57,7 +57,7 @@ wrouter_t *wrouter_compile(const wrouter_builder_t *builder, wrouter_error_t *er
         return router;
 
     // Range checking.
-    if (stats.size > GRAPH_CAPACITY_BYTES || stats.terminals > UINT16_MAX)
+    if (stats.size > UINT16_MAX || stats.terminals > UINT16_MAX)
         goto out_of_range;
 
     // Allocate and compile symbols for literals.
@@ -77,7 +77,7 @@ wrouter_t *wrouter_compile(const wrouter_builder_t *builder, wrouter_error_t *er
         goto no_memory;
 
     // Compile the graph.
-    graph_compile(router, builder->root, &cursor);
+    graph_compile(router, builder->root, cursor);
 
     return router;
 

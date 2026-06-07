@@ -7,7 +7,7 @@
 #include <stdlib.h>
 
 struct wrouter_router {
-    void *graph;
+    uint16_t *graph;
     symbols_t literals;
     symbols_t params;
     terminals_t terminals;
