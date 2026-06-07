@@ -32,9 +32,9 @@ const wrouter_route_t *route_match(wrouter_dispatcher_t *d)
 
     const wrouter_t *router = d->router;
     const void *g = router->graph;
-    const node_t *cur = g;
-    const edge_t *l_edge_base = NULL, *l_edge = NULL, *s_edge = NULL, *w_edge = NULL,
-                 *t_edge = NULL;
+    const uint16_t *cur = g;
+    const uint16_t *l_edge_base = NULL, *l_edge = NULL, *s_edge = NULL, *w_edge = NULL,
+                   *t_edge = NULL;
 
     // Check for an empty graph, which is valid, but will never match anything.
     if (g == NULL)
@@ -90,8 +90,8 @@ lexer_next:
 
                         // See binary search example from 6.4 Pointers to
                         // Structures, K&R C 2nd ed. (ANSI), page 137.
-                        const edge_t *l_edge_low = l_edge_base,
-                                     *l_edge_high = l_edge_base + n_literals;
+                        const uint16_t *l_edge_low = l_edge_base,
+                                       *l_edge_high = l_edge_base + n_literals;
 
                         ptrdiff_t cond;
                         while (l_edge_low < l_edge_high) {

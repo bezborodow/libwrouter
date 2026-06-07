@@ -4,6 +4,7 @@
 #include "router.h"
 #include "builder.h"
 #include "symbol.h"
+#include <cstddef>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
@@ -13,50 +14,10 @@
 
 static int edge_cmp(const void *p1, const void *p2)
 {
-    const edge_t *e1 = p1;
-    const edge_t *e2 = p2;
+    uint16_t k1 = *(const uint32_t *)p1 >> 16;
+    uint16_t k2 = *(const uint32_t *)p2 >> 16;
 
-    return e1->symbol - e2->symbol;
-}
-
-/**
- * Align the cursor to the next memory location for a given alignment.
- */
-uintptr_t graph_align_up(size_t cursor, size_t align)
-{
-    return (cursor + align - 1) & ~(align - 1);
-}
-
-/**
- * Add to the summation of the total size of memory required by graph edges and
- * nodes with consideration for alignment.
- */
-static void size_up(size_t *total_size, size_t align, size_t size)
-{
-    if (!size)
-        return;
-
-    *total_size = graph_align_up(*total_size, align);
-    *total_size += size;
-}
-
-size_t graph_offset(const void *graph, const void *entry)
-{
-    return ((const uint8_t *)entry - (const uint8_t *)graph) >> GRAPH_ADDR_SHIFT;
-}
-
-inline const edge_t *node_edge_base(const node_t *node)
-{
-    uintptr_t align = _Alignof(edge_t);
-    uintptr_t cursor = (uintptr_t)node + sizeof(node_t);
-    uintptr_t base = (cursor + align - 1) & ~(align - 1);
-
-    return (const edge_t *)base;
-}
-
-inline const node_t *next_node(const uint8_t *graph, const edge_t *edge)
-{
-    return (const node_t *)(graph + ((uint16_t)edge->next << GRAPH_ADDR_SHIFT));
+    return (k1 > k2) - (k1 < k2);
 }
 
 /**
@@ -71,17 +32,18 @@ inline const node_t *next_node(const uint8_t *graph, const edge_t *edge)
 void graph_stats(const segment_t *seg, graph_stats_t *stats)
 {
     stats->nodes++;
-    size_up(&stats->size, _Alignof(node_t), sizeof(node_t));
+    stats->size++;
 
     // Trailing-slash edge.
     if (seg->trailing != NULL)
-        size_up(&stats->size, _Alignof(edge_t), sizeof(edge_t));
+        stats->size++;
 
     // Special edges.
     switch (seg->spec_type) {
-        case SPEC_PARAM:
         case SPEC_WILDCARD:
-            size_up(&stats->size, _Alignof(edge_t), sizeof(edge_t));
+            stats->size++;
+        case SPEC_PARAM:
+            stats->size++;
             break;
 
         case SPEC_NONE:
@@ -90,7 +52,7 @@ void graph_stats(const segment_t *seg, graph_stats_t *stats)
 
     // Literal child node edges and nodes.
     stats->symbolic_edges += seg->child_count;
-    size_up(&stats->size, _Alignof(edge_t), seg->child_count * sizeof(edge_t));
+    stats->size += 2;
 
     for (segment_t *child = seg->head; child; child = child->next) {
         graph_stats(child, stats);
@@ -118,7 +80,7 @@ void graph_stats(const segment_t *seg, graph_stats_t *stats)
             if (stats->param_depth >= stats->max_params)
                 stats->max_params++;
 
-            size_up(&stats->size, _Alignof(node_t), sizeof(node_t));
+            stats->size++;
             break;
 
         case SPEC_NONE:
@@ -131,7 +93,7 @@ void graph_stats(const segment_t *seg, graph_stats_t *stats)
         stats->edges++;
         stats->nodes++;
         stats->terminals++;
-        size_up(&stats->size, _Alignof(node_t), sizeof(node_t));
+        stats->size++;
     }
 
     // Terminal node.
@@ -139,62 +101,31 @@ void graph_stats(const segment_t *seg, graph_stats_t *stats)
         stats->terminals++;
 }
 
-/**
- * Increases the cursor and returns the base.
- */
-void *graph_append(void *g, size_t *cursor, size_t size, size_t align)
+uint16_t *graph_compile(wrouter_t *router, const segment_t *segment, uint16_t cursor)
 {
-    if (!size)
-        return NULL;
-
-    *cursor = graph_align_up(*cursor, align);
-
-    void *base = (uint8_t *)g + *cursor;
-    *cursor += size;
-
-    return base;
-}
-
-static node_t *graph_append_node(void *g, size_t *cursor)
-{
-    return graph_append(g, cursor, sizeof(node_t), _Alignof(node_t));
-}
-
-static edge_t *graph_append_edge(void *g, size_t *cursor)
-{
-    return graph_append(g, cursor, sizeof(edge_t), _Alignof(edge_t));
-}
-
-static edge_t *graph_append_edges(void *g, size_t *cursor, size_t nmemb)
-{
-    return graph_append(g, cursor, nmemb * sizeof(edge_t), _Alignof(edge_t));
-}
-
-node_t *graph_compile(wrouter_t *router, const segment_t *segment, size_t *cursor)
-{
-    void *g = router->graph;
-    node_t *node = NULL;
-    edge_t *p_edge = NULL, *w_edge = NULL, *t_edge = NULL;
+    uint16_t *g = router->graph;
+    uint16_t *node = NULL, *l_node = NULL;
+    uint16_t *l_edge_base = NULL, *l_edge = NULL, *p_edge = NULL, *w_edge = NULL, *t_edge = NULL;
+    uint16_t *l_sym = NULL, *p_sym = NULL;
 
     // Append node.
-    node = graph_append_node(g, cursor);
+    node = g + cursor++;
 
     // Store number of literals.
-    node->data |= segment->child_count;
+    *node |= segment->child_count;
 
     // Terminate node.
     if (segment->terminal != NULL) {
 
         // Store termination flag.
-        node->data |= NODE_FLAG_TERMINAL;
+        *node |= NODE_FLAG_TERMINAL;
 
         // Copy routes into the terminal dictionary.
         //
         // refs is the terminating node's graph offset. Searching for the
         // offset yields an index that is used to lookup the terminal in the
         // base array.
-        size_t node_offset = graph_offset(g, node);
-        terminal_append(&router->terminals, node_offset, *segment->terminal);
+        terminal_append(&router->terminals, (ptrdiff_t)(node - g), *segment->terminal);
 
         // Retain context.
         // Callback to retain context reference count for garbage collection if
@@ -206,15 +137,16 @@ node_t *graph_compile(wrouter_t *router, const segment_t *segment, size_t *curso
     switch (segment->spec_type) {
         // Parameter edge.
         case SPEC_PARAM:
-            node->data |= NODE_FLAG_HAS_PARAM;
-            p_edge = graph_append_edge(g, cursor);
-            p_edge->symbol = symbol_resolve(&router->params, segment->special.param->str);
+            *node |= NODE_FLAG_HAS_PARAM;
+            p_sym = cursor++;
+            p_edge = cursor++;
+            *p_sym = symbol_resolve(&router->params, segment->special.param->str);
             break;
 
         // Wildcard edge.
         case SPEC_WILDCARD:
-            node->data |= NODE_FLAG_HAS_WILDCARD;
-            w_edge = graph_append_edge(g, cursor);
+            node |= NODE_FLAG_HAS_WILDCARD;
+            w_edge = cursor++;
             break;
 
         case SPEC_NONE:
@@ -223,56 +155,57 @@ node_t *graph_compile(wrouter_t *router, const segment_t *segment, size_t *curso
 
     // Trailing-slash edge is stored after the special edge if one exists.
     if (segment->trailing != NULL) {
-        node->data |= NODE_FLAG_HAS_TRAILING;
-        t_edge = graph_append_edge(g, cursor);
+        *node |= NODE_FLAG_HAS_TRAILING;
+        t_edge = cursor++;
     }
 
     // Descend into literals.
     if (segment->child_count) {
-        uint16_t i = 0;
-
         // Find the start address for literal edges.
-        edge_t *l_edge_base = graph_append_edges(g, cursor, segment->child_count);
+        uint16_t l_edge_base = cursor++;
 
         // Resolve symbols and save into into the literal edges.
+        uint16_t i = 0;
         for (segment_t *child = segment->head; child; child = child->next) {
-            edge_t *l_edge = &l_edge_base[i++];
-            l_edge->symbol = symbol_resolve(&router->literals, child->str);
+            l_sym = l_edge_base + i++;
+            *l_sym = symbol_resolve(&router->literals, child->str);
+            l_edge = l_edge_base + i++;
         }
 
         // Recurse into literal nodes and save their offsets.
-        i = 0;
+        i = 1;
         for (segment_t *child = segment->head; child; child = child->next) {
-            node_t *l_node = graph_compile(router, child, cursor);
-            edge_t *l_edge = &l_edge_base[i++];
-            l_edge->next = graph_offset(g, l_node);
+            l_node = cursor++;
+            *l_node = graph_compile(router, child, cursor);
+            *l_edge = graph_offset(g, l_node);
+            i += 2;
         }
 
         // Sort the edges by symbol.
-        qsort(l_edge_base, segment->child_count, sizeof(edge_t), edge_cmp);
+        qsort(l_edge_base, segment->child_count * 2, sizeof(uint16_t), edge_cmp);
     }
 
     // Descend into parameter.
     if (p_edge != NULL) {
-        node_t *p_node = graph_compile(router, segment->special.param, cursor);
-        p_edge->next = graph_offset(g, p_node);
+        uint16_t *p_node = graph_compile(router, segment->special.param, cursor);
+        *p_edge = p_node - g;
     }
 
     // Append wildcard node.
     if (w_edge != NULL) {
-        node_t *w_node = graph_append_node(g, cursor);
-        w_node->data |= NODE_FLAG_TERMINAL;
-        w_edge->next = graph_offset(g, w_node);
-        terminal_append(&router->terminals, w_edge->next, *segment->special.wildcard);
+        uint16_t *w_node = cursor++;
+        *w_node |= NODE_FLAG_TERMINAL;
+        *w_edge = (ptrdiff_t)(w_node - g);
+        terminal_append(&router->terminals, w_edge, *segment->special.wildcard);
         router_retain(router, segment->special.wildcard);
     }
 
     // Append trailing node.
     if (t_edge != NULL) {
-        node_t *t_node = graph_append_node(g, cursor);
-        t_node->data |= NODE_FLAG_TERMINAL;
-        t_edge->next = graph_offset(g, t_node);
-        terminal_append(&router->terminals, t_edge->next, *segment->trailing);
+        uint16_t *t_node = cursor++;
+        *t_node |= NODE_FLAG_TERMINAL;
+        *t_edge = (ptrdiff_t)(t_node - g);
+        terminal_append(&router->terminals, t_edge, *segment->trailing);
         router_retain(router, segment->trailing);
     }
 
