@@ -17,7 +17,6 @@
 wrouter_t *wrouter_compile(const wrouter_builder_t *builder, wrouter_error_t *err)
 {
     graph_stats_t stats = { 0 };
-    uint16_t *cursor = 0;
 
     // Require an error output so failures can be reported.
     if (err == NULL)
@@ -77,7 +76,7 @@ wrouter_t *wrouter_compile(const wrouter_builder_t *builder, wrouter_error_t *er
         goto no_memory;
 
     // Compile the graph.
-    graph_compile(router, builder->root, cursor);
+    graph_compile(router, builder->root, router->graph);
 
     return router;
 
