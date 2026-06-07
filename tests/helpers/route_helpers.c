@@ -1,3 +1,5 @@
+#if 0
+
 enum graph_entry {
     G_NODE,
     G_PARAM,
@@ -119,3 +121,4 @@ void router_print_graph(const wrouter_t *router)
         }
     }
 }
+#endif

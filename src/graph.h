@@ -27,4 +27,4 @@ typedef struct {
 
 void graph_stats(const segment_t *segment, graph_stats_t *stats);
 
-uint16_t *graph_compile(wrouter_t *router, const segment_t *segment, size_t *cursor);
+uint16_t *graph_compile(wrouter_t *router, const segment_t *segment, uint16_t *cursor);
