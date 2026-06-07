@@ -19,7 +19,7 @@ typedef struct {
 
 int terminal_alloc(terminals_t *terminals, size_t n);
 
-void terminal_append(terminals_t *terminals, uint16_t ref, wrouter_route_t route);
+void terminal_append(terminals_t *terminals, uint16_t ref, const wrouter_route_t route);
 
 wrouter_route_t *terminal_lookup(const terminals_t *terminals, uint16_t ref);
 

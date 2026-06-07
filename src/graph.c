@@ -14,10 +14,10 @@
 
 static int edge_cmp(const void *p1, const void *p2)
 {
-    uint16_t k1 = *(const uint32_t *)p1 >> 16;
-    uint16_t k2 = *(const uint32_t *)p2 >> 16;
+    const uint16_t *k1 = p1;
+    const uint16_t *k2 = p2;
 
-    return (k1 > k2) - (k1 < k2);
+    return (*k1 > *k2) - (*k1 < *k2);
 }
 
 /**
@@ -43,7 +43,7 @@ void graph_stats(const segment_t *seg, graph_stats_t *stats)
         case SPEC_WILDCARD:
             stats->size++;
         case SPEC_PARAM:
-            stats->size++;
+            stats->size += 2;
             break;
 
         case SPEC_NONE:
@@ -52,11 +52,10 @@ void graph_stats(const segment_t *seg, graph_stats_t *stats)
 
     // Literal child node edges and nodes.
     stats->symbolic_edges += seg->child_count;
-    stats->size += 2;
+    stats->size += 3 * seg->child_count;
 
-    for (segment_t *child = seg->head; child; child = child->next) {
+    for (segment_t *child = seg->head; child; child = child->next)
         graph_stats(child, stats);
-    }
 
     // Special nodes.
     switch (seg->spec_type) {
@@ -167,15 +166,14 @@ uint16_t *graph_compile(wrouter_t *router, const segment_t *segment, uint16_t *c
         // Resolve symbols and save into into the literal edges.
         for (segment_t *child = segment->head; child; child = child->next) {
             l_sym = cursor++;
-            cursor += 2;
+            cursor++;
             *l_sym = symbol_resolve(&router->literals, child->str);
         }
 
         // Recurse into literal nodes and save their offsets.
         uint16_t i = 0;
         for (segment_t *child = segment->head; child; child = child->next) {
-            l_node = cursor++;
-            *l_node = graph_compile(router, child, cursor);
+            l_node = graph_compile(router, child, cursor);
             *(l_edge_base + i * 2 + 1) = (ptrdiff_t)(l_node - g);
         }
 
@@ -194,7 +192,7 @@ uint16_t *graph_compile(wrouter_t *router, const segment_t *segment, uint16_t *c
         uint16_t *w_node = cursor++;
         *w_node |= NODE_FLAG_TERMINAL;
         *w_edge = (ptrdiff_t)(w_node - g);
-        terminal_append(&router->terminals, w_edge, *segment->special.wildcard);
+        terminal_append(&router->terminals, (ptrdiff_t)(w_edge - g), *segment->special.wildcard);
         router_retain(router, segment->special.wildcard);
     }
 
@@ -203,7 +201,7 @@ uint16_t *graph_compile(wrouter_t *router, const segment_t *segment, uint16_t *c
         uint16_t *t_node = cursor++;
         *t_node |= NODE_FLAG_TERMINAL;
         *t_edge = (ptrdiff_t)(t_node - g);
-        terminal_append(&router->terminals, t_edge, *segment->trailing);
+        terminal_append(&router->terminals, (ptrdiff_t)(t_edge - g), *segment->trailing);
         router_retain(router, segment->trailing);
     }
 
