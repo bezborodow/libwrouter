@@ -175,8 +175,8 @@ uint16_t *graph_compile(wrouter_t *router, const segment_t *segment, uint16_t **
 
     // Descend into parameter.
     if (p_edge != NULL) {
-        uint16_t *p_node = graph_compile(router, segment->special.param, *pcur);
-        *p_edge = p_node - g;
+        uint16_t *p_node = graph_compile(router, segment->special.param, pcur);
+        *p_edge = (ptrdiff_t)(p_node - g);
     }
 
     // Append wildcard node.
