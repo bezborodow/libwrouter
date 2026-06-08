@@ -618,6 +618,41 @@ void test_builder_graph_with_two_literal_children(void)
     wrouter_free(router);
 }
 
+void test_builder_graph_with_param(void)
+{
+    fprintf(stderr, "-------------------\n");
+    // Create builder.
+    wrouter_options_t options = { 0 };
+    wrouter_builder_t *builder = wrouter_builder_create(options);
+
+    // Route handler.
+    wrouter_route_t route = { NULL, NULL };
+
+    // Add routes.
+    assert(wrouter_add_route(builder, "/:param", route) == 0);
+
+    // Compile.
+    wrouter_error_t err;
+    wrouter_t *router = wrouter_compile(builder, &err);
+    wrouter_builder_free(builder);
+
+    fprintf(stderr, "PARAM\n");
+    print_graph(router);
+
+    uint16_t root_node = 0 | NODE_FLAG_HAS_PARAM;
+    uint16_t param_edge = 3;
+    uint16_t param_sym = 1;
+    uint16_t param_node = 0 | NODE_FLAG_TERMINAL;
+
+    assert(router->graph_size == 4);
+    assert(router->graph[0] == root_node);
+    assert(router->graph[1] == param_sym);
+    assert(router->graph[2] == param_edge);
+    assert(router->graph[3] == param_node);
+
+    wrouter_free(router);
+}
+
 int main(void)
 {
 #if 0
@@ -644,6 +679,7 @@ int main(void)
     test_builder_graph_with_root_terminal();
     test_builder_graph_with_wildcard();
     test_builder_graph_with_two_literal_children();
+    test_builder_graph_with_param();
 
     return 0;
 }
