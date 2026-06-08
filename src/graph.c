@@ -12,6 +12,8 @@
 #include <stddef.h>
 #include <limits.h>
 
+#include <stdio.h>
+
 static int edge_cmp(const void *p1, const void *p2)
 {
     const uint16_t *k1 = p1;
@@ -31,36 +33,34 @@ static int edge_cmp(const void *p1, const void *p2)
  */
 void graph_stats(const segment_t *seg, graph_stats_t *stats)
 {
-    stats->nodes++;
+    // This node.
     stats->size++;
+    if (seg->terminal != NULL)
+        stats->terminals++;
 
-    // Trailing-slash edge.
-    if (seg->trailing != NULL)
-        stats->size++;
+    // Trailing-slash.
+    // 1 edge, 1 node.
+    if (seg->trailing != NULL) {
+        stats->terminals++;
+        stats->size += 2;
+    }
 
     // Special edges.
     switch (seg->spec_type) {
         case SPEC_WILDCARD:
-            stats->size++;
-        case SPEC_PARAM:
+            // 1 edge, 1 node.
             stats->size += 2;
+            stats->terminals++;
+
+            // Reserve space for wildcard parameter.
+            if (stats->param_depth >= stats->max_params)
+                stats->max_params++;
+
             break;
 
-        case SPEC_NONE:
-            break;
-    }
-
-    // Literal child node edges and nodes.
-    stats->symbolic_edges += seg->child_count;
-    stats->size += 3 * seg->child_count;
-
-    for (segment_t *child = seg->head; child; child = child->next)
-        graph_stats(child, stats);
-
-    // Special nodes.
-    switch (seg->spec_type) {
         case SPEC_PARAM:
-            stats->edges++;
+            // 2 edge, nodes descend.
+            stats->size += 2;
             stats->param_depth++;
             if (stats->param_depth > stats->max_params)
                 stats->max_params++;
@@ -68,50 +68,33 @@ void graph_stats(const segment_t *seg, graph_stats_t *stats)
             stats->param_depth--;
             break;
 
-        // Wildcard node.
-        // A wildcard requires an edge, a node, and always terminates.
-        case SPEC_WILDCARD:
-            stats->edges++;
-            stats->nodes++;
-            stats->terminals++;
-
-            // Reserve space for wildcard parameter.
-            if (stats->param_depth >= stats->max_params)
-                stats->max_params++;
-
-            stats->size++;
-            break;
-
         case SPEC_NONE:
             break;
     }
 
-    // Trailing-slash node.
-    // A trailing-slash requires an edge, a node, and always terminates.
-    if (seg->trailing != NULL) {
-        stats->edges++;
-        stats->nodes++;
-        stats->terminals++;
-        stats->size++;
-    }
+    // Two edges per literal child, descend nodes.
+    stats->size += 2 * seg->child_count;
 
-    // Terminal node.
-    if (seg->terminal != NULL)
-        stats->terminals++;
+    for (segment_t *child = seg->head; child; child = child->next)
+        graph_stats(child, stats);
 }
 
-uint16_t *graph_compile(wrouter_t *router, const segment_t *segment, uint16_t *cursor)
+uint16_t *graph_compile(wrouter_t *router, const segment_t *segment, uint16_t **pcur)
 {
     uint16_t *g = router->graph;
     uint16_t *node = NULL, *l_node = NULL;
     uint16_t *l_edge_base = NULL, *p_edge = NULL, *w_edge = NULL, *t_edge = NULL;
     uint16_t *l_sym = NULL, *p_sym = NULL;
 
+    fprintf(stderr, "Cursor: %u\n", (ptrdiff_t)(*pcur - g));
+
     // Append node.
-    node = cursor++;
+    node = (*pcur)++;
 
     // Store number of literals.
     *node |= segment->child_count;
+
+    fprintf(stderr, "Children: %u\n", segment->child_count);
 
     // Terminate node.
     if (segment->terminal != NULL) {
@@ -137,15 +120,15 @@ uint16_t *graph_compile(wrouter_t *router, const segment_t *segment, uint16_t *c
         // Parameter edge.
         case SPEC_PARAM:
             *node |= NODE_FLAG_HAS_PARAM;
-            p_sym = cursor++;
-            p_edge = cursor++;
+            p_sym = (*pcur)++;
+            p_edge = (*pcur)++;
             *p_sym = symbol_resolve(&router->params, segment->special.param->str);
             break;
 
         // Wildcard edge.
         case SPEC_WILDCARD:
             *node |= NODE_FLAG_HAS_WILDCARD;
-            w_edge = cursor++;
+            w_edge = (*pcur)++;
             break;
 
         case SPEC_NONE:
@@ -155,41 +138,50 @@ uint16_t *graph_compile(wrouter_t *router, const segment_t *segment, uint16_t *c
     // Trailing-slash edge is stored after the special edge if one exists.
     if (segment->trailing != NULL) {
         *node |= NODE_FLAG_HAS_TRAILING;
-        t_edge = cursor++;
+        t_edge = (*pcur)++;
     }
 
     // Descend into literals.
     if (segment->child_count) {
         // Find the start address for literal edges.
-        uint16_t *l_edge_base = cursor;
+        uint16_t *l_edge_base = *pcur;
+        fprintf(stderr, "Has children\n");
 
         // Resolve symbols and save into into the literal edges.
         for (segment_t *child = segment->head; child; child = child->next) {
-            l_sym = cursor++;
-            cursor++;
+            l_sym = (*pcur)++;
+            (*pcur)++;
             *l_sym = symbol_resolve(&router->literals, child->str);
+            fprintf(stderr, "Symbol: %u; cursor: %u\n", *l_sym, (ptrdiff_t)(*pcur - g));
         }
+
+        fprintf(stderr, "done literal edges %u\n", (ptrdiff_t)(*pcur - g));
 
         // Recurse into literal nodes and save their offsets.
         uint16_t i = 0;
         for (segment_t *child = segment->head; child; child = child->next) {
-            l_node = graph_compile(router, child, cursor);
+            fprintf(stderr, "START DESCEND NODE ADDR: %u EDGE: %u\n", (ptrdiff_t)(l_node - g), (ptrdiff_t)(l_edge_base + i * 2 + 1 - g));
+            l_node = graph_compile(router, child, pcur);
             *(l_edge_base + i * 2 + 1) = (ptrdiff_t)(l_node - g);
+            //*(l_edge_base + i * 2 + 1) = 500;
+            fprintf(stderr, "END DESCEND NODE ADDR: %u EDGE: %u\n", (ptrdiff_t)(l_node - g), (ptrdiff_t)(l_edge_base + i * 2 + 1 - g));
+            i++;
         }
 
         // Sort the edges by symbol.
-        qsort(l_edge_base, segment->child_count * 2, sizeof(uint16_t), edge_cmp);
+        // TODO SORT EDGES DOES NOT WORK TODO TODO TODO FIXME
+        //qsort(l_edge_base, segment->child_count * 2, sizeof(uint16_t), edge_cmp);
     }
 
     // Descend into parameter.
     if (p_edge != NULL) {
-        uint16_t *p_node = graph_compile(router, segment->special.param, cursor);
+        uint16_t *p_node = graph_compile(router, segment->special.param, *pcur);
         *p_edge = p_node - g;
     }
 
     // Append wildcard node.
     if (w_edge != NULL) {
-        uint16_t *w_node = cursor++;
+        uint16_t *w_node = (*pcur)++;
         *w_node |= NODE_FLAG_TERMINAL;
         *w_edge = (ptrdiff_t)(w_node - g);
         terminal_append(&router->terminals, (ptrdiff_t)(w_edge - g), *segment->special.wildcard);
@@ -198,7 +190,7 @@ uint16_t *graph_compile(wrouter_t *router, const segment_t *segment, uint16_t *c
 
     // Append trailing node.
     if (t_edge != NULL) {
-        uint16_t *t_node = cursor++;
+        uint16_t *t_node = (*pcur)++;
         *t_node |= NODE_FLAG_TERMINAL;
         *t_edge = (ptrdiff_t)(t_node - g);
         terminal_append(&router->terminals, (ptrdiff_t)(t_edge - g), *segment->trailing);

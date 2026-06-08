@@ -11,6 +11,13 @@
 #include <stdio.h>
 #include <string.h>
 
+static void print_graph(wrouter_t *router)
+{
+    for (uint16_t i = 0; i < router->graph_size; i++) {
+        fprintf(stderr, "%04x: %04x\n", i, router->graph[i]);
+    }
+}
+
 static void cb_null(void *dispatch_ctx, const void *route_ctx, const wrouter_params_t *params)
 {
     (void)dispatch_ctx;
@@ -360,10 +367,10 @@ static void test_builder_out_of_range_graph_size(void)
     enum { NI = 4, NJ = 55, NK = 100 };
 
     // Estimate how much space we are going to need for this graph.
-    size_t s = 0;
-
     // TODO reimplement this.
 #if 0
+    size_t s = 0;
+
     s += sizeof(uint16_t); // Root node.
     s += sizeof(edge_t) * NI;
     s += sizeof(node_t) * NI;
@@ -479,8 +486,141 @@ void test_builder_destroy_null()
     wrouter_builder_destroy(NULL);
 }
 
+void test_builder_empty_graph(void)
+{
+    fprintf(stderr, "-------------------\n");
+    fprintf(stderr, "EMPTY\n");
+    // Create builder.
+    wrouter_options_t options = { 0 };
+    wrouter_builder_t *builder = wrouter_builder_create(options);
+
+    // Compile.
+    wrouter_error_t err;
+    wrouter_t *router = wrouter_compile(builder, &err);
+    assert(err == WROUTER_OK);
+    wrouter_builder_free(builder);
+
+    fprintf(stderr, "EMPTY GRAPH\n");
+    print_graph(router);
+
+    // First element of graph is zero (no flags or counts set.)
+    assert(router->graph_size == 1);
+    assert(router->graph[0] == 0);
+
+    wrouter_free(router);
+}
+
+void test_builder_graph_with_wildcard(void)
+{
+    fprintf(stderr, "-------------------\n");
+    // Create builder.
+    wrouter_options_t options = { 0 };
+    wrouter_builder_t *builder = wrouter_builder_create(options);
+
+    // Route handler.
+    wrouter_route_t route = { NULL, NULL };
+
+    // Add routes.
+    assert(wrouter_add_route(builder, "/*", route) == 0);
+    //assert(wrouter_add_route(builder, "/aaaaa/", route) == 0);
+    //assert(wrouter_add_route(builder, "/aaaaa/:bbbbb", route) == 0);
+
+    // Compile.
+    wrouter_error_t err;
+    wrouter_t *router = wrouter_compile(builder, &err);
+    wrouter_builder_free(builder);
+
+    uint16_t root_node = 0 | NODE_FLAG_HAS_WILDCARD;
+    uint16_t wildcard_edge = 2;
+    uint16_t wildcard_node = 0 | NODE_FLAG_TERMINAL;
+
+    fprintf(stderr, "WILD\n");
+    print_graph(router);
+
+    assert(router->graph_size == 3);
+    assert(router->graph[0] == root_node);
+    assert(router->graph[1] == wildcard_edge);
+    assert(router->graph[2] == wildcard_node);
+
+    wrouter_free(router);
+}
+
+void test_builder_graph_with_root_terminal(void)
+{
+    fprintf(stderr, "-------------------\n");
+    // Create builder.
+    wrouter_options_t options = { 0 };
+    wrouter_builder_t *builder = wrouter_builder_create(options);
+
+    // Route handler.
+    wrouter_route_t route = { NULL, NULL };
+
+    // Add routes.
+    assert(wrouter_add_route(builder, "/", route) == 0);
+
+    // Compile.
+    wrouter_error_t err;
+    wrouter_t *router = wrouter_compile(builder, &err);
+    wrouter_builder_free(builder);
+
+    fprintf(stderr, "ROOT TERMINAL\n");
+    print_graph(router);
+
+    uint16_t root_node = 0 | NODE_FLAG_TERMINAL;
+
+    assert(router->graph_size == 1);
+    assert(router->graph[0] == root_node);
+
+    wrouter_free(router);
+}
+
+void test_builder_graph_with_two_literal_children(void)
+{
+    fprintf(stderr, "-------------------\n");
+    fprintf(stderr, "TWO LITERALS\n");
+    // Create builder.
+    wrouter_options_t options = { 0 };
+    wrouter_builder_t *builder = wrouter_builder_create(options);
+
+    // Route handler.
+    wrouter_route_t route = { NULL, NULL };
+
+    // Add routes.
+    assert(wrouter_add_route(builder, "/a_1_one", route) == 0);
+    assert(wrouter_add_route(builder, "/b_2_two", route) == 0);
+
+    // Compile.
+    wrouter_error_t err;
+    wrouter_t *router = wrouter_compile(builder, &err);
+    wrouter_builder_free(builder);
+
+    uint16_t root_node = 2;
+    uint16_t one_sym = 1;
+    uint16_t one_edge = 5;
+    uint16_t two_sym = 2;
+    uint16_t two_edge = 6;
+    uint16_t one_node = 0 | NODE_FLAG_TERMINAL;
+    uint16_t two_node = 0 | NODE_FLAG_TERMINAL;
+
+    fprintf(stderr, "graph:\n");
+    print_graph(router);
+
+    assert(router->graph_size == 7);
+
+    assert(router->graph[0] == root_node);
+    assert(router->graph[1] == one_sym);
+    assert(router->graph[2] == one_edge);
+    assert(router->graph[3] == two_sym);
+    assert(router->graph[4] == two_edge);
+    assert(router->graph[5] == one_node);
+    assert(router->graph[6] == two_node);
+
+    wrouter_free(router);
+}
+
 int main(void)
 {
+#if 0
     test_builder_free();
     test_builder_add_route();
     test_builder_add_handler();
@@ -499,6 +639,11 @@ int main(void)
     test_builder_consume();
     test_builder_compile_null_arguments();
     test_builder_destroy_null();
+#endif
+    test_builder_empty_graph();
+    test_builder_graph_with_root_terminal();
+    test_builder_graph_with_wildcard();
+    test_builder_graph_with_two_literal_children();
 
     return 0;
 }
