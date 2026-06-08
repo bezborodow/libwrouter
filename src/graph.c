@@ -14,12 +14,16 @@
 
 #include <stdio.h>
 
-static int edge_cmp(const void *p1, const void *p2)
+static int edge_cmp(const void *a, const void *b)
 {
-    const uint16_t *k1 = p1;
-    const uint16_t *k2 = p2;
+    const uint16_t *ea = a;
+    const uint16_t *eb = b;
 
-    return (*k1 > *k2) - (*k1 < *k2);
+    if (ea[0] < eb[0])
+        return -1;
+    if (ea[0] > eb[0])
+        return 1;
+    return 0;
 }
 
 /**
@@ -170,7 +174,7 @@ uint16_t *graph_compile(wrouter_t *router, const segment_t *segment, uint16_t **
 
         // Sort the edges by symbol.
         // TODO SORT EDGES DOES NOT WORK TODO TODO TODO FIXME
-        //qsort(l_edge_base, segment->child_count * 2, sizeof(uint16_t), edge_cmp);
+        qsort(l_edge_base, segment->child_count, 2 * sizeof(uint16_t), edge_cmp);
     }
 
     // Descend into parameter.
