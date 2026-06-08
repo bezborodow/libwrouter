@@ -522,8 +522,6 @@ void test_builder_graph_with_wildcard(void)
 
     // Add routes.
     assert(wrouter_add_route(builder, "/*", route) == 0);
-    //assert(wrouter_add_route(builder, "/aaaaa/", route) == 0);
-    //assert(wrouter_add_route(builder, "/aaaaa/:bbbbb", route) == 0);
 
     // Compile.
     wrouter_error_t err;
@@ -653,6 +651,58 @@ void test_builder_graph_with_param(void)
     wrouter_free(router);
 }
 
+void test_builder_graph_with_all_the_things(void)
+{
+    fprintf(stderr, "-------------------\n");
+    // Create builder.
+    wrouter_options_t options = { 0 };
+    wrouter_builder_t *builder = wrouter_builder_create(options);
+
+    // Route handler.
+    wrouter_route_t route = { NULL, NULL };
+
+    // Add routes.
+    assert(wrouter_add_route(builder, "/*", route) == 0);
+    assert(wrouter_add_route(builder, "/aaaaa/", route) == 0);
+    assert(wrouter_add_route(builder, "/aaaaa/:bbbbb", route) == 0);
+
+    // Compile.
+    wrouter_error_t err;
+    wrouter_t *router = wrouter_compile(builder, &err);
+    wrouter_builder_free(builder);
+
+    uint16_t root_node = 1 | NODE_FLAG_HAS_WILDCARD;
+    uint16_t wildcard_edge = 10;
+    uint16_t a_sym = 1;
+    uint16_t a_edge = 4;
+    uint16_t a_node = 0 | NODE_FLAG_HAS_PARAM | NODE_FLAG_HAS_TRAILING;
+    uint16_t b_sym = 1;
+    uint16_t b_edge = 8;
+    uint16_t t_edge = 9;
+    uint16_t b_node = 0 | NODE_FLAG_TERMINAL;
+    uint16_t t_node = 0 | NODE_FLAG_TERMINAL;
+    uint16_t wildcard_node = 0 | NODE_FLAG_TERMINAL;
+
+    fprintf(stderr, "WILD\n");
+    print_graph(router);
+
+    assert(router->graph_size == 11);
+    assert(router->graph[0] == root_node);
+    assert(router->graph[1] == wildcard_edge);
+    assert(router->graph[2] == a_sym);
+    assert(router->graph[3] == a_edge);
+    assert(router->graph[4] == a_node);
+    assert(router->graph[5] == b_sym);
+    assert(router->graph[6] == b_edge);
+    assert(router->graph[7] == t_edge);
+    assert(router->graph[8] == b_node);
+    assert(router->graph[9] == t_node);
+    assert(router->graph[10] == wildcard_node);
+
+    wrouter_free(router);
+}
+
+
 int main(void)
 {
 #if 0
@@ -680,6 +730,7 @@ int main(void)
     test_builder_graph_with_wildcard();
     test_builder_graph_with_two_literal_children();
     test_builder_graph_with_param();
+    test_builder_graph_with_all_the_things();
 
     return 0;
 }
