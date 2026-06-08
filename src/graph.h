@@ -16,9 +16,6 @@
 #define NODE_FLAG_HAS_TRAILING (1 << 15)
 
 typedef struct {
-    size_t nodes;
-    size_t edges;
-    size_t symbolic_edges;
     size_t terminals;
     size_t size;
     size_t param_depth;
@@ -27,4 +24,4 @@ typedef struct {
 
 void graph_stats(const segment_t *segment, graph_stats_t *stats);
 
-uint16_t *graph_compile(wrouter_t *router, const segment_t *segment, uint16_t *cursor);
+uint16_t *graph_compile(wrouter_t *router, const segment_t *segment, uint16_t **pcur);

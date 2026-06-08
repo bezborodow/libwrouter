@@ -96,9 +96,9 @@ lexer_next:
 
                     // Do a binary search if n > 16, otherwise do a linear scan.
                     // TODO Fix to skip odds.
-                    if (true || n_literals > 16) {
-
 #if 0
+                    if (n_literals > 16) {
+
                         // See binary search example from 6.4 Pointers to
                         // Structures, K&R C 2nd ed. (ANSI), page 137.
                         const uint16_t *l_edge_low = l_edge_base,
@@ -114,9 +114,9 @@ lexer_next:
                             else
                                 goto lexer_next;
                         }
-#endif
 
                     } else {
+#endif
                         for (uint16_t i = 0; i < n_literals; i += 2) {
                             cursor = &l_edge_base[i];
 
@@ -124,7 +124,7 @@ lexer_next:
                             if (*(cursor + 1) == symbol)
                                 goto lexer_next;
                         }
-                    }
+                    //}
                 }
             }
 
