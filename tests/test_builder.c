@@ -584,8 +584,8 @@ void test_builder_graph_with_two_literal_children(void)
     wrouter_route_t route = { NULL, NULL };
 
     // Add routes.
-    assert(wrouter_add_route(builder, "/a_1_one", route) == 0);
     assert(wrouter_add_route(builder, "/b_2_two", route) == 0);
+    assert(wrouter_add_route(builder, "/a_1_one", route) == 0);
 
     // Compile.
     wrouter_error_t err;
@@ -594,9 +594,9 @@ void test_builder_graph_with_two_literal_children(void)
 
     uint16_t root_node = 2;
     uint16_t one_sym = 1;
-    uint16_t one_edge = 5;
+    uint16_t one_edge = 6;
     uint16_t two_sym = 2;
-    uint16_t two_edge = 6;
+    uint16_t two_edge = 5;
     uint16_t one_node = 0 | NODE_FLAG_TERMINAL;
     uint16_t two_node = 0 | NODE_FLAG_TERMINAL;
 
@@ -610,8 +610,8 @@ void test_builder_graph_with_two_literal_children(void)
     assert(router->graph[2] == one_edge);
     assert(router->graph[3] == two_sym);
     assert(router->graph[4] == two_edge);
-    assert(router->graph[5] == one_node);
     assert(router->graph[6] == two_node);
+    assert(router->graph[5] == one_node);
 
     wrouter_free(router);
 }
@@ -705,7 +705,6 @@ void test_builder_graph_with_all_the_things(void)
 
 int main(void)
 {
-#if 0
     test_builder_free();
     test_builder_add_route();
     test_builder_add_handler();
@@ -724,7 +723,6 @@ int main(void)
     test_builder_consume();
     test_builder_compile_null_arguments();
     test_builder_destroy_null();
-#endif
     test_builder_empty_graph();
     test_builder_graph_with_root_terminal();
     test_builder_graph_with_wildcard();
