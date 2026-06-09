@@ -87,7 +87,7 @@ uint16_t *graph_compile(wrouter_t *router, const segment_t *segment, uint16_t **
 {
     uint16_t *g = router->graph;
     uint16_t *node = NULL, *l_node = NULL;
-    uint16_t *l_edge_base = NULL, *p_edge = NULL, *w_edge = NULL, *t_edge = NULL;
+    uint16_t *p_edge = NULL, *w_edge = NULL, *t_edge = NULL;
     uint16_t *l_sym = NULL, *p_sym = NULL;
 
     // Append node.
@@ -162,7 +162,6 @@ uint16_t *graph_compile(wrouter_t *router, const segment_t *segment, uint16_t **
         }
 
         // Sort the edges by symbol.
-        // TODO SORT EDGES DOES NOT WORK TODO TODO TODO FIXME
         qsort(l_edge_base, segment->child_count, 2 * sizeof(uint16_t), edge_cmp);
     }
 
