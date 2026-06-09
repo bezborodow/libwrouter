@@ -11,7 +11,6 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
-#include <stdio.h>
 
 inline void router_retain(const wrouter_t *router, const wrouter_route_t *route)
 {
@@ -52,7 +51,6 @@ lexer_next:
     // Consume next token from the lexer.
     tok = lexer_next(&d->lx);
 
-    //fprintf(stderr, "Node\n");
     node = cursor++;
 
     // PARAMETER.
@@ -75,10 +73,8 @@ lexer_next:
     // TRAILING.
     // The trailing-slash edge is stored after the special edge if it exists,
     // otherwise immediately after the node.
-    if (*node & NODE_FLAG_HAS_TRAILING) {
+    if (*node & NODE_FLAG_HAS_TRAILING)
         t_edge = cursor++;
-        //fprintf(stderr, "t_edge value = %u\n", *t_edge);
-    }
 
     // LITERALS.
     // Literal edges.
@@ -97,7 +93,6 @@ lexer_next:
 
                 // Resolve the literal string to a symbol.
                 symbol = symbol_nresolve(&router->literals, tok.ptr, tok.length);
-                //fprintf(stderr, "Found symbol: %u\n", symbol);
                 
                 // If the symbol is resolved, try to match against an edge.
                 if (symbol) {
@@ -128,7 +123,6 @@ lexer_next:
 
                             // Follow symbol.
                             if (*cursor == symbol) {
-                                //fprintf(stderr, "Following symbol.\n");
                                 cursor = g + *(cursor + 1);
                                 goto lexer_next;
                             }
@@ -182,12 +176,10 @@ lexer_next:
 not_found:
     // Not found; no parameters.
     d->params.count = 0;
-    //fprintf(stderr, "Not found.\n");
     return NULL;
 
 trailing:
     // Follow the trailing-slash edge, and terminate.
-    //fprintf(stderr, "Trailing\n");
     cursor = (g + *t_edge);
     goto terminal;
 
@@ -202,7 +194,6 @@ wildcard:
     cursor = (g + *w_edge);
 
 terminal:
-    //fprintf(stderr, "Terminal addr %u\n", (ptrdiff_t)(cursor - g));
     return terminal_lookup(&router->terminals, (ptrdiff_t)(cursor - g));
 }
 
