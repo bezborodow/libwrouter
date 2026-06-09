@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 inline void router_retain(const wrouter_t *router, const wrouter_route_t *route)
 {
@@ -50,8 +51,10 @@ lexer_next:
     // Consume next token from the lexer.
     tok = lexer_next(&d->lx);
 
+    fprintf(stderr, "Node\n");
     node = cursor++;
 
+    // PARAMETER.
     // If the node has a special edge, then advance the base edge beyond it.
     // The literal edges start after the special edge, if present.  A special
     // edge is either a parameter or a wildcard. They cannot coexist; that is,
@@ -61,24 +64,26 @@ lexer_next:
         p_edge = cursor++;
     }
 
+    // WILDCARD.
     // Remember the most specific wildcard edge, if present.
     if (*node & NODE_FLAG_HAS_WILDCARD) {
         w_edge = cursor++;
         w_param = tok.ptr;
     }
 
+    // TRAILING.
     // The trailing-slash edge is stored after the special edge if it exists,
     // otherwise immediately after the node.
-    if (*node & NODE_FLAG_HAS_TRAILING)
+    if (*node & NODE_FLAG_HAS_TRAILING) {
         t_edge = cursor++;
+        fprintf(stderr, "t_edge value = %u\n", *t_edge);
+    }
 
-    // Wildcard edge.
-    if (*node & NODE_FLAG_HAS_WILDCARD)
-        w_edge = cursor++;
-
+    // LITERALS.
     // Literal edges.
     l_edge_base = cursor;
 
+    // PROCESS TOKEN.
     // Process the segment token against the current node.
     switch (tok.type) {
 
@@ -91,7 +96,8 @@ lexer_next:
 
                 // Resolve the literal string to a symbol.
                 symbol = symbol_nresolve(&router->literals, tok.ptr, tok.length);
-
+                fprintf(stderr, "Found symbol: %u\n", symbol);
+                
                 // If the symbol is resolved, try to match against an edge.
                 if (symbol) {
 
@@ -123,6 +129,7 @@ lexer_next:
 
                             // Follow symbol.
                             if (*cursor == symbol) {
+                                fprintf(stderr, "Following symbol.\n");
                                 cursor = g + *(cursor + 1);
                                 goto lexer_next;
                             }
@@ -163,8 +170,10 @@ lexer_next:
         case TOKEN_END:
 
             // Check for terminal.
-            if (*node & NODE_FLAG_TERMINAL)
+            if (*node & NODE_FLAG_TERMINAL) {
+                cursor = node;
                 goto terminal;
+            }
 
             // Not found.
             goto not_found;
@@ -178,6 +187,7 @@ not_found:
 
 trailing:
     // Follow the trailing-slash edge, and terminate.
+    fprintf(stderr, "Trailing\n");
     cursor = (g + *t_edge);
     goto terminal;
 
@@ -194,7 +204,11 @@ wildcard:
     cursor = (g + *w_edge);
 
 terminal:
-    return terminal_lookup(&router->terminals, (ptrdiff_t)(g - cursor));
+    fprintf(stderr, "Terminal addr %u\n", (ptrdiff_t)(cursor - g));
+    wrouter_route_t *route = terminal_lookup(&router->terminals, (ptrdiff_t)(cursor - g));
+    if (route == NULL)
+        fprintf(stderr, "Terminal lookup failure.\n");
+    return route;
 }
 
 /**

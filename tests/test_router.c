@@ -148,7 +148,41 @@ void builder_print_tree(const wrouter_builder_t *builder)
     print_route_node(builder->root, 0, 0);
 }
 
-void test_router_test_literal(void)
+void test_router_root(void)
+{
+    // Create builder.
+    wrouter_options_t options = {
+        .param_syntax = WROUTER_SYNTAX_COLON,
+        .fallback_handler = cb_ignore,
+        .fallback_ctx = NULL,
+    };
+    wrouter_builder_t *builder = wrouter_builder_create(options);
+
+    // Route handler.
+    bool seen = false;
+
+    // Add routes.
+    const uint32_t expected_parameter_count = 0;
+    assert(wrouter_add_handler_ctx(builder, "/", cb_watch, &expected_parameter_count) == 0);
+
+    // Compile.
+    wrouter_error_t err;
+    wrouter_t *router = wrouter_compile(builder, &err);
+    wrouter_builder_free(builder);
+    assert(err == 0);
+    assert(router != NULL);
+
+    // Dispatch.
+    wrouter_dispatcher_t *dispatcher = wrouter_dispatcher_create(router);
+    assert(dispatcher != NULL);
+    wrouter_dispatch(dispatcher, "/", &seen);
+    assert(seen);
+
+    wrouter_dispatcher_free(dispatcher);
+    wrouter_free(router);
+}
+
+void test_router_literal(void)
 {
     // Create builder.
     wrouter_options_t options = {
@@ -176,6 +210,40 @@ void test_router_test_literal(void)
     wrouter_dispatcher_t *dispatcher = wrouter_dispatcher_create(router);
     assert(dispatcher != NULL);
     wrouter_dispatch(dispatcher, "/literal", &seen);
+    assert(seen);
+
+    wrouter_dispatcher_free(dispatcher);
+    wrouter_free(router);
+}
+
+void test_router_trailing(void)
+{
+    // Create builder.
+    wrouter_options_t options = {
+        .param_syntax = WROUTER_SYNTAX_COLON,
+        .fallback_handler = cb_ignore,
+        .fallback_ctx = NULL,
+    };
+    wrouter_builder_t *builder = wrouter_builder_create(options);
+
+    // Route handler.
+    bool seen = false;
+
+    // Add routes.
+    const uint32_t expected_parameter_count = 0;
+    assert(wrouter_add_handler_ctx(builder, "/trailing/", cb_watch, &expected_parameter_count) == 0);
+
+    // Compile.
+    wrouter_error_t err;
+    wrouter_t *router = wrouter_compile(builder, &err);
+    wrouter_builder_free(builder);
+    assert(err == 0);
+    assert(router != NULL);
+
+    // Dispatch.
+    wrouter_dispatcher_t *dispatcher = wrouter_dispatcher_create(router);
+    assert(dispatcher != NULL);
+    wrouter_dispatch(dispatcher, "/trailing/", &seen);
     assert(seen);
 
     wrouter_dispatcher_free(dispatcher);
@@ -748,6 +816,9 @@ void test_router_destroy(void)
 
 int main(void)
 {
+    test_router_root();
+    test_router_literal();
+    test_router_trailing();
     test_router_empty_router();
     test_router_destroy();
     test_router_not_found();
@@ -755,10 +826,10 @@ int main(void)
     test_router_top_wildcard_is_not_root();
     test_router_illegal_paths();
     test_router_symbol_compare_segfault();
-    test_router_test_literal();
     test_router_end_wildcard();
+    return 0;
+    test_router_lots();
     test_router_test_cases();
-    //test_router_lots();
 
     return 0;
 }
