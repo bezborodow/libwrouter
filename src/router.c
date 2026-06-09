@@ -36,6 +36,7 @@ const wrouter_route_t *route_match(wrouter_dispatcher_t *d)
     const uint16_t *node = NULL;
     const uint16_t *l_edge_base = NULL, *p_edge = NULL, *w_edge = NULL,
                    *t_edge = NULL;
+    const uint16_t *p_sym;
 
     // Check for an empty graph, which is valid, but will never match anything.
     if (g == NULL)
@@ -56,8 +57,8 @@ lexer_next:
     // edge is either a parameter or a wildcard. They cannot coexist; that is,
     // there is only ever one or zero special edges.
     if (*node & NODE_FLAG_HAS_PARAM) {
+        p_sym = cursor++;
         p_edge = cursor++;
-        cursor++;
     }
 
     // Remember the most specific wildcard edge, if present.
@@ -121,8 +122,10 @@ lexer_next:
                             cursor = &l_edge_base[i];
 
                             // Follow symbol.
-                            if (*(cursor + 1) == symbol)
+                            if (*cursor == symbol) {
+                                cursor = g + *(cursor + 1);
                                 goto lexer_next;
+                            }
                         }
                     //}
                 }
@@ -131,15 +134,14 @@ lexer_next:
             // Check for parameter.
             if (*node & NODE_FLAG_HAS_PARAM) {
 
-                symbol = *(p_edge + 1);
-
                 // Record parameter name and value.
                 wrouter_param_t *param = &d->params.base[d->params.count++];
-                param->name = symbol_lookup(&router->params, symbol);
+                param->name = symbol_lookup(&router->params, *p_sym);
                 param->value = tok.ptr;
                 param->length = tok.length;
 
                 // Follow parameter.
+                cursor = g + *p_edge;
                 goto lexer_next;
             }
 

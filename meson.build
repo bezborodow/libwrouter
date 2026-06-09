@@ -96,6 +96,7 @@ if not python_package
 
     foreach t : [
         'builder',
+        'router',
     ]
         exe = executable(
             'test_@0@'.format(t),

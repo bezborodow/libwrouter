@@ -551,10 +551,11 @@ void test_builder_graph_with_root_terminal(void)
     wrouter_builder_t *builder = wrouter_builder_create(options);
 
     // Route handler.
-    wrouter_route_t route = { NULL, NULL };
+    int expected_ctx = 9999;
+    wrouter_route_t expected_route = { NULL, &expected_ctx };
 
     // Add routes.
-    assert(wrouter_add_route(builder, "/", route) == 0);
+    assert(wrouter_add_route(builder, "/", expected_route) == 0);
 
     // Compile.
     wrouter_error_t err;
@@ -568,6 +569,11 @@ void test_builder_graph_with_root_terminal(void)
 
     assert(router->graph_size == 1);
     assert(router->graph[0] == root_node);
+
+    assert(router->terminals.count == 1);
+    wrouter_route_t lookup_route = *terminal_lookup(&router->terminals, 0);
+    assert(lookup_route.ctx == expected_route.ctx);
+    assert(lookup_route.ctx == &expected_ctx);
 
     wrouter_free(router);
 }
