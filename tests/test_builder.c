@@ -65,11 +65,11 @@ static void print_graph(wrouter_t *router)
 
             case G_PARAM_SYM:
                 m = G_PARAM_EDGE;
-                fprintf(stderr, "SYMBOL PARAMETER --> %s\n", symbol_lookup(&router->params, *cursor));
+                fprintf(stderr, "  SYMBOL PARAMETER --> %s\n", symbol_lookup(&router->params, *cursor));
                 continue;
 
             case G_PARAM_EDGE:
-                fprintf(stderr, "EDGE PARAMETER\n");
+                fprintf(stderr, "  EDGE PARAMETER\n");
                 if (node & NODE_FLAG_HAS_TRAILING) {
                     m = G_TRAILING_EDGE;
                     continue;
@@ -81,7 +81,7 @@ static void print_graph(wrouter_t *router)
                 break;
 
             case G_WILDCARD_EDGE:
-                fprintf(stderr, "EDGE WILDCARD\n");
+                fprintf(stderr, "  EDGE WILDCARD\n");
                 if (node & NODE_FLAG_HAS_TRAILING) {
                     m = G_TRAILING_EDGE;
                     continue;
@@ -93,7 +93,7 @@ static void print_graph(wrouter_t *router)
                 break;
 
             case G_TRAILING_EDGE:
-                fprintf(stderr, "EDGE TRAILING\n");
+                fprintf(stderr, "  EDGE TRAILING\n");
                 if (n) {
                     m = G_LITERAL_SYM;
                     continue;
@@ -102,11 +102,11 @@ static void print_graph(wrouter_t *router)
 
             case G_LITERAL_SYM:
                 m = G_LITERAL_EDGE;
-                fprintf(stderr, "SYMBOL LITERAL --> %s\n", symbol_lookup(&router->literals, *cursor));
+                fprintf(stderr, "  SYMBOL LITERAL --> %s\n", symbol_lookup(&router->literals, *cursor));
                 continue;
 
             case G_LITERAL_EDGE:
-                fprintf(stderr, "EDGE LITERAL\n");
+                fprintf(stderr, "  EDGE LITERAL\n");
                 if (--n) {
                     m = G_LITERAL_SYM;
                     continue;
