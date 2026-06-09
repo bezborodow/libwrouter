@@ -1,4 +1,5 @@
 #include "graph.h"
+#include "terminal.h"
 #include "wrouter.h"
 #include "builder.h"
 #include "router.h"
@@ -657,6 +658,53 @@ void test_builder_graph_with_param(void)
     wrouter_free(router);
 }
 
+void test_builder_graph_with_trailing(void)
+{
+    fprintf(stderr, "-------------------\n");
+    // Create builder.
+    wrouter_options_t options = { 0 };
+    wrouter_builder_t *builder = wrouter_builder_create(options);
+
+    // Route handler.
+    uint32_t expected_ctx = 9999;
+    wrouter_route_t expected_route = { NULL, &expected_ctx};
+
+    // Add routes.
+    assert(wrouter_add_route(builder, "/trailing/", expected_route) == 0);
+
+    // Compile.
+    wrouter_error_t err;
+    wrouter_t *router = wrouter_compile(builder, &err);
+    wrouter_builder_free(builder);
+
+    fprintf(stderr, "PARAM\n");
+    print_graph(router);
+
+    uint16_t root_node = 1;
+    uint16_t literal_sym = 1;
+    uint16_t literal_edge = 3;
+    uint16_t literal_node = 0 | NODE_FLAG_HAS_TRAILING;
+    uint16_t trailing_edge = 5;
+    uint16_t trailing_node = 0 | NODE_FLAG_TERMINAL;
+
+    assert(router->graph_size == 6);
+    assert(router->graph[0] == root_node);
+    assert(router->graph[1] == literal_sym);
+    assert(router->graph[2] == literal_edge);
+    assert(router->graph[3] == literal_node);
+    assert(router->graph[4] == trailing_edge);
+    assert(router->graph[5] == trailing_node);
+
+    assert(router->terminals.count == 1);
+    wrouter_route_t *actual_route = terminal_lookup(&router->terminals, 5);
+    assert(actual_route != NULL);
+    assert(actual_route->ctx == expected_route.ctx);
+    uint32_t *actual_ctx = actual_route->ctx;
+    assert(*actual_ctx == 9999);
+
+    wrouter_free(router);
+}
+
 void test_builder_graph_with_all_the_things(void)
 {
     fprintf(stderr, "-------------------\n");
@@ -734,6 +782,7 @@ int main(void)
     test_builder_graph_with_wildcard();
     test_builder_graph_with_two_literal_children();
     test_builder_graph_with_param();
+    test_builder_graph_with_trailing();
     test_builder_graph_with_all_the_things();
 
     return 0;
