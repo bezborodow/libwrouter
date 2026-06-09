@@ -36,6 +36,8 @@ void print_graph(wrouter_t *router)
                 n = node & NODE_LITERALS_MASK;
 
                 fprintf(stderr, "NODE");
+                if (i == 0)
+                    fprintf(stderr, " ROOT");
                 if (node & NODE_FLAG_TERMINAL)
                     fprintf(stderr, " TERMINAL");
                 fprintf(stderr, "\n");
