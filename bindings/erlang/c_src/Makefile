@@ -1,6 +1,6 @@
 MAKEFILE_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 APP_DIR := $(abspath $(MAKEFILE_DIR)/..)
-ROOT_DIR := $(abspath $(APP_DIR)/../..)
+LIBWROUTER_DIR := $(APP_DIR)/c_src/libwrouter
 APP_PRIV_DIR := $(REBAR_BUILD_DIR)/lib/wrouter/priv
 
 ifeq ($(strip $(REBAR_BUILD_DIR)),)
@@ -14,23 +14,23 @@ TARGET := $(APP_PRIV_DIR)/wrouter_nif.so
 
 SOURCES := \
 	$(APP_DIR)/c_src/wrouter_nif.c \
-	$(ROOT_DIR)/src/arena.c \
-	$(ROOT_DIR)/src/builder.c \
-	$(ROOT_DIR)/src/compiler.c \
-	$(ROOT_DIR)/src/dispatcher.c \
-	$(ROOT_DIR)/src/errors.c \
-	$(ROOT_DIR)/src/graph.c \
-	$(ROOT_DIR)/src/lexer.c \
-	$(ROOT_DIR)/src/params.c \
-	$(ROOT_DIR)/src/prelexer.c \
-	$(ROOT_DIR)/src/router.c \
-	$(ROOT_DIR)/src/segment.c \
-	$(ROOT_DIR)/src/symbol.c \
-	$(ROOT_DIR)/src/terminal.c \
-	$(ROOT_DIR)/src/token.c
+	$(LIBWROUTER_DIR)/src/arena.c \
+	$(LIBWROUTER_DIR)/src/builder.c \
+	$(LIBWROUTER_DIR)/src/compiler.c \
+	$(LIBWROUTER_DIR)/src/dispatcher.c \
+	$(LIBWROUTER_DIR)/src/errors.c \
+	$(LIBWROUTER_DIR)/src/graph.c \
+	$(LIBWROUTER_DIR)/src/lexer.c \
+	$(LIBWROUTER_DIR)/src/params.c \
+	$(LIBWROUTER_DIR)/src/prelexer.c \
+	$(LIBWROUTER_DIR)/src/router.c \
+	$(LIBWROUTER_DIR)/src/segment.c \
+	$(LIBWROUTER_DIR)/src/symbol.c \
+	$(LIBWROUTER_DIR)/src/terminal.c \
+	$(LIBWROUTER_DIR)/src/token.c
 
 CFLAGS ?= -O3
-CFLAGS += -std=c11 -fPIC -Wall -Wextra -Wpedantic -I$(ROOT_DIR)/include -I$(ROOT_DIR)/src -I$(ERLANG_INCLUDE_DIR)
+CFLAGS += -std=c11 -fPIC -Wall -Wextra -Wpedantic -I$(LIBWROUTER_DIR)/include -I$(LIBWROUTER_DIR)/src -I$(ERLANG_INCLUDE_DIR)
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
@@ -43,7 +43,7 @@ endif
 
 all: $(TARGET)
 
-$(TARGET): $(SOURCES) $(ROOT_DIR)/include/wrouter.h
+$(TARGET): $(SOURCES) $(LIBWROUTER_DIR)/include/wrouter.h
 	mkdir -p $(APP_PRIV_DIR)
 	$(CC) $(CFLAGS) $(SOURCES) $(LDFLAGS) -o $@
 

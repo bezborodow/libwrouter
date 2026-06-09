@@ -1,4 +1,6 @@
-.PHONY: build test cpptests erltest ctags format install clean pytest clang-tidy alltest
+.PHONY: build test cpptests erltest ctags format install clean pytest clang-tidy alltest hex_prepare hex_build publish_hex clean_hex
+
+HEX_LIBWROUTER_DIR := bindings/erlang/c_src/libwrouter
 
 build:
 	meson setup build
@@ -34,6 +36,22 @@ coverage:
 
 clang-tidy:
 	clang-tidy src/params.c -p build --fix --checks=misc-include-cleaner
+
+hex_prepare:
+	rm -rf $(HEX_LIBWROUTER_DIR)
+	mkdir -p $(HEX_LIBWROUTER_DIR)/include $(HEX_LIBWROUTER_DIR)/src
+	cp LICENSE $(HEX_LIBWROUTER_DIR)/LICENSE
+	cp include/wrouter.h $(HEX_LIBWROUTER_DIR)/include/
+	cp src/*.c src/*.h $(HEX_LIBWROUTER_DIR)/src/
+
+hex_build: hex_prepare
+	rebar3 hex build
+
+publish_hex: hex_prepare
+	rebar3 hex publish package --repo hexpm --yes
+
+clean_hex:
+	rm -rf $(HEX_LIBWROUTER_DIR)
 
 clean:
 	meson setup --wipe build

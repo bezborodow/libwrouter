@@ -5,10 +5,23 @@
 # Python
 dist/
 .py*
+.pytest_cache/
+.venv/
+
+# Local tool caches.
+.cache/
+
+# Meson build directories.
+build/
+build-*/
 
 # Erlang/rebar3
 _build/
 rebar.lock
+bindings/erlang/doc/
+bindings/erlang/priv/
+bindings/erlang/c_src/libwrouter/
+rebar3.crashdump
 
 # Test coverage.
 coverage*
