@@ -42,7 +42,7 @@ static void print_graph(wrouter_t *router)
 
                 fprintf(stderr, "NODE");
                 if (node & NODE_FLAG_TERMINAL)
-                    fprintf(stderr, "TERMINAL");
+                    fprintf(stderr, " TERMINAL");
                 fprintf(stderr, "\n");
 
                 if (node & NODE_FLAG_HAS_PARAM) {
