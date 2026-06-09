@@ -95,8 +95,17 @@ if not python_package
     )
 
     foreach t : [
+        'arena',
         'builder',
+        'dispatcher',
+        'errors',
+        'graph',
+        'lexer',
+        'params',
+        'prelexer',
         'router',
+        'symbol',
+        'terminal',
     ]
         exe = executable(
             'test_@0@'.format(t),
@@ -118,13 +127,13 @@ if not python_package
     endif
 
     add_languages('cpp', required : true)
-    #subdir('bindings/cpp')
-    #subdir('examples/cpp')
+    subdir('bindings/cpp')
+    subdir('examples/cpp')
 endif
 
 py = import('python')
 python = py.find_installation('python3', required: false)
 
 if python.found()
-  #subdir('bindings/python')
+    subdir('bindings/python')
 endif
