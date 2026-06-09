@@ -1,7 +1,6 @@
 # Wrouter: Symbolic Web Router
 
-Project status: This is in pre-release. There are
-unit tests for both the C API and the CPython module.
+URL router.
 
 ## Usage
 
