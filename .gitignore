@@ -4,6 +4,7 @@
 
 # Python
 dist/
+.py*
 
 # Test coverage.
 coverage*

@@ -30,6 +30,7 @@ const wrouter_route_t *route_match(wrouter_dispatcher_t *d)
     size_t symbol = 0;
     const char *w_param = NULL;
     uint16_t n_literals = 0;
+    wrouter_param_t *param = NULL;
 
     const wrouter_t *router = d->router;
     const uint16_t *g = router->graph;
@@ -37,7 +38,7 @@ const wrouter_route_t *route_match(wrouter_dispatcher_t *d)
     const uint16_t *node = NULL;
     const uint16_t *l_edge_base = NULL, *p_edge = NULL, *w_edge = NULL,
                    *t_edge = NULL;
-    const uint16_t *p_sym;
+    const uint16_t *p_sym = NULL;
 
     // Check for an empty graph, which is valid, but will never match anything.
     if (g == NULL)
@@ -51,7 +52,6 @@ lexer_next:
     // Consume next token from the lexer.
     tok = lexer_next(&d->lx);
 
-    //fprintf(stderr, "Node\n");
     node = cursor++;
 
     // PARAMETER.
@@ -74,10 +74,8 @@ lexer_next:
     // TRAILING.
     // The trailing-slash edge is stored after the special edge if it exists,
     // otherwise immediately after the node.
-    if (*node & NODE_FLAG_HAS_TRAILING) {
+    if (*node & NODE_FLAG_HAS_TRAILING)
         t_edge = cursor++;
-        //fprintf(stderr, "t_edge value = %u\n", *t_edge);
-    }
 
     // LITERALS.
     // Literal edges.
@@ -96,45 +94,41 @@ lexer_next:
 
                 // Resolve the literal string to a symbol.
                 symbol = symbol_nresolve(&router->literals, tok.ptr, tok.length);
-                //fprintf(stderr, "Found symbol: %u\n", symbol);
                 
                 // If the symbol is resolved, try to match against an edge.
                 if (symbol) {
 
                     // Do a binary search if n > 16, otherwise do a linear scan.
-                    // TODO Fix to skip odds.
-#if 0
                     if (n_literals > 16) {
 
                         // See binary search example from 6.4 Pointers to
                         // Structures, K&R C 2nd ed. (ANSI), page 137.
-                        const uint16_t *l_edge_low = l_edge_base,
-                                       *l_edge_high = l_edge_base + n_literals;
+                        uint16_t low = 0, mid, high = n_literals;
 
                         ptrdiff_t cond;
-                        while (l_edge_low < l_edge_high) {
-                            cursor = l_edge_low + (l_edge_high - l_edge_low) / 2;
-                            if ((cond = symbol - *(cursor + 1)) < 0)
-                                l_edge_high = cursor;
+                        while (low < high) {
+                            mid = low + (high - low) / 2;
+                            if ((cond = symbol - *(l_edge_base + mid * 2)) < 0)
+                                high = mid;
                             else if (cond > 0)
-                                l_edge_low = cursor + 1;
-                            else
+                                low = mid + 1;
+                            else {
+                                cursor = g + *(l_edge_base + mid * 2 + 1);
                                 goto lexer_next;
+                            }
                         }
 
                     } else {
-#endif
                         for (uint16_t i = 0; i < n_literals; i++) {
                             cursor = &l_edge_base[i * 2];
 
                             // Follow symbol.
                             if (*cursor == symbol) {
-                                //fprintf(stderr, "Following symbol.\n");
                                 cursor = g + *(cursor + 1);
                                 goto lexer_next;
                             }
                         }
-                    //}
+                    }
                 }
             }
 
@@ -142,7 +136,7 @@ lexer_next:
             if (*node & NODE_FLAG_HAS_PARAM) {
 
                 // Record parameter name and value.
-                wrouter_param_t *param = &d->params.base[d->params.count++];
+                param = param_next(&d->params);
                 param->name = symbol_lookup(&router->params, *p_sym);
                 param->value = tok.ptr;
                 param->length = tok.length;
@@ -188,24 +182,20 @@ not_found:
 
 trailing:
     // Follow the trailing-slash edge, and terminate.
-    //fprintf(stderr, "Trailing\n");
     cursor = (g + *t_edge);
     goto terminal;
 
 wildcard:
     // Save the wildcard parameter.
-    {
-        wrouter_param_t *param = &d->params.base[d->params.count++];
-        param->name = WILDCARD_PARAM;
-        param->value = w_param;
-        param->length = d->lx.str + d->lx.length - w_param;
-    }
+    param = param_next(&d->params);
+    param->name = WILDCARD_PARAM;
+    param->value = w_param;
+    param->length = d->lx.str + d->lx.length - w_param;
 
     // Follow the wildcard edge and terminate.
     cursor = (g + *w_edge);
 
 terminal:
-    //fprintf(stderr, "Terminal addr %u\n", (ptrdiff_t)(cursor - g));
     return terminal_lookup(&router->terminals, (ptrdiff_t)(cursor - g));
 }
 

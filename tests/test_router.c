@@ -5,6 +5,7 @@
 #include "builder.h"
 #include "graph.h"
 #include "helpers/error_helpers.h"
+#include "helpers/route_helpers.h"
 #include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -91,61 +92,6 @@ static void cb_test(void *dispatch_ctx, const void *route_ctx, const wrouter_par
     }
 
     dtc->seen = true;
-}
-
-static void print_route_node(const segment_t *seg, int depth, int is_param)
-{
-    // Indent.
-    for (int i = 0; i < depth; i++)
-        printf("  ");
-
-    if (is_param)
-        printf(":");
-
-    // Current node.
-    if (seg->str != NULL)
-        printf("%.*s", seg->str_length, seg->str);
-    else
-        printf("/");
-
-    if (seg->terminal != NULL)
-        printf(" &");
-
-    printf("\n");
-
-    // Trailing-slash.
-    if (seg->trailing != NULL) {
-        for (int i = 0; i < depth + 1; i++)
-            printf("  ");
-
-        printf("/ &\n");
-    }
-
-    // Literal children.
-    for (const segment_t *child = seg->head; child; child = child->next)
-        print_route_node(child, depth + 1, 0);
-
-    // Param child.
-    if (seg->spec_type == SPEC_PARAM && seg->special.param != NULL)
-        print_route_node(seg->special.param, depth + 1, 1);
-
-    // Wildcard route.
-    if (seg->spec_type == SPEC_WILDCARD && seg->special.wildcard != NULL) {
-        for (int i = 0; i < depth + 1; i++)
-            printf("  ");
-
-        printf("* &\n");
-    }
-}
-
-void builder_print_tree(const wrouter_builder_t *builder)
-{
-    if (builder == NULL || builder->root == NULL) {
-        printf("(empty)\n");
-        return;
-    }
-
-    print_route_node(builder->root, 0, 0);
 }
 
 void test_router_root(void)
@@ -574,6 +520,8 @@ void test_router_test_cases(void)
     }
     assert(fallback_tc.retained == 2);
     assert(fallback_tc.released == 1);
+
+    print_graph(router);
 
     // Dispatch.
     wrouter_dispatcher_t *dispatcher = wrouter_dispatcher_create(router);

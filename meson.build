@@ -1,7 +1,7 @@
 project(
     'libwrouter',
     'c',
-    version : '0.1.0',
+    version : '1.0.0',
     default_options : [
         'c_std=c11',
         'warning_level=3',
@@ -91,6 +91,7 @@ if not python_package
     test_helpers = static_library(
         'test_helpers',
         'tests/helpers/token_helpers.c',
+        'tests/helpers/route_helpers.c',
         include_directories : include_directories('include', 'src', 'tests'),
     )
 

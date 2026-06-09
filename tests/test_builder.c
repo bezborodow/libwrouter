@@ -1,9 +1,11 @@
 #include "graph.h"
+#include "symbol.h"
 #include "terminal.h"
 #include "wrouter.h"
 #include "builder.h"
 #include "router.h"
 #include "helpers/error_helpers.h"
+#include "helpers/route_helpers.h"
 #include <assert.h>
 #include <limits.h>
 #include <stdbool.h>
@@ -11,13 +13,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-
-static void print_graph(wrouter_t *router)
-{
-    for (uint16_t i = 0; i < router->graph_size; i++) {
-        fprintf(stderr, "%04x: %04x\n", i, router->graph[i]);
-    }
-}
 
 static void cb_null(void *dispatch_ctx, const void *route_ctx, const wrouter_params_t *params)
 {
