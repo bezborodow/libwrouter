@@ -44,6 +44,12 @@ Routes = [
 be an atom, tuple, map, function, or any other Erlang term. Parameters are
 returned as a map of binaries.
 
+Install via Hex with:
+
+```erlang
+{deps, [{wrouter, "1.0.0"}]}.
+```
+
 ### C++
 
 ```

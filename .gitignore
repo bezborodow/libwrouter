@@ -6,6 +6,10 @@
 dist/
 .py*
 
+# Erlang/rebar3
+_build/
+rebar.lock
+
 # Test coverage.
 coverage*
 

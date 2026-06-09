@@ -255,16 +255,6 @@ static ERL_NIF_TERM resolve_nif(ErlNifEnv *env, int argc, const ERL_NIF_TERM arg
     return enif_make_tuple3(env, atom_ok, context, params);
 }
 
-static ERL_NIF_TERM route_count_nif(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
-{
-    router_resource_t *resource;
-
-    if (argc != 1 || !enif_get_resource(env, argv[0], router_resource_type, (void **)&resource))
-        return enif_make_badarg(env);
-
-    return enif_make_uint64(env, wrouter_route_count(resource->router));
-}
-
 static int load(ErlNifEnv *env, void **priv, ERL_NIF_TERM info)
 {
     (void)priv;
@@ -287,7 +277,6 @@ static int load(ErlNifEnv *env, void **priv, ERL_NIF_TERM info)
 static ErlNifFunc funcs[] = {
     { "new_nif", 1, new_nif, 0 },
     { "resolve_nif", 2, resolve_nif, 0 },
-    { "route_count_nif", 1, route_count_nif, 0 },
 };
 
 ERL_NIF_INIT(wrouter, funcs, load, NULL, NULL, NULL)

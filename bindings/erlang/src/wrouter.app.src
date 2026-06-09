@@ -1,0 +1,24 @@
+{application, wrouter,
+    [{description, "Symbolic URL router Erlang NIF bindings"},
+     {vsn, "1.0.0"},
+     {modules, [wrouter]},
+     {registered, []},
+     {applications, [kernel, stdlib]},
+     {env, []},
+     {licenses, ["BSD-3-Clause"]},
+     {links, [
+         {"GitHub", "https://github.com/bezborodow/libwrouter"}
+     ]},
+     {files, [
+         "bindings/erlang/c_src/Makefile",
+         "bindings/erlang/c_src/wrouter_nif.c",
+         "bindings/erlang/README.md",
+         "bindings/erlang/rebar.config",
+         "bindings/erlang/src/wrouter.app.src",
+         "bindings/erlang/src/wrouter.erl",
+         "include/wrouter.h",
+         "src",
+         "LICENSE",
+         "README.md",
+         "rebar.config"
+     ]}]}.

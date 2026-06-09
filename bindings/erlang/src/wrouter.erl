@@ -1,7 +1,7 @@
 -module(wrouter).
 -on_load(load_nif/0).
 
--export([new/1, resolve/2, route_count/1]).
+-export([new/1, resolve/2]).
 
 -type router() :: reference().
 -type route() :: {iodata(), term()}.
@@ -9,17 +9,15 @@
 
 -export_type([router/0, route/0, params/0]).
 
+%% @doc Build a router from route pattern and context pairs.
 -spec new([route()]) -> {ok, router()} | {error, binary()}.
 new(Routes) ->
     new_nif(Routes).
 
+%% @doc Resolve a path to its route context and extracted parameters.
 -spec resolve(router(), iodata()) -> {ok, term(), params()} | not_found | {error, binary()}.
 resolve(Router, Path) ->
     resolve_nif(Router, Path).
-
--spec route_count(router()) -> non_neg_integer().
-route_count(Router) ->
-    route_count_nif(Router).
 
 load_nif() ->
     Path =
@@ -42,7 +40,4 @@ new_nif(_Routes) ->
     erlang:nif_error(nif_not_loaded).
 
 resolve_nif(_Router, _Path) ->
-    erlang:nif_error(nif_not_loaded).
-
-route_count_nif(_Router) ->
     erlang:nif_error(nif_not_loaded).

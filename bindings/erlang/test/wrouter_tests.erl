@@ -19,14 +19,6 @@ wildcard_route_test() ->
         {ok, files_show, #{<<"_">> => <<"a/b/c">>}},
         wrouter:resolve(Router, <<"/files/a/b/c">>)).
 
-route_count_test() ->
-    {ok, Router} = wrouter:new([
-        {<<"/one">>, one},
-        {<<"/two">>, two},
-        {<<"/three/:id">>, three}
-    ]),
-    ?assertEqual(3, wrouter:route_count(Router)).
-
 duplicate_route_error_test() ->
     ?assertMatch(
         {error, _},
