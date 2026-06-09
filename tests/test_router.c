@@ -55,12 +55,12 @@ static void cb_ignore(void *dispatch_ctx, const void *route_ctx, const wrouter_p
  */
 static void cb_watch(void *dispatch_ctx, const void *route_ctx, const wrouter_params_t *params)
 {
-    uint32_t expected_parameter_count = 0;
+    uint32_t expected_param_count = 0;
 
     if (route_ctx != NULL)
-        expected_parameter_count = *((uint32_t *)route_ctx);
+        expected_param_count = *((uint32_t *)route_ctx);
 
-    assert(params->count == expected_parameter_count);
+    assert(params->count == expected_param_count);
 
     bool *seen = dispatch_ctx;
     *seen = true;
@@ -108,8 +108,8 @@ void test_router_root(void)
     bool seen = false;
 
     // Add routes.
-    const uint32_t expected_parameter_count = 0;
-    assert(wrouter_add_handler_ctx(builder, "/", cb_watch, &expected_parameter_count) == 0);
+    const uint32_t expected_param_count = 0;
+    assert(wrouter_add_handler_ctx(builder, "/", cb_watch, &expected_param_count) == 0);
 
     // Compile.
     wrouter_error_t err;
@@ -142,8 +142,8 @@ void test_router_literal(void)
     bool seen = false;
 
     // Add routes.
-    const uint32_t expected_parameter_count = 0;
-    assert(wrouter_add_handler_ctx(builder, "/literal", cb_watch, &expected_parameter_count) == 0);
+    const uint32_t expected_param_count = 0;
+    assert(wrouter_add_handler_ctx(builder, "/literal", cb_watch, &expected_param_count) == 0);
 
     // Compile.
     wrouter_error_t err;
@@ -176,9 +176,9 @@ void test_router_two_literal(void)
     bool seen = false;
 
     // Add routes.
-    const uint32_t expected_parameter_count = 0;
-    assert(wrouter_add_handler_ctx(builder, "/beta", cb_watch, &expected_parameter_count) == 0);
-    assert(wrouter_add_handler_ctx(builder, "/alpha", cb_ignore, &expected_parameter_count) == 0);
+    const uint32_t expected_param_count = 0;
+    assert(wrouter_add_handler_ctx(builder, "/beta", cb_watch, &expected_param_count) == 0);
+    assert(wrouter_add_handler_ctx(builder, "/alpha", cb_ignore, &expected_param_count) == 0);
 
     // Compile.
     wrouter_error_t err;
@@ -197,7 +197,6 @@ void test_router_two_literal(void)
     wrouter_free(router);
 }
 
-
 void test_router_trailing(void)
 {
     // Create builder.
@@ -212,8 +211,8 @@ void test_router_trailing(void)
     bool seen = false;
 
     // Add routes.
-    const uint32_t expected_parameter_count = 0;
-    assert(wrouter_add_handler_ctx(builder, "/trailing/", cb_watch, &expected_parameter_count) == 0);
+    const uint32_t expected_param_count = 0;
+    assert(wrouter_add_handler_ctx(builder, "/trailing/", cb_watch, &expected_param_count) == 0);
 
     // Compile.
     wrouter_error_t err;
@@ -246,8 +245,8 @@ void test_router_param(void)
     bool seen = false;
 
     // Add routes.
-    const uint32_t expected_parameter_count = 1;
-    assert(wrouter_add_handler_ctx(builder, "/:param", cb_watch, &expected_parameter_count) == 0);
+    const uint32_t expected_param_count = 1;
+    assert(wrouter_add_handler_ctx(builder, "/:param", cb_watch, &expected_param_count) == 0);
 
     // Compile.
     wrouter_error_t err;
@@ -280,8 +279,8 @@ void test_router_wildcard(void)
     bool seen = false;
 
     // Add routes.
-    const uint32_t expected_parameter_count = 1;
-    assert(wrouter_add_handler_ctx(builder, "/*", cb_watch, &expected_parameter_count) == 0);
+    const uint32_t expected_param_count = 1;
+    assert(wrouter_add_handler_ctx(builder, "/*", cb_watch, &expected_param_count) == 0);
 
     // Compile.
     wrouter_error_t err;
@@ -314,8 +313,8 @@ void test_router_two_segment_literals(void)
     bool seen = false;
 
     // Add routes.
-    const uint32_t expected_parameter_count = 0;
-    assert(wrouter_add_handler_ctx(builder, "/seg1/seg2", cb_watch, &expected_parameter_count) == 0);
+    const uint32_t expected_param_count = 0;
+    assert(wrouter_add_handler_ctx(builder, "/seg1/seg2", cb_watch, &expected_param_count) == 0);
 
     // Compile.
     wrouter_error_t err;
@@ -636,8 +635,8 @@ void test_router_end_wildcard(void)
     bool wildcard_seen = false;
 
     // Add routes.
-    const uint32_t expected_parameter_count = 1;
-    assert(wrouter_add_handler_ctx(builder, "/*", cb_watch, &expected_parameter_count) == 0);
+    const uint32_t expected_param_count = 1;
+    assert(wrouter_add_handler_ctx(builder, "/*", cb_watch, &expected_param_count) == 0);
     assert(wrouter_add_handler(builder, "/literal", cb_ignore) == 0);
 
     // Compile.

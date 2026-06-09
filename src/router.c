@@ -36,8 +36,7 @@ const wrouter_route_t *route_match(wrouter_dispatcher_t *d)
     const uint16_t *g = router->graph;
     const uint16_t *cursor = g;
     const uint16_t *node = NULL;
-    const uint16_t *l_edge_base = NULL, *p_edge = NULL, *w_edge = NULL,
-                   *t_edge = NULL;
+    const uint16_t *l_edge_base = NULL, *p_edge = NULL, *w_edge = NULL, *t_edge = NULL;
     const uint16_t *p_sym = NULL;
 
     // Check for an empty graph, which is valid, but will never match anything.
@@ -94,7 +93,7 @@ lexer_next:
 
                 // Resolve the literal string to a symbol.
                 symbol = symbol_nresolve(&router->literals, tok.ptr, tok.length);
-                
+
                 // If the symbol is resolved, try to match against an edge.
                 if (symbol) {
 
@@ -177,7 +176,6 @@ lexer_next:
 not_found:
     // Not found; no parameters.
     d->params.count = 0;
-    //fprintf(stderr, "Not found.\n");
     return NULL;
 
 trailing:

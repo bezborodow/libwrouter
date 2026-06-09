@@ -29,8 +29,7 @@ void print_graph(wrouter_t *router)
 
         fprintf(stderr, "%04x: %04x ", i, router->graph[i]);
 
-        switch (m)
-        {
+        switch (m) {
             case G_NODE:
                 node = *cursor;
                 n = node & NODE_LITERALS_MASK;
@@ -62,7 +61,8 @@ void print_graph(wrouter_t *router)
 
             case G_PARAM_SYM:
                 m = G_PARAM_EDGE;
-                fprintf(stderr, "  SYMBOL PARAMETER --> %s\n", symbol_lookup(&router->params, *cursor));
+                fprintf(stderr, "  SYMBOL PARAMETER --> %s\n",
+                        symbol_lookup(&router->params, *cursor));
                 continue;
 
             case G_PARAM_EDGE:
@@ -99,7 +99,8 @@ void print_graph(wrouter_t *router)
 
             case G_LITERAL_SYM:
                 m = G_LITERAL_EDGE;
-                fprintf(stderr, "  SYMBOL LITERAL --> %s\n", symbol_lookup(&router->literals, *cursor));
+                fprintf(stderr, "  SYMBOL LITERAL --> %s\n",
+                        symbol_lookup(&router->literals, *cursor));
                 continue;
 
             case G_LITERAL_EDGE:

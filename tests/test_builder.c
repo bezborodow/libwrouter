@@ -671,7 +671,7 @@ void test_builder_graph_with_trailing(void)
 
     // Route handler.
     uint32_t expected_ctx = 9999;
-    wrouter_route_t expected_route = { NULL, &expected_ctx};
+    wrouter_route_t expected_route = { NULL, &expected_ctx };
 
     // Add routes.
     assert(wrouter_add_route(builder, "/trailing/", expected_route) == 0);
@@ -759,7 +759,6 @@ void test_builder_graph_with_all_the_things(void)
 
     wrouter_free(router);
 }
-
 
 int main(void)
 {
