@@ -5,6 +5,7 @@
 #include "builder.h"
 #include "router.h"
 #include "helpers/error_helpers.h"
+#include "helpers/route_helpers.h"
 #include <assert.h>
 #include <limits.h>
 #include <stdbool.h>
@@ -12,111 +13,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-
-enum graph_entry {
-    G_NODE,
-    G_PARAM_SYM,
-    G_PARAM_EDGE,
-    G_WILDCARD_EDGE,
-    G_TRAILING_EDGE,
-    G_LITERAL_SYM,
-    G_LITERAL_EDGE,
-};
-
-static void print_graph(wrouter_t *router)
-{
-    enum graph_entry m = G_NODE;
-    uint16_t node = 0, *cursor = router->graph;
-    uint16_t n = 0;
-
-    for (uint16_t i = 0; i < router->graph_size; i++) {
-        cursor = router->graph + i;
-
-        fprintf(stderr, "%04x: %04x ", i, router->graph[i]);
-
-        switch (m)
-        {
-            case G_NODE:
-                node = *cursor;
-                n = node & NODE_LITERALS_MASK;
-
-                fprintf(stderr, "NODE");
-                if (node & NODE_FLAG_TERMINAL)
-                    fprintf(stderr, " TERMINAL");
-                fprintf(stderr, "\n");
-
-                if (node & NODE_FLAG_HAS_PARAM) {
-                    m = G_PARAM_SYM;
-                    continue;
-                }
-                if (node & NODE_FLAG_HAS_WILDCARD) {
-                    m = G_WILDCARD_EDGE;
-                    continue;
-                }
-                if (node & NODE_FLAG_HAS_TRAILING) {
-                    m = G_TRAILING_EDGE;
-                    continue;
-                }
-                if (n) {
-                    m = G_LITERAL_SYM;
-                    continue;
-                }
-                break;
-
-            case G_PARAM_SYM:
-                m = G_PARAM_EDGE;
-                fprintf(stderr, "  SYMBOL PARAMETER --> %s\n", symbol_lookup(&router->params, *cursor));
-                continue;
-
-            case G_PARAM_EDGE:
-                fprintf(stderr, "  EDGE PARAMETER\n");
-                if (node & NODE_FLAG_HAS_TRAILING) {
-                    m = G_TRAILING_EDGE;
-                    continue;
-                }
-                if (n) {
-                    m = G_LITERAL_SYM;
-                    continue;
-                }
-                break;
-
-            case G_WILDCARD_EDGE:
-                fprintf(stderr, "  EDGE WILDCARD\n");
-                if (node & NODE_FLAG_HAS_TRAILING) {
-                    m = G_TRAILING_EDGE;
-                    continue;
-                }
-                if (n) {
-                    m = G_LITERAL_SYM;
-                    continue;
-                }
-                break;
-
-            case G_TRAILING_EDGE:
-                fprintf(stderr, "  EDGE TRAILING\n");
-                if (n) {
-                    m = G_LITERAL_SYM;
-                    continue;
-                }
-                break;
-
-            case G_LITERAL_SYM:
-                m = G_LITERAL_EDGE;
-                fprintf(stderr, "  SYMBOL LITERAL --> %s\n", symbol_lookup(&router->literals, *cursor));
-                continue;
-
-            case G_LITERAL_EDGE:
-                fprintf(stderr, "  EDGE LITERAL\n");
-                if (--n) {
-                    m = G_LITERAL_SYM;
-                    continue;
-                }
-                m = G_NODE;
-                break;
-        }
-        m = G_NODE;
-    }
-}
 
 static void cb_null(void *dispatch_ctx, const void *route_ctx, const wrouter_params_t *params)
 {

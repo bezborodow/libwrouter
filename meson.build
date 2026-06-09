@@ -91,6 +91,7 @@ if not python_package
     test_helpers = static_library(
         'test_helpers',
         'tests/helpers/token_helpers.c',
+        'tests/helpers/route_helpers.c',
         include_directories : include_directories('include', 'src', 'tests'),
     )
 
