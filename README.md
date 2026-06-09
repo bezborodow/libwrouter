@@ -27,6 +27,23 @@ Will print: `account.view 1234`.
 
 Install from [PyPI](https://pypi.org/project/wrouter/0.1.0/) with `pip install wrouter`.
 
+### Erlang
+
+```erlang
+Routes = [
+    {<<"/account">>, account_list},
+    {<<"/account/:id">>, account_view},
+    {<<"/posts/:id">>, fun handle_post/2}
+],
+
+{ok, Router} = wrouter:new(Routes),
+{ok, Handler, Params} = wrouter:resolve(Router, <<"/account/1234">>).
+```
+
+`Handler` is the route context term supplied when building the router. It can
+be an atom, tuple, map, function, or any other Erlang term. Parameters are
+returned as a map of binaries.
+
 ### C++
 
 ```
@@ -56,23 +73,6 @@ int main()
     std::cout << response.body << "\n";
 }
 ```
-
-### Erlang
-
-```erlang
-Routes = [
-    {<<"/account">>, account_list},
-    {<<"/account/:id">>, account_view},
-    {<<"/posts/:id">>, fun handle_post/2}
-],
-
-{ok, Router} = wrouter:new(Routes),
-{ok, Handler, Params} = wrouter:resolve(Router, <<"/account/1234">>).
-```
-
-`Handler` is the route context term supplied when building the router. It can
-be an atom, tuple, map, function, or any other Erlang term. Parameters are
-returned as a map of binaries.
 
 ### C
 
