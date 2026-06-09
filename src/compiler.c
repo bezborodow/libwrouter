@@ -17,7 +17,7 @@
 wrouter_t *wrouter_compile(const wrouter_builder_t *builder, wrouter_error_t *err)
 {
     graph_stats_t stats = { 0 };
-    size_t cursor = 0;
+    uint16_t *cursor;
 
     // Require an error output so failures can be reported.
     if (err == NULL)
@@ -52,12 +52,8 @@ wrouter_t *wrouter_compile(const wrouter_builder_t *builder, wrouter_error_t *er
     router->max_params = stats.max_params;
     router->graph_size = stats.size;
 
-    // If no terminals, return an empty router.
-    if (!stats.terminals)
-        return router;
-
     // Range checking.
-    if (stats.size > GRAPH_CAPACITY_BYTES || stats.terminals > UINT16_MAX)
+    if (stats.size > UINT16_MAX || stats.terminals > UINT16_MAX)
         goto out_of_range;
 
     // Allocate and compile symbols for literals.
@@ -72,11 +68,12 @@ wrouter_t *wrouter_compile(const wrouter_builder_t *builder, wrouter_error_t *er
         goto no_memory;
 
     // Allocate the graph.
-    router->graph = calloc(stats.size, 1);
+    router->graph = calloc(stats.size, sizeof(uint16_t));
     if (router->graph == NULL)
         goto no_memory;
 
     // Compile the graph.
+    cursor = router->graph;
     graph_compile(router, builder->root, &cursor);
 
     return router;
