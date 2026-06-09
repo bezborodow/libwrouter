@@ -102,28 +102,26 @@ lexer_next:
                 if (symbol) {
 
                     // Do a binary search if n > 16, otherwise do a linear scan.
-                    // TODO Fix to skip odds.
-#if 0
                     if (n_literals > 16) {
 
                         // See binary search example from 6.4 Pointers to
                         // Structures, K&R C 2nd ed. (ANSI), page 137.
-                        const uint16_t *l_edge_low = l_edge_base,
-                                       *l_edge_high = l_edge_base + n_literals;
+                        uint16_t low = 0, mid, high = n_literals;
 
                         ptrdiff_t cond;
-                        while (l_edge_low < l_edge_high) {
-                            cursor = l_edge_low + (l_edge_high - l_edge_low) / 2;
-                            if ((cond = symbol - *(cursor + 1)) < 0)
-                                l_edge_high = cursor;
+                        while (low < high) {
+                            mid = low + (high - low) / 2;
+                            if ((cond = symbol - *(l_edge_base + mid * 2)) < 0)
+                                high = mid;
                             else if (cond > 0)
-                                l_edge_low = cursor + 1;
-                            else
+                                low = mid + 1;
+                            else {
+                                cursor = g + *(l_edge_base + mid * 2 + 1);
                                 goto lexer_next;
+                            }
                         }
 
                     } else {
-#endif
                         for (uint16_t i = 0; i < n_literals; i++) {
                             cursor = &l_edge_base[i * 2];
 
@@ -134,7 +132,7 @@ lexer_next:
                                 goto lexer_next;
                             }
                         }
-                    //}
+                    }
                 }
             }
 
