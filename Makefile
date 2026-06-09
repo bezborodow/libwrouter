@@ -11,7 +11,11 @@ cpptests: build
 	meson test -C build cpp --print-errorlogs -v
 
 erlangtest: build
-	meson test -C build erlang --print-errorlogs -v
+	@if meson test -C build --list | grep -qx 'libwrouter:erlang'; then \
+		meson test -C build erlang --print-errorlogs -v; \
+	else \
+		echo "Skipping Erlang tests; Erlang bindings were not configured."; \
+	fi
 
 pytest: test
 	PYTHONPATH=build/bindings/python pytest -s bindings/python/tests/
