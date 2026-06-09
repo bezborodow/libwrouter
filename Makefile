@@ -1,4 +1,4 @@
-.PHONY: build test cpptests erlangtest ctags format install clean pytest clang-tidy alltest
+.PHONY: build test cpptests erltest ctags format install clean pytest clang-tidy alltest
 
 build:
 	meson setup build
@@ -10,12 +10,8 @@ test: build
 cpptests: build
 	meson test -C build cpp --print-errorlogs -v
 
-erlangtest: build
-	@if meson test -C build --list | grep -qx 'libwrouter:erlang'; then \
-		meson test -C build erlang --print-errorlogs -v; \
-	else \
-		echo "Skipping Erlang tests; Erlang bindings were not configured."; \
-	fi
+erltest: build
+	meson test -C build erlang --print-errorlogs -v;
 
 pytest: test
 	PYTHONPATH=build/bindings/python pytest -s bindings/python/tests/
@@ -26,7 +22,7 @@ ctags:
 format:
 	clang-format -i include/* src/* tests/*.c tests/helpers/* examples/libmicrohttpd/*.c bindings/python/*.c bindings/python/*.h
 
-alltest: test cpptests erlangtest pytest
+alltest: test cpptests erltest pytest
 
 coverage:
 	meson setup build-coverage -Db_coverage=true -Db_sanitize=none

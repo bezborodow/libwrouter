@@ -14,6 +14,9 @@ typedef struct {
 } router_resource_t;
 
 static ErlNifResourceType *router_resource_type = NULL;
+static ERL_NIF_TERM atom_error;
+static ERL_NIF_TERM atom_not_found;
+static ERL_NIF_TERM atom_ok;
 
 static void route_context_free(route_context_t *ctx)
 {
@@ -64,18 +67,25 @@ static void route_context_release(const void *ptr)
         route_context_free(ctx);
 }
 
+static int make_binary(ErlNifEnv *env, const char *src, size_t len, ERL_NIF_TERM *term)
+{
+    unsigned char *dst = enif_make_new_binary(env, len, term);
+
+    if (dst == NULL)
+        return 0;
+
+    memcpy(dst, src, len);
+    return 1;
+}
+
 static ERL_NIF_TERM make_error(ErlNifEnv *env, const char *reason)
 {
     ERL_NIF_TERM reason_bin;
-    size_t len = strlen(reason);
-    unsigned char *data = enif_make_new_binary(env, len, &reason_bin);
 
-    if (data == NULL)
+    if (!make_binary(env, reason, strlen(reason), &reason_bin))
         return enif_make_badarg(env);
 
-    memcpy(data, reason, len);
-
-    return enif_make_tuple2(env, enif_make_atom(env, "error"), reason_bin);
+    return enif_make_tuple2(env, atom_error, reason_bin);
 }
 
 static int copy_iolist_to_cstr(ErlNifEnv *env, ERL_NIF_TERM term, char **out, size_t *out_len)
@@ -94,7 +104,8 @@ static int copy_iolist_to_cstr(ErlNifEnv *env, ERL_NIF_TERM term, char **out, si
     str[bin.size] = '\0';
 
     *out = str;
-    *out_len = bin.size;
+    if (out_len != NULL)
+        *out_len = bin.size;
     return 1;
 }
 
@@ -106,20 +117,12 @@ static ERL_NIF_TERM make_params(ErlNifEnv *env, const wrouter_params_t *params)
         const wrouter_param_t *param = &params->base[i];
         ERL_NIF_TERM name;
         ERL_NIF_TERM value;
-        unsigned char *value_data;
 
-        size_t name_len = strlen(param->name);
-        unsigned char *name_data = enif_make_new_binary(env, name_len, &name);
-        if (name_data == NULL)
+        if (!make_binary(env, param->name, strlen(param->name), &name))
             return enif_make_badarg(env);
 
-        memcpy(name_data, param->name, name_len);
-
-        value_data = enif_make_new_binary(env, param->length, &value);
-        if (value_data == NULL)
+        if (!make_binary(env, param->value, param->length, &value))
             return enif_make_badarg(env);
-
-        memcpy(value_data, param->value, param->length);
 
         if (!enif_make_map_put(env, map, name, value, &map))
             return enif_make_badarg(env);
@@ -142,6 +145,7 @@ static void router_resource_dtor(ErlNifEnv *env, void *obj)
 static ERL_NIF_TERM new_nif(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
 {
     ERL_NIF_TERM list;
+    ERL_NIF_TERM result;
     wrouter_builder_t *builder = NULL;
     wrouter_t *router = NULL;
     router_resource_t *resource = NULL;
@@ -165,7 +169,6 @@ static ERL_NIF_TERM new_nif(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
         const ERL_NIF_TERM *tuple;
         int arity;
         char *pattern = NULL;
-        size_t pattern_len = 0;
         route_context_t *ctx = NULL;
 
         if (!enif_get_list_cell(env, list, &head, &tail) ||
@@ -174,12 +177,10 @@ static ERL_NIF_TERM new_nif(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
             return enif_make_badarg(env);
         }
 
-        if (!copy_iolist_to_cstr(env, tuple[0], &pattern, &pattern_len)) {
+        if (!copy_iolist_to_cstr(env, tuple[0], &pattern, NULL)) {
             wrouter_builder_free(builder);
             return enif_make_badarg(env);
         }
-
-        (void)pattern_len;
 
         ctx = route_context_create(tuple[1]);
         if (ctx == NULL) {
@@ -212,10 +213,10 @@ static ERL_NIF_TERM new_nif(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
 
     resource->router = router;
 
-    ERL_NIF_TERM result = enif_make_resource(env, resource);
+    result = enif_make_resource(env, resource);
     enif_release_resource(resource);
 
-    return enif_make_tuple2(env, enif_make_atom(env, "ok"), result);
+    return enif_make_tuple2(env, atom_ok, result);
 }
 
 static ERL_NIF_TERM resolve_nif(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
@@ -228,8 +229,7 @@ static ERL_NIF_TERM resolve_nif(ErlNifEnv *env, int argc, const ERL_NIF_TERM arg
     ERL_NIF_TERM context;
     ERL_NIF_TERM params;
 
-    if (argc != 2 ||
-        !enif_get_resource(env, argv[0], router_resource_type, (void **)&resource) ||
+    if (argc != 2 || !enif_get_resource(env, argv[0], router_resource_type, (void **)&resource) ||
         !copy_iolist_to_cstr(env, argv[1], &path, &path_len))
         return enif_make_badarg(env);
 
@@ -244,7 +244,7 @@ static ERL_NIF_TERM resolve_nif(ErlNifEnv *env, int argc, const ERL_NIF_TERM arg
     if (ctx == NULL) {
         enif_free(path);
         wrouter_dispatcher_free(dispatcher);
-        return enif_make_atom(env, "not_found");
+        return atom_not_found;
     }
 
     context = enif_make_copy(env, ctx->term);
@@ -252,15 +252,14 @@ static ERL_NIF_TERM resolve_nif(ErlNifEnv *env, int argc, const ERL_NIF_TERM arg
     enif_free(path);
     wrouter_dispatcher_free(dispatcher);
 
-    return enif_make_tuple3(env, enif_make_atom(env, "ok"), context, params);
+    return enif_make_tuple3(env, atom_ok, context, params);
 }
 
 static ERL_NIF_TERM route_count_nif(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
 {
     router_resource_t *resource;
 
-    if (argc != 1 ||
-        !enif_get_resource(env, argv[0], router_resource_type, (void **)&resource))
+    if (argc != 1 || !enif_get_resource(env, argv[0], router_resource_type, (void **)&resource))
         return enif_make_badarg(env);
 
     return enif_make_uint64(env, wrouter_route_count(resource->router));
@@ -271,15 +270,18 @@ static int load(ErlNifEnv *env, void **priv, ERL_NIF_TERM info)
     (void)priv;
     (void)info;
 
-    router_resource_type = enif_open_resource_type(
-        env,
-        NULL,
-        "wrouter_router",
-        router_resource_dtor,
-        ERL_NIF_RT_CREATE | ERL_NIF_RT_TAKEOVER,
-        NULL);
+    router_resource_type =
+        enif_open_resource_type(env, NULL, "wrouter_router", router_resource_dtor,
+                                ERL_NIF_RT_CREATE | ERL_NIF_RT_TAKEOVER, NULL);
 
-    return router_resource_type == NULL ? -1 : 0;
+    if (router_resource_type == NULL)
+        return -1;
+
+    atom_error = enif_make_atom(env, "error");
+    atom_not_found = enif_make_atom(env, "not_found");
+    atom_ok = enif_make_atom(env, "ok");
+
+    return 0;
 }
 
 static ErlNifFunc funcs[] = {
