@@ -51,7 +51,7 @@ lexer_next:
     // Consume next token from the lexer.
     tok = lexer_next(&d->lx);
 
-    fprintf(stderr, "Node\n");
+    //fprintf(stderr, "Node\n");
     node = cursor++;
 
     // PARAMETER.
@@ -76,7 +76,7 @@ lexer_next:
     // otherwise immediately after the node.
     if (*node & NODE_FLAG_HAS_TRAILING) {
         t_edge = cursor++;
-        fprintf(stderr, "t_edge value = %u\n", *t_edge);
+        //fprintf(stderr, "t_edge value = %u\n", *t_edge);
     }
 
     // LITERALS.
@@ -96,7 +96,7 @@ lexer_next:
 
                 // Resolve the literal string to a symbol.
                 symbol = symbol_nresolve(&router->literals, tok.ptr, tok.length);
-                fprintf(stderr, "Found symbol: %u\n", symbol);
+                //fprintf(stderr, "Found symbol: %u\n", symbol);
                 
                 // If the symbol is resolved, try to match against an edge.
                 if (symbol) {
@@ -124,12 +124,12 @@ lexer_next:
 
                     } else {
 #endif
-                        for (uint16_t i = 0; i < n_literals; i += 2) {
-                            cursor = &l_edge_base[i];
+                        for (uint16_t i = 0; i < n_literals; i++) {
+                            cursor = &l_edge_base[i * 2];
 
                             // Follow symbol.
                             if (*cursor == symbol) {
-                                fprintf(stderr, "Following symbol.\n");
+                                //fprintf(stderr, "Following symbol.\n");
                                 cursor = g + *(cursor + 1);
                                 goto lexer_next;
                             }
@@ -183,11 +183,12 @@ lexer_next:
 not_found:
     // Not found; no parameters.
     d->params.count = 0;
+    //fprintf(stderr, "Not found.\n");
     return NULL;
 
 trailing:
     // Follow the trailing-slash edge, and terminate.
-    fprintf(stderr, "Trailing\n");
+    //fprintf(stderr, "Trailing\n");
     cursor = (g + *t_edge);
     goto terminal;
 
@@ -204,11 +205,8 @@ wildcard:
     cursor = (g + *w_edge);
 
 terminal:
-    fprintf(stderr, "Terminal addr %u\n", (ptrdiff_t)(cursor - g));
-    wrouter_route_t *route = terminal_lookup(&router->terminals, (ptrdiff_t)(cursor - g));
-    if (route == NULL)
-        fprintf(stderr, "Terminal lookup failure.\n");
-    return route;
+    //fprintf(stderr, "Terminal addr %u\n", (ptrdiff_t)(cursor - g));
+    return terminal_lookup(&router->terminals, (ptrdiff_t)(cursor - g));
 }
 
 /**
