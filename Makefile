@@ -1,4 +1,4 @@
-.PHONY: build test cpptests ctags format install clean pytest clang-tidy
+.PHONY: build test cpptests erlangtest ctags format install clean pytest clang-tidy alltest
 
 build:
 	meson setup build
@@ -10,6 +10,9 @@ test: build
 cpptests: build
 	meson test -C build cpp --print-errorlogs -v
 
+erlangtest: build
+	meson test -C build erlang --print-errorlogs -v
+
 pytest: test
 	PYTHONPATH=build/bindings/python pytest -s bindings/python/tests/
 
@@ -19,7 +22,7 @@ ctags:
 format:
 	clang-format -i include/* src/* tests/*.c tests/helpers/* examples/libmicrohttpd/*.c bindings/python/*.c bindings/python/*.h
 
-alltest: test cpptests pytest
+alltest: test cpptests erlangtest pytest
 
 coverage:
 	meson setup build-coverage -Db_coverage=true -Db_sanitize=none

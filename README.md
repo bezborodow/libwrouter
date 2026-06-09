@@ -58,6 +58,23 @@ int main()
 }
 ```
 
+### Erlang
+
+```erlang
+Routes = [
+    {<<"/account">>, account_list},
+    {<<"/account/:id">>, account_view},
+    {<<"/posts/:id">>, fun handle_post/2}
+],
+
+{ok, Router} = wrouter:new(Routes),
+{ok, Handler, Params} = wrouter:resolve(Router, <<"/account/1234">>).
+```
+
+`Handler` is the route context term supplied when building the router. It can
+be an atom, tuple, map, function, or any other Erlang term. Parameters are
+returned as a map of binaries.
+
 ### C
 
 ```c

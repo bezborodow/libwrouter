@@ -4,3 +4,10 @@ option(
     value : false,
     description : 'Build only the Python packaging targets.',
 )
+
+option(
+    'erlang_bindings',
+    type : 'feature',
+    value : 'auto',
+    description : 'Build Erlang NIF bindings when Erlang tools are available.',
+)

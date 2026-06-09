@@ -435,7 +435,6 @@ void test_router_test_cases(void)
     };
 
     terminal_test_case_t cases[] = {
-#if 0
         {
             .pattern = "/downloads/*",
             .request = "/downloads/documents/schematic.pdf",
@@ -445,12 +444,10 @@ void test_router_test_cases(void)
             .pattern = "/downloads/",
             .request = "/downloads/",
         },
-#endif
         {
             .pattern = "/downloads",
             .request = "/downloads",
         },
-#if 0
         {
             .pattern = "/",
             .request = "/",
@@ -460,12 +457,10 @@ void test_router_test_cases(void)
             .request = "/hello",
             .params = &hello_params,
         },
-#endif
         {
             .pattern = "/accounts",
             .request = "/accounts",
         },
-#if 0
         {
             .pattern = "/accounts/create",
             .request = "/accounts/create",
@@ -518,7 +513,6 @@ void test_router_test_cases(void)
             .request = "/project/400/edit",
             .params = &project_params,
         },
-#endif
     };
     // clang-format on
 

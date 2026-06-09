@@ -129,6 +129,8 @@ if not python_package
     add_languages('cpp', required : true)
     subdir('bindings/cpp')
     subdir('examples/cpp')
+
+    subdir('bindings/erlang')
 endif
 
 py = import('python')
