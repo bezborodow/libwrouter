@@ -588,11 +588,12 @@ void test_builder_graph_with_two_literal_children(void)
     wrouter_builder_t *builder = wrouter_builder_create(options);
 
     // Route handler.
-    wrouter_route_t route = { NULL, NULL };
+    const uint32_t expected_one = 11 * UINT16_MAX;
+    const uint32_t expected_two = 22 * UINT16_MAX;
 
     // Add routes.
-    assert(wrouter_add_route(builder, "/b_2_two", route) == 0);
-    assert(wrouter_add_route(builder, "/a_1_one", route) == 0);
+    assert(wrouter_add_context(builder, "/b_2_two", &expected_two) == 0);
+    assert(wrouter_add_context(builder, "/a_1_one", &expected_one) == 0);
 
     // Compile.
     wrouter_error_t err;
@@ -617,8 +618,16 @@ void test_builder_graph_with_two_literal_children(void)
     assert(router->graph[2] == one_edge);
     assert(router->graph[3] == two_sym);
     assert(router->graph[4] == two_edge);
-    assert(router->graph[6] == two_node);
-    assert(router->graph[5] == one_node);
+    assert(router->graph[5] == two_node);
+    assert(router->graph[6] == one_node);
+
+    assert(router->terminals.count == 2);
+    wrouter_route_t *actual_one = terminal_lookup(&router->terminals, 6);
+    wrouter_route_t *actual_two = terminal_lookup(&router->terminals, 5);
+    assert(actual_two != NULL);
+    assert((uint32_t *)actual_two->ctx == &expected_two);
+    assert(actual_one != NULL);
+    assert((uint32_t *)actual_one->ctx == &expected_one);
 
     wrouter_free(router);
 }
@@ -699,7 +708,7 @@ void test_builder_graph_with_trailing(void)
     wrouter_route_t *actual_route = terminal_lookup(&router->terminals, 5);
     assert(actual_route != NULL);
     assert(actual_route->ctx == expected_route.ctx);
-    uint32_t *actual_ctx = actual_route->ctx;
+    const uint32_t *actual_ctx = actual_route->ctx;
     assert(*actual_ctx == 9999);
 
     wrouter_free(router);
