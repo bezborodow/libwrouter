@@ -140,7 +140,7 @@ lexer_next:
             if (*node & NODE_FLAG_HAS_PARAM) {
 
                 // Record parameter name and value.
-                wrouter_param_t *param = &d->params.base[d->params.count++];
+                wrouter_param_t *param = param_next(&d->params);
                 param->name = symbol_lookup(&router->params, *p_sym);
                 param->value = tok.ptr;
                 param->length = tok.length;
@@ -193,7 +193,7 @@ trailing:
 wildcard:
     // Save the wildcard parameter.
     {
-        wrouter_param_t *param = &d->params.base[d->params.count++];
+        wrouter_param_t *param = param_next(&d->params);
         param->name = WILDCARD_PARAM;
         param->value = w_param;
         param->length = d->lx.str + d->lx.length - w_param;

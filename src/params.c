@@ -120,6 +120,11 @@ int params_alloc(wrouter_params_t *params, size_t n)
     return params->base == NULL;
 }
 
+wrouter_param_t *param_next(wrouter_params_t *params)
+{
+    return &params->base[params->count++];
+}
+
 void params_free(wrouter_params_t *params)
 {
     if (params == NULL)
