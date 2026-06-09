@@ -38,7 +38,7 @@ const wrouter_route_t *route_match(wrouter_dispatcher_t *d)
     const uint16_t *node = NULL;
     const uint16_t *l_edge_base = NULL, *p_edge = NULL, *w_edge = NULL,
                    *t_edge = NULL;
-    const uint16_t *p_sym;
+    const uint16_t *p_sym = NULL;
 
     // Check for an empty graph, which is valid, but will never match anything.
     if (g == NULL)
